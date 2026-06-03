@@ -282,13 +282,14 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game"):
             time.sleep(5)
 
 # ---
-HTML = open("index.html", encoding="utf-8").read()
+with open("index.html", encoding="utf-8") as _f:
+    HTML = _f.read()
 
 
 # ---
 @app.route('/')
 def index():
-    return HTML, 200, {'Content-Type': 'text/html; charset=utf-8'}
+    return render_template_string(HTML)
 
 @app.route('/roteiro', methods=['POST'])
 def roteiro():
