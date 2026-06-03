@@ -374,26 +374,36 @@ async function gerarNarracao() {
   btn.disabled = true;
   btn.textContent = 'Gerando narracao...';
 
+  // Concatena automaticamente: gancho + narracao + frase final + pergunta divisora
   var ganchoEl = document.querySelector('#gancho-opts .gancho-opt.sel');
   var fraseEl = document.querySelector('#frase-opts .gancho-opt.sel');
   var perguntaEl = document.querySelector('#pergunta-opts .gancho-opt.sel');
   var narracao = document.getElementById('narracao-edit').value;
+
+  var gancho = ganchoEl ? ganchoEl.textContent.trim() : '';
+  var frase = fraseEl ? fraseEl.textContent.trim() : '';
+  var pergunta = perguntaEl ? perguntaEl.textContent.trim() : '';
+
+  // Monta narração completa na ordem correta
+  var partes = [gancho, narracao, frase, pergunta].filter(function(p){ return p && p.length > 0; });
+  var narracao_completa = partes.join(' ');
+
+  // Salva a narração completa no state para usar nas imagens sem regenerar
+  state.narracao_gerada = narracao_completa;
+  state.narracao_session_id = null;
 
   try {
     var resp = await fetch('/narracao', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
-        narracao_custom: narracao,
-        gancho: ganchoEl ? ganchoEl.textContent : '',
-        frase_final: fraseEl ? fraseEl.textContent : '',
-        pergunta_divisora: perguntaEl ? perguntaEl.textContent : ''
+        narracao_completa: narracao_completa
       })
     });
     var d = await resp.json();
     if(d.erro) throw new Error(d.erro);
     if(d.audio_url) {
-      state.sessionId = d.session_id;
+      state.narracao_session_id = d.session_id;
       var ap = document.getElementById('audio-player');
       ap.src = d.audio_url;
       ap.style.display = 'block';
