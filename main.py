@@ -141,7 +141,12 @@ MICRO-PROMESSA entre historia 2 e 3: Uma frase que promete algo ainda maior.
 
 FILOSOFIA DE NARRACAO — LEI ABSOLUTA:
 A narracao e um roteiro de filme. Uma historia unica que respira, acelera, para, surpreende.
-Total aproximado: {total_palavras} palavras. Fluido e natural como um narrador humano apaixonado.
+Total aproximado: {total_palavras} palavras para a narracao COMPLETA.
+REGRA DE TAMANHO POR FRASE — OBRIGATORIA:
+Cada frase individual deve ter entre 8 e 16 palavras.
+Frases de impacto podem ter 3-5 palavras. Frases descritivas ate 18 palavras.
+O conjunto total deve soar completo e fluido — nunca cortado.
+NUNCA escreva mais do que {total_palavras} palavras no total de toda a narracao.
 
 REGRAS DA NARRACAO:
 1. Cite o nome do animal explicitamente nas primeiras frases de cada historia
@@ -274,21 +279,40 @@ def index():
         return "<h1>Sistema carregando...</h1>", 200
 
 
-def cortar_narracao(texto, duracao_str):
-    """Corta a narração para respeitar a duração escolhida."""
-    palavras_alvo = {
-        "30": 65, "50": 108, "60": 130, "90": 195, "90m": 325
-    }
+
+def validar_e_resumir_narracao(d, duracao_str):
+    palavras_alvo = {"30": 65, "50": 108, "60": 130, "90": 195, "90m": 325}
     alvo = palavras_alvo.get(str(duracao_str), 130)
-    palavras = texto.split()
-    if len(palavras) > alvo:
-        # Corta e fecha na última frase completa
-        cortado = ' '.join(palavras[:alvo])
-        ultimo_ponto = max(cortado.rfind('.'), cortado.rfind('?'), cortado.rfind('!'))
-        if ultimo_ponto > len(cortado) * 0.7:
-            cortado = cortado[:ultimo_ponto+1]
-        return cortado
-    return texto
+    margem_30s = 65  # 30 segundos = ~65 palavras extras
+    limite = alvo + margem_30s
+    campos = ['narracao_caso1', 'narracao_caso2', 'narracao_caso3', 'narracao_final']
+    todas = []
+    for campo in campos:
+        todas.extend(d.get(campo, []))
+    total = sum(len(f.split()) for f in todas)
+    if total <= limite:
+        return d
+    # Resumo proporcional — encurta cada frase mantendo essência
+    fator = alvo / total
+    for campo in campos:
+        frases = d.get(campo, [])
+        novas = []
+        for frase in frases:
+            palavras = frase.split()
+            limite_frase = max(6, int(len(palavras) * fator))
+            if len(palavras) > limite_frase:
+                # Corta na última pontuação dentro do limite
+                cortada = ' '.join(palavras[:limite_frase])
+                for sep in ['.', '?', '!', ',']:
+                    idx = cortada.rfind(sep)
+                    if idx > len(cortada) * 0.6:
+                        cortada = cortada[:idx+1]
+                        break
+                novas.append(cortada)
+            else:
+                novas.append(frase)
+        d[campo] = novas
+    return d
 
 @app.route('/roteiro', methods=['POST'])
 def roteiro():
@@ -308,6 +332,7 @@ def roteiro():
     try:
         text = chamar_claude(system, user_msg)
         d = json.loads(text)
+        d = validar_e_resumir_narracao(d, duracao)
         animais = [d.get(k, {}).get('animal', '') for k in ['caso1', 'caso2', 'caso3'] if d.get(k, {}).get('animal')]
         if animais:
             salvar_historico(titulo, animais)
@@ -324,7 +349,6 @@ def gerar():
     prompts_custom = data.get('prompts_custom', [])
     narracao_custom = data.get('narracao_custom', '')
 
-    duracao_param = data.get('duracao', '50')
     narracao_txt = narracao_custom if narracao_custom else ' '.join(filter(None, [
         data.get('gancho', ''),
         *data.get('narracao_caso1', []),
@@ -335,9 +359,6 @@ def gerar():
         data.get('frase_final', ''),
         data.get('pergunta_divisora', '')
     ]))
-
-    if not narracao_custom:
-        narracao_txt = cortar_narracao(narracao_txt, duracao_param)
 
     prompts = prompts_custom if prompts_custom else (
         data.get('caso1', {}).get('prompts', []) +
