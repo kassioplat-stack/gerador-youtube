@@ -392,7 +392,9 @@ def gerar():
                     yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num}/{len(prompts)} ok', 'progress': pct}) + '\n\n'
                 except Exception as e:
                     erros.append(num)
-                    yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num} falhou', 'progress': 18 + int((i + 1) / max(len(prompts), 1) * 50)}) + '\n\n'
+                    erro_msg = str(e)[:80]
+                    print(f"ERRO IMAGEM {num}: {erro_msg}")
+                    yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num} falhou: {erro_msg}', 'progress': 18 + int((i + 1) / max(len(prompts), 1) * 50)}) + '\n\n'
             msg_imgs = f"{len(sessions[session_id]['imagens'])}/{len(prompts)} imagens geradas"
             if erros:
                 msg_imgs += f" (falharam: {', '.join(erros)})"
