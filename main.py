@@ -288,7 +288,7 @@ HTML = open("index.html", encoding="utf-8").read()
 # ---
 @app.route('/')
 def index():
-    return HTML
+    return HTML, 200, {'Content-Type': 'text/html; charset=utf-8'}
 
 @app.route('/roteiro', methods=['POST'])
 def roteiro():
