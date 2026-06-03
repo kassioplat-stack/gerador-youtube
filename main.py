@@ -214,15 +214,34 @@ def build_system(modelo, nh, dist, total_palavras):
         "10. PONTUACAO CORRETA: ponto final, exclamacao ou interrogacao. NUNCA termine com virgula.\n"
         "11. TOTAL: aproximadamente " + str(total_palavras) + " palavras para TODA a narracao — respeite esse limite.\n\n"
 
-        "=== REGRAS DOS PROMPTS DE IMAGEM ===\n\n"
-        "1. Cada prompt e o par visual EXATO da frase de narracao correspondente — um por um.\n"
-        "2. Define as caracteristicas fisicas UNICAS do animal no inicio de cada historia e repete em TODOS os prompts dessa historia.\n"
-        "3. Formato obrigatorio: [descricao fisica especifica] + [acao exata da cena] + [angulo de camera] + [iluminacao] + [movimento].\n"
-        "4. Angulos: close-up, wide shot, aerial, macro, over the shoulder — varie por historia.\n"
-        "5. Iluminacao: golden hour, single spotlight, soft natural light, blue hour, dramatic shadows — escolha pela emocao.\n"
-        "6. Movimento: mid-motion, frozen in the moment, slow motion.\n"
-        "7. NUNCA use: cinematic, realistic, documentary, photographic — o estilo e adicionado pelo sistema.\n"
-        "8. NUNCA use: an animal — sempre o nome especifico do animal.\n\n"
+        "=== REGRAS DOS PROMPTS DE IMAGEM — CONGRUENCIA TOTAL ===\n\n"
+        "PRINCIPIO FUNDAMENTAL: cada prompt e a traducao visual LITERAL da frase de narracao correspondente.\n"
+        "Se a narracao diz 'ela quebrou a cerca', o prompt mostra o animal quebrando a cerca — nao olhando para o horizonte.\n"
+        "Se a narracao diz '47 dias esperando', o prompt mostra o animal em postura de espera tensa — nao correndo.\n"
+        "NUNCA crie uma cena generica. A cena visual deve ser impossivel de trocar com qualquer outra frase.\n\n"
+        "FORMATO OBRIGATORIO de cada prompt:\n"
+        "[descricao fisica unica e especifica do animal] + [ACAO EXATA descrita na narracao] + [angulo que melhor captura a emocao] + [iluminacao que reforça o tom] + [estado de movimento]\n\n"
+        "CARACTERISTICAS FISICAS: defina no primeiro prompt de cada historia e repita IDENTICAMENTE em todos os outros da mesma historia.\n"
+        "Ex: 'large African elephant with torn left ear, deep-set amber eyes, dusty gray skin'\n"
+        "Nao mude a descricao fisica dentro da mesma historia — e o mesmo personagem em cenas diferentes.\n\n"
+        "ANGULOS por emocao:\n"
+        "- Apresentacao: wide shot ou over the shoulder — apresenta o ambiente e o personagem\n"
+        "- Tensao: close-up no rosto ou macro em detalhe corporal — cria intimidade e desconforto\n"
+        "- Escalada: angulo medio dinamico — mostra o comportamento em acao\n"
+        "- Twist: extreme close-up ou angulo inusitado — destabiliza o espectador\n\n"
+        "ILUMINACAO por momento:\n"
+        "- Apresentacao e tensao inicial: soft natural light ou golden hour — conforto falso\n"
+        "- Escalada: dramatic shadows ou single spotlight — algo escuro esta acontecendo\n"
+        "- Twist e final: blue hour ou high contrast — revelacao perturbadora\n\n"
+        "MOVIMENTO:\n"
+        "- mid-motion: quando a acao esta acontecendo agora\n"
+        "- frozen in the moment: para revelaçoes, twists, momentos de choque\n"
+        "- slow motion blur: para emocao intensa, fim de historia\n\n"
+        "PROIBIDO em qualquer prompt:\n"
+        "- cinematic, realistic, documentary, photographic (o estilo e adicionado automaticamente)\n"
+        "- 'an animal' ou pronomes sem referencia — sempre o nome especifico\n"
+        "- cenas genericas que poderiam ser de qualquer historia\n"
+        "- acoes que contradizem o que a narracao descreve\n\n"
 
         "PERGUNTA DIVISORA — DIVIDE OPINIOES E GERA COMENTARIOS:\n"
         "Pessoal, direta, sem resposta obvia. Divide o publico em dois lados.\n"
@@ -290,7 +309,7 @@ def gerar_audio(narracao_txt, session_id):
             r = requests.post(
                 f'https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE}',
                 headers={'xi-api-key': ELEVENLABS_KEY, 'content-type': 'application/json'},
-                json={'text': narracao_txt, 'model_id': 'eleven_turbo_v2_5', 'voice_settings': {'stability': 0.65, 'similarity_boost': 0.85, 'style': 0.0, 'use_speaker_boost': True}},
+                json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.5, 'similarity_boost': 0.8}},
                 timeout=60
             )
             if r.status_code == 200 and len(r.content) > 100:
