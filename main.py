@@ -500,7 +500,7 @@ textarea{height:60px;resize:none}
       <div class="card">
         <span class="slbl">Gancho — escolha uma opção</span>
         <div class="gancho-opts" id="gancho-opts"></div>
-        <button class="regen-opts-btn" onclick="regenerarOpcoes('gancho')">↺ Regenerar ganchos</button>
+        <button class="regen-opts-btn" onclick="regenerarOpcoes(this.dataset.tipo)" data-tipo="gancho">↺ Regenerar ganchos</button>
       </div>
       <div class="card">
         <span class="slbl">Narração completa</span>
@@ -513,12 +513,12 @@ textarea{height:60px;resize:none}
       <div class="card">
         <span class="slbl">Frase final — escolha uma opção</span>
         <div class="gancho-opts" id="frase-opts"></div>
-        <button class="regen-opts-btn" onclick="regenerarOpcoes('frase')">↺ Regenerar frases finais</button>
+        <button class="regen-opts-btn" onclick="regenerarOpcoes(this.dataset.tipo)" data-tipo="frase">↺ Regenerar frases finais</button>
       </div>
       <div class="card">
         <span class="slbl">Pergunta divisora — escolha uma opção</span>
         <div class="gancho-opts" id="pergunta-opts"></div>
-        <button class="regen-opts-btn" onclick="regenerarOpcoes('pergunta')">↺ Regenerar perguntas</button>
+        <button class="regen-opts-btn" onclick="regenerarOpcoes(this.dataset.tipo)" data-tipo="pergunta">↺ Regenerar perguntas</button>
       </div>
     </div>
 
