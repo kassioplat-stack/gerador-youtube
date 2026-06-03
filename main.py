@@ -93,7 +93,7 @@ def build_system(modelo, nh, dist, total_palavras):
             "Caso 1 FAMILIAR: elefante africano, golfinho, cachorro, leao, gorila, urso polar, baleia jubarte, cavalo, lobo, orangotango, pinguim, tartaruga gigante.\n"
             "Caso 2 MEDIO: corvo, orca, chimpanze, lontra, hiena, falcao peregrino, polvo gigante, texugo, capivara, morcego vampiro, canguru, alce.\n"
             "Caso 3 INESPERADO — NUNCA o obvio, sempre surpreendente: vespa-esmeralda, medusa imortal Turritopsis, tardigrado, polvo mimic, formiga-cortadeira, borboleta Maculinea, louva-a-deus, lula colossal.\n"
-            "REGRA ABSOLUTA: os 3 animais devem ser COMPLETAMENTE DIFERENTES entre si."
+            "REGRA ABSOLUTA: os 3 animais devem ser COMPLETAMENTE DIFERENTES entre si.\nREALISMO OBRIGATORIO: os comportamentos narrados devem ser reais, documentados ou pelo menos biologicamente plausiveis e crediveis. Nao invente nomes de animais especificos. Nao crie historias mirabolantes que ninguem acreditaria. Se usar um comportamento documentado, use os fatos reais. Se criar uma situacao hipotetica, ela deve ser completamente possivel e crivel."
         )
 
     if nh == 1:
@@ -290,7 +290,7 @@ def gerar_audio(narracao_txt, session_id):
             r = requests.post(
                 f'https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE}',
                 headers={'xi-api-key': ELEVENLABS_KEY, 'content-type': 'application/json'},
-                json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.5, 'similarity_boost': 0.8}},
+                json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.75, 'similarity_boost': 0.75, 'style': 0.0, 'use_speaker_boost': True}},
                 timeout=60
             )
             if r.status_code == 200 and len(r.content) > 100:
@@ -350,6 +350,37 @@ def roteiro():
     try:
         text = chamar_claude(system, user_msg)
         d = json.loads(text)
+        # Valida tamanho da narracao — margem de 30s
+        chars_por_segundo = 13
+        duracao_s = {"30":30,"50":50,"60":60,"90":90,"90m":90}.get(duracao, 60)
+        limite_chars = (duracao_s + 30) * chars_por_segundo
+        campos = ['narracao_caso1','narracao_caso2','narracao_caso3','narracao_final']
+        total_chars = sum(len(f) for campo in campos for f in d.get(campo, []))
+        if total_chars > limite_chars:
+            # Pede ao Claude para resumir mantendo a essencia
+            narr_linhas = []
+            for campo in campos:
+                narr_linhas.extend(d.get(campo, []))
+            sys_resumo = (
+                "Voce e um editor de narracao para YouTube. "
+                "Resuma as frases abaixo para caber em no maximo " + str(limite_chars) + " caracteres totais. "
+                "REGRAS: mantenha o mesmo numero de frases. Preserve a emocao, o nome dos animais e os detalhes especificos. "
+                "Torne cada frase mais concisa sem perder o impacto. "
+                "Retorne apenas as frases, uma por linha, sem numeracao."
+            )
+            usr_resumo = "Frases (" + str(total_chars) + " chars, limite " + str(limite_chars) + "):\n" + "\n".join(narr_linhas)
+            try:
+                resultado = chamar_claude(sys_resumo, usr_resumo, max_tokens=2000, modelo="claude-haiku-4-5-20251001")
+                novas = [f.strip() for f in resultado.strip().split("\n") if f.strip()]
+                if len(novas) >= len(narr_linhas):
+                    idx = 0
+                    for campo in campos:
+                        qtd = len(d.get(campo, []))
+                        if qtd > 0:
+                            d[campo] = novas[idx:idx+qtd]
+                            idx += qtd
+            except:
+                pass
         animais = [d.get(k, {}).get('animal', '') for k in ['caso1', 'caso2', 'caso3'] if d.get(k, {}).get('animal')]
         if animais:
             salvar_historico(titulo, animais)
