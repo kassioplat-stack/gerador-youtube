@@ -73,82 +73,165 @@ def build_system(modelo, nh, dist, total_palavras):
     restr = "Animais usados nos ultimos 7 dias - NAO repita: " + ", ".join(restricao) + "." if restricao else "Sem restricao de animais."
 
     if modelo == "psicologia":
-        ctx = "Voce e especialista em roteiros virais de psicologia humana. Os casos sao comportamentos humanos: comum, surpreendente, perturbador. Narracao em segunda pessoa. Prompts mostram HUMANOS."
+        ctx = (
+            "Voce cria roteiros virais de psicologia humana para YouTube. "
+            "Os casos sao comportamentos humanos em escalada: comum, surpreendente, perturbador. "
+            "Narracao em segunda pessoa direta: Voce faz isso, Voce ja percebeu. "
+            "Prompts mostram HUMANOS em situacoes cotidianas reconheciveis."
+        )
     elif modelo == "fatos":
-        ctx = "Voce e especialista em roteiros virais de ciencia. Os casos contradizem crencas populares. Prompts mostram ciencia e descobertas."
+        ctx = (
+            "Voce cria roteiros virais de ciencia para YouTube. "
+            "Os casos contradizem crencas populares: surpreendente, chocante, muda tudo. "
+            "A narracao comeca contradizendo uma crenca forte. "
+            "Prompts mostram ciencia, natureza, descobertas."
+        )
     else:
-        ctx = ("Voce e especialista em roteiros virais de comportamento animal. " + restr + "\n"
-               "ANIMAIS: Caso 1 = FAMILIAR (elefante, golfinho, cachorro, leao, gorila, urso, baleia, lobo). "
-               "Caso 2 = MEDIO (corvo, orca, chimpanze, lontra, hiena, falcao, polvo, texugo). "
-               "Caso 3 = INESPERADO nunca obvio (vespa-esmeralda, medusa imortal, tardigrado, polvo mimic, louva-a-deus). "
-               "NUNCA repita animais entre as 3 historias.")
+        ctx = (
+            "Voce cria roteiros virais de comportamento animal para YouTube. " + restr + "\n"
+            "BANCO DE ANIMAIS:\n"
+            "Caso 1 FAMILIAR: elefante africano, golfinho, cachorro, leao, gorila, urso polar, baleia jubarte, cavalo, lobo, orangotango, pinguim, tartaruga gigante.\n"
+            "Caso 2 MEDIO: corvo, orca, chimpanze, lontra, hiena, falcao peregrino, polvo gigante, texugo, capivara, morcego vampiro, canguru, alce.\n"
+            "Caso 3 INESPERADO — NUNCA o obvio, sempre surpreendente: vespa-esmeralda, medusa imortal Turritopsis, tardigrado, polvo mimic, formiga-cortadeira, borboleta Maculinea, louva-a-deus, lula colossal.\n"
+            "REGRA ABSOLUTA: os 3 animais devem ser COMPLETAMENTE DIFERENTES entre si."
+        )
 
     if nh == 1:
-        struct = ("ESTRUTURA 1 historia: caso1=" + str(dist['caso1']) + " prompts+" + str(dist['caso1']) + " frases. "
-                  "prompts_final=" + str(dist['final']) + " prompts. narracao_final=" + str(dist['final']) + " frases.")
+        struct = (
+            "ESTRUTURA 1 historia profunda com 6 sub-arcos: apresentacao, desenvolvimento, crise, escalada, twist, resolucao.\n"
+            "caso1: " + str(dist["caso1"]) + " prompts e " + str(dist["caso1"]) + " frases de narracao.\n"
+            "prompts_final: " + str(dist["final"]) + " prompts. narracao_final: " + str(dist["final"]) + " frases."
+        )
     elif nh == 2:
-        struct = ("ESTRUTURA 2 historias: caso1=" + str(dist['caso1']) + " prompts+" + str(dist['caso1']) + " frases. "
-                  "caso2=" + str(dist['caso2']) + " prompts+" + str(dist['caso2']) + " frases. "
-                  "prompts_final=" + str(dist['final']) + ". narracao_final=" + str(dist['final']) + " frases.")
+        struct = (
+            "ESTRUTURA 2 historias em contraste: familiar vs surpreendente.\n"
+            "caso1: " + str(dist["caso1"]) + " prompts e " + str(dist["caso1"]) + " frases.\n"
+            "caso2: " + str(dist["caso2"]) + " prompts e " + str(dist["caso2"]) + " frases.\n"
+            "prompts_final: " + str(dist["final"]) + " prompts. narracao_final: " + str(dist["final"]) + " frases."
+        )
     else:
-        struct = ("ESTRUTURA 3 historias em escalada: "
-                  "caso1=" + str(dist['caso1']) + " prompts+" + str(dist['caso1']) + " frases (Interessante). "
-                  "caso2=" + str(dist['caso2']) + " prompts+" + str(dist['caso2']) + " frases (Surpreendente). "
-                  "caso3=" + str(dist['caso3']) + " prompts+" + str(dist['caso3']) + " frases (Chocante). "
-                  "prompts_final=" + str(dist['final']) + " prompts (ULTIMO = espelho humano). "
-                  "narracao_final=" + str(dist['final']) + " frases.")
+        struct = (
+            "ESTRUTURA 3 historias em ESCALADA OBRIGATORIA de emocao e intensidade:\n"
+            "caso1 INTERESSANTE: " + str(dist["caso1"]) + " prompts e " + str(dist["caso1"]) + " frases — animal familiar, historia que cria vinculo emocional.\n"
+            "caso2 SURPREENDENTE: " + str(dist["caso2"]) + " prompts e " + str(dist["caso2"]) + " frases — animal medio, historia mais intensa e inesperada.\n"
+            "caso3 CHOCANTE: " + str(dist["caso3"]) + " prompts e " + str(dist["caso3"]) + " frases — animal inesperado, historia que perturba e choca.\n"
+            "prompts_final: " + str(dist["final"]) + " prompts — ULTIMO prompt deve ser espelho humano.\n"
+            "narracao_final: " + str(dist["final"]) + " frases — ultima frase deve ser filosofica e lenta."
+        )
 
-    system = (ctx + "\n\n"
-        "PSICOLOGIA DO ROTEIRO:\n"
-        "1. EMOCAO-ANCORA: defina uma emocao central que conecta tudo ao espectador.\n"
-        "2. PERGUNTA INVISIVEL: uma pergunta que o video responde sem nunca dizer em voz alta.\n"
-        "3. GANCHO: PROVOCACAO, CONTRADICAO, ESPELHO HUMANO ou NUMERO CURIOSO. Vai DIRETO sem apresentacao.\n\n"
-        "SUB-ARCOS DE CADA HISTORIA:\n"
-        "- Apresentacao 2s: detalhe unico e humanizante\n"
-        "- Tensao 3-4s: algo esta errado\n"
-        "- Escalada 4-5s: situacao piora com detalhes especificos\n"
-        "- Twist 2-3s: revelacao que muda tudo\n\n"
-        "MICRO-PROMESSA entre caso 2 e 3: frase que promete algo maior. NUNCA transicao mecanica.\n\n"
-        "NARRACAO:\n"
-        "1. Frases COMPLETAS — nunca cortadas no meio\n"
-        "2. Nome do animal explicitamente nas primeiras frases\n"
-        "3. Detalhes especificos: 47 dias, nao muito tempo. Parou de comer 11 dias, nao ficou triste\n"
-        "4. Ritmo variado: curtas de impacto (3-5 palavras) alternando com medias (10-15 palavras)\n"
-        "5. Conectores naturais entre frases\n"
-        "6. Transicoes organicas entre historias — nunca O proximo animal e\n"
-        "7. Viradas em rafagas curtissimas\n"
-        "8. SEM REPETICAO — cada frase avanca a historia\n"
-        "9. Pontuacao correta: ponto, exclamacao ou interrogacao. Nunca virgula no final\n"
-        "10. Total: " + str(total_palavras) + " palavras para TODA a narracao\n\n"
-        "PROMPTS:\n"
-        "1. Par exato da frase de narracao correspondente\n"
-        "2. Fisico unico do animal definido no inicio e repetido em todos os prompts da historia\n"
-        "3. Formato: fisico + acao exata + angulo + iluminacao + movimento\n"
-        "4. NUNCA: cinematic, realistic, documentary\n"
-        "5. NUNCA: an animal — sempre o nome especifico\n\n"
+    json_template = (
+        "{\n"
+        "  \"pergunta_invisivel\": \"string — pergunta que o video responde sem dizer em voz alta\",\n"
+        "  \"emocao_ancora\": \"string — emocao central que conecta tudo ao espectador\",\n"
+        "  \"tipo_gancho\": \"PROVOCACAO | CONTRADICAO | ESPELHO HUMANO | NUMERO CURIOSO\",\n"
+        "  \"gancho_principal\": \"string — primeira frase do video, vai direto sem apresentacao\",\n"
+        "  \"gancho_opcoes\": [\"variacao2\",\"variacao3\",\"variacao4\"],\n"
+        "  \"caso1\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Interessante\",\"apresentacao\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\",\"prompts\":[\"" + str(dist["caso1"]) + " prompts em ingles\"]},\n"
+        "  \"caso2\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Surpreendente\",\"apresentacao\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\",\"prompts\":[\"" + str(dist["caso2"]) + " prompts em ingles\"]},\n"
+        "  \"caso3\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Chocante\",\"apresentacao\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\",\"prompts\":[\"" + str(dist["caso3"]) + " prompts em ingles\"]},\n"
+        "  \"micro_promessa\": \"string — frase entre caso 2 e 3 que promete algo maior, NUNCA transicao mecanica\",\n"
+        "  \"prompts_final\": [\"" + str(dist["final"]) + " prompts em ingles — ultimo e espelho humano\"],\n"
+        "  \"narracao_caso1\": [\"" + str(dist["caso1"]) + " frases em portugues\"],\n"
+        "  \"narracao_caso2\": [\"" + str(dist["caso2"]) + " frases em portugues\"],\n"
+        "  \"narracao_caso3\": [\"" + str(dist["caso3"]) + " frases em portugues\"],\n"
+        "  \"narracao_final\": [\"" + str(dist["final"]) + " frases em portugues\"],\n"
+        "  \"frase_final_principal\": \"string filosofica lenta e profunda\",\n"
+        "  \"frase_final_opcoes\": [\"op2\",\"op3\",\"op4\"],\n"
+        "  \"pergunta_divisora_principal\": \"string — divide opinioes sem resposta obvia\",\n"
+        "  \"pergunta_divisora_opcoes\": [\"op2\",\"op3\",\"op4\"]\n"
+        "}"
+    )
+
+    return (
+        ctx + "\n\n"
+
+        "=== PSICOLOGIA DO ROTEIRO — ALMA DO VIDEO ===\n\n"
+
+        "EMOCAO-ANCORA:\n"
+        "Defina UMA emocao que conecta TODAS as historias ao espectador de forma pessoal.\n"
+        "Nao e a emocao DO animal — e a emocao que o ESPECTADOR vai sentir ao se ver no animal.\n"
+        "Exemplos poderosos:\n"
+        "- Reconhecimento culpado: o espectador se ve no comportamento e nao gosta do que ve\n"
+        "- Admiracao perturbadora: admira mas fica incomodado com o que isso diz sobre si mesmo\n"
+        "- Identificacao involuntaria: nao quer se identificar mas nao consegue negar\n\n"
+
+        "PERGUNTA INVISIVEL:\n"
+        "Uma pergunta que o video responde sem nunca fazer em voz alta.\n"
+        "Ela e plantada no gancho, cresce nas historias e explode no twist do caso 3.\n"
+        "So e revelada indiretamente na frase final filosofica.\n"
+        "Exemplos: Sera que sou tao diferente desse animal? / O que chamo de escolha e apenas instinto?\n\n"
+
+        "=== GANCHO — PRIMEIRA IMPRESSAO ABSOLUTA ===\n\n"
+        "Escolha o tipo mais poderoso para o tema:\n"
+        "PROVOCACAO: afirmacao que ofende ou desafia uma crenca. Ex: Esse animal e mais honesto que a maioria das pessoas que voce conhece.\n"
+        "CONTRADICAO: quebra crenca popular. Ex: O animal que voce acha romantico e na verdade o maior manipulador da natureza.\n"
+        "ESPELHO HUMANO: animal faz algo humano demais. Ex: Esse animal contrata seguranças. Literalmente.\n"
+        "NUMERO CURIOSO: dado especifico que para o scroll. Ex: Esse animal passou 47 dias esperando. A ciencia ficou sem explicacao.\n\n"
+        "REGRAS DO GANCHO:\n"
+        "- VAI DIRETO. Zero apresentacao do video. Zero contexto. A primeira palavra ja e impacto.\n"
+        "- Nao explica o que vai acontecer. Joga o espectador no meio da acao.\n"
+        "- Gera uma pergunta imediata na cabeca do espectador sem fazer a pergunta.\n\n"
+
+        "=== SUB-ARCOS DE CADA HISTORIA — OBRIGATORIOS ===\n\n"
+        "Cada historia tem 4 momentos DISTINTOS e PROGRESSIVOS:\n"
+        "1. APRESENTACAO (equivale a 2s de video):\n"
+        "   - Apresenta o personagem com UM detalhe unico e humanizante\n"
+        "   - Nao generalize. Nao diga ele vive na floresta. Diga ela tem uma cicatriz no ombro direito de uma briga de 2019.\n"
+        "   - O espectador deve sentir que conhece esse animal.\n\n"
+        "2. TENSAO (3-4s):\n"
+        "   - Algo esta errado. O espectador pressente mas nao sabe o que.\n"
+        "   - Nao explique. Mostre sinais. Comportamento mudou. Algo esta diferente.\n\n"
+        "3. ESCALADA (4-5s):\n"
+        "   - A situacao piora. Os detalhes ficam mais especificos e perturbadores.\n"
+        "   - Aqui entram os numeros: 23 dias, 340 quilos, 14 horas por dia.\n"
+        "   - O espectador ja nao consegue parar de assistir.\n\n"
+        "4. TWIST (2-3s):\n"
+        "   - A revelacao que muda tudo. O espectador NAO esperava.\n"
+        "   - Chega em rafagas curtissimas. Sem folego. Sem explicacao.\n"
+        "   - Ex: Ela nao foi embora. Ficou. Por tres dias. Olhando.\n\n"
+
+        "MICRO-PROMESSA entre caso 2 e 3 — OBRIGATORIA:\n"
+        "Frase unica que promete algo ainda maior e mais perturbador.\n"
+        "NUNCA use: O proximo animal e... / Agora veja... / Mas ha mais...\n"
+        "Use: Mas nenhum deles chegou perto do que esse terceiro fez. / O ultimo caso perturbou os pesquisadores de Harvard.\n\n"
+
+        "=== FILOSOFIA DE NARRACAO — LEI ABSOLUTA ===\n\n"
+        "A narracao e um roteiro de filme. Nao e um documentario. Nao e uma lista de fatos.\n"
+        "E uma historia UNICA que respira, acelera, para, surpreende e termina.\n"
+        "O espectador NAO deve sentir que esta sendo informado.\n"
+        "Deve sentir que esta sendo PUXADO para dentro de algo que nao consegue parar de ouvir.\n\n"
+
+        "REGRAS ABSOLUTAS DA NARRACAO:\n"
+        "1. FRASES COMPLETAS: cada frase tem sujeito, verbo e sentido completo. NUNCA frase cortada.\n"
+        "2. NOME DO ANIMAL: cite o nome nas primeiras frases de cada historia. Nunca so ele ou ela sem apresentar antes.\n"
+        "3. DETALHES ESPECIFICOS: nunca muito tempo — use 47 dias. Nunca ficou triste — use parou de comer por 11 dias.\n"
+        "4. RITMO CINEMATOGRAFICO: alterne frases curtas de impacto (3-6 palavras) com frases medias descritivas (10-16 palavras).\n"
+        "5. CONECTORES NATURAIS: Mas o que ninguem esperava era... / E entao algo impossivel aconteceu. / Isso sozinho ja seria incrivel. Mas espera.\n"
+        "6. TRANSICOES ORGANICAS entre historias: NUNCA O proximo animal e... Use: Mas nao e o unico. / Se isso ja te surpreendeu...\n"
+        "7. VIRADAS EM RAFAGAS: o twist chega sem folego. Tres frases curtas em sequencia. Sem explicacao. Sem suavizar.\n"
+        "8. COESAO TOTAL: cada frase deve fluir da anterior como se fossem uma unica conversa. Zero saltos logicos.\n"
+        "9. SEM REPETICAO: nunca repita a mesma ideia em frases diferentes. Cada frase avanca a historia.\n"
+        "10. PONTUACAO CORRETA: ponto final, exclamacao ou interrogacao. NUNCA termine com virgula.\n"
+        "11. TOTAL: aproximadamente " + str(total_palavras) + " palavras para TODA a narracao — respeite esse limite.\n\n"
+
+        "=== REGRAS DOS PROMPTS DE IMAGEM ===\n\n"
+        "1. Cada prompt e o par visual EXATO da frase de narracao correspondente — um por um.\n"
+        "2. Define as caracteristicas fisicas UNICAS do animal no inicio de cada historia e repete em TODOS os prompts dessa historia.\n"
+        "3. Formato obrigatorio: [descricao fisica especifica] + [acao exata da cena] + [angulo de camera] + [iluminacao] + [movimento].\n"
+        "4. Angulos: close-up, wide shot, aerial, macro, over the shoulder — varie por historia.\n"
+        "5. Iluminacao: golden hour, single spotlight, soft natural light, blue hour, dramatic shadows — escolha pela emocao.\n"
+        "6. Movimento: mid-motion, frozen in the moment, slow motion.\n"
+        "7. NUNCA use: cinematic, realistic, documentary, photographic — o estilo e adicionado pelo sistema.\n"
+        "8. NUNCA use: an animal — sempre o nome especifico do animal.\n\n"
+
+        "PERGUNTA DIVISORA — DIVIDE OPINIOES E GERA COMENTARIOS:\n"
+        "Pessoal, direta, sem resposta obvia. Divide o publico em dois lados.\n"
+        "Ex: Voce acha que isso e instinto — ou e escolha? / Isso te faz ver os animais diferente. Ou as pessoas?\n\n"
+
         + struct + "\n\n"
         "Responda SOMENTE em JSON valido sem markdown:\n"
-        "{\n"
-        '  "pergunta_invisivel": "string",\n'
-        '  "emocao_ancora": "string",\n'
-        '  "tipo_gancho": "PROVOCACAO | CONTRADICAO | ESPELHO HUMANO | NUMERO CURIOSO",\n'
-        '  "gancho_principal": "string",\n'
-        '  "gancho_opcoes": ["op2","op3","op4"],\n'
-        '  "caso1": {"nome":"string","animal":"string","nivel":"Interessante","apresentacao":"string","tensao":"string","escalada":"string","twist":"string","prompts":["' + str(dist['caso1']) + ' prompts ingles"]},\n'
-        '  "caso2": {"nome":"string","animal":"string","nivel":"Surpreendente","apresentacao":"string","tensao":"string","escalada":"string","twist":"string","prompts":["' + str(dist['caso2']) + ' prompts ingles"]},\n'
-        '  "caso3": {"nome":"string","animal":"string","nivel":"Chocante","apresentacao":"string","tensao":"string","escalada":"string","twist":"string","prompts":["' + str(dist['caso3']) + ' prompts ingles"]},\n'
-        '  "micro_promessa": "string",\n'
-        '  "prompts_final": ["' + str(dist['final']) + ' prompts ingles"],\n'
-        '  "narracao_caso1": ["' + str(dist['caso1']) + ' frases portugues"],\n'
-        '  "narracao_caso2": ["' + str(dist['caso2']) + ' frases portugues"],\n'
-        '  "narracao_caso3": ["' + str(dist['caso3']) + ' frases portugues"],\n'
-        '  "narracao_final": ["' + str(dist['final']) + ' frases portugues"],\n'
-        '  "frase_final_principal": "string filosofica",\n'
-        '  "frase_final_opcoes": ["op2","op3","op4"],\n'
-        '  "pergunta_divisora_principal": "string",\n'
-        '  "pergunta_divisora_opcoes": ["op2","op3","op4"]\n'
-        "}")
-    return system
+        + json_template
+    )
 
 def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-5-20250929"):
     for tentativa in range(3):
