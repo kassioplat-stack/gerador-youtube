@@ -4,16 +4,16 @@ from flask import Flask, request, jsonify, send_file, render_template_string, Re
 
 app = Flask(__name__)
 
-# ── API Keys ──────────────────────────────────────────────────────────────────
+# ---
 CLAUDE_KEY     = os.environ.get("CLAUDE_API_KEY", "")
 LEONARDO_KEY   = os.environ.get("LEONARDO_API_KEY", "")
 ELEVENLABS_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
 ELEVENLABS_VOICE = os.environ.get("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
 
-# ── Sessões em memória ────────────────────────────────────────────────────────
+# ---
 sessions = {}
 
-# ── Histórico de animais ──────────────────────────────────────────────────────
+# ---
 HISTORICO_FILE = "historico.json"
 
 def carregar_historico():
@@ -44,7 +44,7 @@ def animais_recentes():
             pass
     return recentes
 
-# ── Estilos visuais ───────────────────────────────────────────────────────────
+# ---
 ESTILOS = {
     "stylized_game": "stylized game character art, non-realistic, vibrant colors, bold outlines, 9:16 vertical",
     "cinematic_doc": "cinematic wildlife documentary, hyper realistic, dramatic lighting, 9:16 vertical",
@@ -56,14 +56,14 @@ ESTILOS = {
     "cartoon_flat": "flat design cartoon illustration, clean vector art, bold outlines, solid vibrant colors, cute and expressive animal character, simple clean background, 2D animation style, no shadows, no gradients, 9:16 vertical"
 }
 
-# ── Formatos ──────────────────────────────────────────────────────────────────
+# ---
 FORMATOS = {
     "9:16": {"width": 768, "height": 1344},
     "16:9": {"width": 1344, "height": 768},
     "1:1":  {"width": 1024, "height": 1024}
 }
 
-# ── Cálculo de imagens por ritmo ──────────────────────────────────────────────
+# ---
 DURACOES = {"30": 30, "50": 50, "60": 60, "90": 90, "90m": 90}
 RITMOS   = {"lento": 3.0, "medio": 2.0, "rapido": 1.5}
 PALAVRAS_POR_DURACAO = {"30": 65, "50": 108, "60": 130, "90": 195, "90m": 325}
@@ -79,7 +79,7 @@ def calc_imagens(duracao_str, ritmo_str, num_historias):
     else:
         return {"caso1": round(total*0.25), "caso2": round(total*0.20), "caso3": round(total*0.25), "final": round(total*0.30)}
 
-# ── SYSTEM PROMPTs ────────────────────────────────────────────────────────────
+# ---
 def build_system_roteiro(modelo, num_historias, dist, total_palavras):
     restricao = animais_recentes()
     restricao_txt = f"Animais usados nos últimos 7 dias — NÃO repita: {', '.join(restricao)}." if restricao else "Sem restrição de animais."
@@ -209,7 +209,7 @@ Responda SOMENTE em JSON válido sem markdown:
   "pergunta_divisora_opcoes": ["opcao2","opcao3","opcao4"]
 }}"""
 
-# ── Chamar Claude ─────────────────────────────────────────────────────────────
+# ---
 def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-5-20250929"):
     for tentativa in range(3):
         try:
@@ -236,7 +236,7 @@ def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-5-2
                 raise Exception(f"Claude erro após 3 tentativas: {str(e)}")
             time.sleep(5)
 
-# ── Gerar imagem no Leonardo ──────────────────────────────────────────────────
+# ---
 def leonardo_generate(prompt, formato="9:16", estilo="stylized_game"):
     sufixo = ESTILOS.get(estilo, ESTILOS["stylized_game"])
     dims = FORMATOS.get(formato, FORMATOS["9:16"])
@@ -281,7 +281,7 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game"):
                 raise
             time.sleep(5)
 
-# ── HTML ──────────────────────────────────────────────────────────────────────
+# ---
 HTML = open("index.html").read() if os.path.exists("index.html") else """<!DOCTYPE html>
 <html lang="pt-BR">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -387,9 +387,9 @@ textarea{height:60px;resize:none}
   <p class="sub">Escolha o modelo → configure → 1 clique</p>
 
   <div class="tabs">
-    <button class="tab active" onclick="showTab('gerar',this)">Gerar</button>
-    <button class="tab" onclick="showTab('clonar',this)">Clonar Roteiro</button>
-    <button class="tab" onclick="showTab('calendario',this)">Calendário</button>
+    <button class="tab active" onclick="showTab(this.dataset.v,this)" data-v="gerar">Gerar</button>
+    <button class="tab" onclick="showTab(this.dataset.v,this)" data-v="clonar">Clonar Roteiro</button>
+    <button class="tab" onclick="showTab(this.dataset.v,this)" data-v="calendario">Calendário</button>
   </div>
 
   <!-- ABA GERAR -->
@@ -398,17 +398,17 @@ textarea{height:60px;resize:none}
     <div class="card">
       <span class="slbl">Modelo de conteúdo</span>
       <div class="model-grid">
-        <button class="model-card sel" onclick="selModel('animais',this)">
+        <button class="model-card sel" onclick="selModel(this.dataset.v,this)" data-v="animais">
           <div class="mc-icon">🐾</div>
           <div class="mc-name">Comportamento Animal</div>
           <div class="mc-desc">3 animais em escalada</div>
         </button>
-        <button class="model-card" onclick="selModel('psicologia',this)">
+        <button class="model-card" onclick="selModel(this.dataset.v,this)" data-v="psicologia">
           <div class="mc-icon">🧠</div>
           <div class="mc-name">Psicologia Humana</div>
           <div class="mc-desc">3 comportamentos humanos</div>
         </button>
-        <button class="model-card" onclick="selModel('fatos',this)">
+        <button class="model-card" onclick="selModel(this.dataset.v,this)" data-v="fatos">
           <div class="mc-icon">💡</div>
           <div class="mc-name">Fatos & Percepção</div>
           <div class="mc-desc">3 fatos científicos</div>
@@ -426,14 +426,14 @@ textarea{height:60px;resize:none}
     <div class="card">
       <span class="slbl">Estilo visual</span>
       <div class="style-grid">
-        <button class="style-card sel" onclick="selStyle('stylized_game',this)"><div class="mc-icon">🎮</div><div class="mc-name">Stylized Game</div></button>
-        <button class="style-card" onclick="selStyle('cinematic_doc',this)"><div class="mc-icon">🎬</div><div class="mc-name">Cinematic Doc</div></button>
-        <button class="style-card" onclick="selStyle('anime',this)"><div class="mc-icon">🌸</div><div class="mc-name">Anime</div></button>
-        <button class="style-card" onclick="selStyle('dark_fantasy',this)"><div class="mc-icon">⚔️</div><div class="mc-name">Dark Fantasy</div></button>
-        <button class="style-card" onclick="selStyle('feature_film',this)"><div class="mc-icon">🎥</div><div class="mc-name">Feature Film</div></button>
-        <button class="style-card" onclick="selStyle('macro_nature',this)"><div class="mc-icon">🔬</div><div class="mc-name">Macro Nature</div></button>
-        <button class="style-card" onclick="selStyle('anime_moderno',this)"><div class="mc-icon">🎌</div><div class="mc-name">Anime Moderno</div></button>
-        <button class="style-card" onclick="selStyle('cartoon_flat',this)"><div class="mc-icon">🎨</div><div class="mc-name">Cartoon Flat</div></button>
+        <button class="style-card sel" onclick="selStyle(this.dataset.v,this)" data-v="stylized_game"><div class="mc-icon">🎮</div><div class="mc-name">Stylized Game</div></button>
+        <button class="style-card" onclick="selStyle(this.dataset.v,this)" data-v="cinematic_doc"><div class="mc-icon">🎬</div><div class="mc-name">Cinematic Doc</div></button>
+        <button class="style-card" onclick="selStyle(this.dataset.v,this)" data-v="anime"><div class="mc-icon">🌸</div><div class="mc-name">Anime</div></button>
+        <button class="style-card" onclick="selStyle(this.dataset.v,this)" data-v="dark_fantasy"><div class="mc-icon">⚔️</div><div class="mc-name">Dark Fantasy</div></button>
+        <button class="style-card" onclick="selStyle(this.dataset.v,this)" data-v="feature_film"><div class="mc-icon">🎥</div><div class="mc-name">Feature Film</div></button>
+        <button class="style-card" onclick="selStyle(this.dataset.v,this)" data-v="macro_nature"><div class="mc-icon">🔬</div><div class="mc-name">Macro Nature</div></button>
+        <button class="style-card" onclick="selStyle(this.dataset.v,this)" data-v="anime_moderno"><div class="mc-icon">🎌</div><div class="mc-name">Anime Moderno</div></button>
+        <button class="style-card" onclick="selStyle(this.dataset.v,this)" data-v="cartoon_flat"><div class="mc-icon">🎨</div><div class="mc-name">Cartoon Flat</div></button>
       </div>
     </div>
 
@@ -441,17 +441,17 @@ textarea{height:60px;resize:none}
       <div class="config-block">
         <span class="slbl">Nº de histórias</span>
         <div class="chips-row">
-          <button class="chip" onclick="selChip(this,'historias','1')">1 história</button>
-          <button class="chip" onclick="selChip(this,'historias','2')">2 histórias</button>
-          <button class="chip sel" onclick="selChip(this,'historias','3')">3 histórias</button>
+          <button class="chip" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="historias" data-v="1">1 história</button>
+          <button class="chip" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="historias" data-v="2">2 histórias</button>
+          <button class="chip sel" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="historias" data-v="3">3 histórias</button>
         </div>
       </div>
       <div class="config-block">
         <span class="slbl">Formato</span>
         <div class="chips-row">
-          <button class="chip sel" onclick="selChip(this,'formato','9:16')">9:16</button>
-          <button class="chip" onclick="selChip(this,'formato','16:9')">16:9</button>
-          <button class="chip" onclick="selChip(this,'formato','1:1')">1:1</button>
+          <button class="chip sel" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="formato" data-v="9:16">9:16</button>
+          <button class="chip" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="formato" data-v="16:9">16:9</button>
+          <button class="chip" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="formato" data-v="1:1">1:1</button>
         </div>
       </div>
     </div>
@@ -460,19 +460,19 @@ textarea{height:60px;resize:none}
       <div class="config-block">
         <span class="slbl">Duração do vídeo</span>
         <div class="chips-row">
-          <button class="chip" onclick="selChip(this,'duracao','30')">30s</button>
-          <button class="chip sel" onclick="selChip(this,'duracao','50')">50s</button>
-          <button class="chip" onclick="selChip(this,'duracao','60')">60s</button>
-          <button class="chip" onclick="selChip(this,'duracao','90')">90s</button>
-          <button class="chip" onclick="selChip(this,'duracao','90m')">1:30</button>
+          <button class="chip" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="duracao" data-v="30">30s</button>
+          <button class="chip sel" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="duracao" data-v="50">50s</button>
+          <button class="chip" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="duracao" data-v="60">60s</button>
+          <button class="chip" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="duracao" data-v="90">90s</button>
+          <button class="chip" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="duracao" data-v="90m">1:30</button>
         </div>
       </div>
       <div class="config-block">
         <span class="slbl">Ritmo de corte</span>
         <div class="chips-row">
-          <button class="chip" onclick="selChip(this,'ritmo','lento')">Lento 3s/img</button>
-          <button class="chip sel" onclick="selChip(this,'ritmo','medio')">Médio 2s/img</button>
-          <button class="chip" onclick="selChip(this,'ritmo','rapido')">Rápido 1.5s/img</button>
+          <button class="chip" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="ritmo" data-v="lento">Lento 3s/img</button>
+          <button class="chip sel" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="ritmo" data-v="medio">Médio 2s/img</button>
+          <button class="chip" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="ritmo" data-v="rapido">Rápido 1.5s/img</button>
         </div>
       </div>
     </div>
@@ -560,18 +560,18 @@ textarea{height:60px;resize:none}
       <div class="config-block">
         <span class="slbl">Duração</span>
         <div class="chips-row">
-          <button class="chip" onclick="selChip(this,'duracao-clone','30')">30s</button>
-          <button class="chip sel" onclick="selChip(this,'duracao-clone','50')">50s</button>
-          <button class="chip" onclick="selChip(this,'duracao-clone','60')">60s</button>
-          <button class="chip" onclick="selChip(this,'duracao-clone','90')">90s</button>
+          <button class="chip" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="duracao-clone" data-v="30">30s</button>
+          <button class="chip sel" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="duracao-clone" data-v="50">50s</button>
+          <button class="chip" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="duracao-clone" data-v="60">60s</button>
+          <button class="chip" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="duracao-clone" data-v="90">90s</button>
         </div>
       </div>
       <div class="config-block">
         <span class="slbl">Estilo visual</span>
         <div class="chips-row">
-          <button class="chip sel" onclick="selChip(this,'estilo-clone','stylized_game')">Stylized Game</button>
-          <button class="chip" onclick="selChip(this,'estilo-clone','anime')">Anime</button>
-          <button class="chip" onclick="selChip(this,'estilo-clone','cartoon_flat')">Cartoon</button>
+          <button class="chip sel" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="estilo-clone" data-v="stylized_game">Stylized Game</button>
+          <button class="chip" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="estilo-clone" data-v="anime">Anime</button>
+          <button class="chip" onclick="selChip(this,this.dataset.g,this.dataset.v)" data-g="estilo-clone" data-v="cartoon_flat">Cartoon</button>
         </div>
       </div>
     </div>
@@ -595,7 +595,7 @@ textarea{height:60px;resize:none}
 </div><!-- /container -->
 
 <script>
-// ── Estado ─────────────────────────────────────────────────────────────────
+// ---
 var state = {
   modelo: 'animais',
   estilo: 'stylized_game',
@@ -612,39 +612,47 @@ var state = {
   calendarioItems: JSON.parse(localStorage.getItem('calendario') || '[]')
 };
 
-// ── Tabs ───────────────────────────────────────────────────────────────────
+// ---
 function showTab(id, btn) {
+  var tabId = id || (btn && btn.dataset && btn.dataset.v) || 'gerar';
   document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
   document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
-  document.getElementById('tab-'+id).classList.add('active');
-  btn.classList.add('active');
-  if(id === 'calendario') renderCalendario();
+  var el = document.getElementById('tab-'+tabId);
+  if(el) el.classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(tabId === 'calendario') renderCalendario();
 }
 
-// ── Seletores ─────────────────────────────────────────────────────────────
+// ---
 function selModel(val, btn) {
-  state.modelo = val;
-  btn.closest('.model-grid').querySelectorAll('.model-card').forEach(function(b){ b.classList.remove('sel'); });
-  btn.classList.add('sel');
+  var v = val || (btn && btn.dataset && btn.dataset.v) || 'animais';
+  state.modelo = v;
+  var grid = btn && btn.closest('.model-grid');
+  if(grid) grid.querySelectorAll('.model-card').forEach(function(b){ b.classList.remove('sel'); });
+  if(btn) btn.classList.add('sel');
   var placeholders = {animais:'Ex: Narcisistas da Floresta', psicologia:'Ex: Por que você procrastina mesmo sabendo que é errado', fatos:'Ex: 3 coisas que você acredita sobre o cérebro que são falsas'};
-  document.getElementById('titulo').placeholder = placeholders[val];
+  document.getElementById('titulo').placeholder = placeholders[v] || '';
   updatePreviewInfo();
 }
 
 function selStyle(val, btn) {
-  state.estilo = val;
-  btn.closest('.style-grid').querySelectorAll('.style-card').forEach(function(b){ b.classList.remove('sel'); });
-  btn.classList.add('sel');
+  var v = val || (btn && btn.dataset && btn.dataset.v) || 'stylized_game';
+  state.estilo = v;
+  var grid = btn && btn.closest('.style-grid');
+  if(grid) grid.querySelectorAll('.style-card').forEach(function(b){ b.classList.remove('sel'); });
+  if(btn) btn.classList.add('sel');
 }
 
 function selChip(btn, group, val) {
-  var key = group.replace(/-/g,'_');
-  state[key] = val;
-  var row = btn.closest('.chips-row');
+  var g = group || (btn && btn.dataset && btn.dataset.g) || '';
+  var v = val || (btn && btn.dataset && btn.dataset.v) || '';
+  var key = g.replace(/-/g,'_');
+  if(key) state[key] = v;
+  var row = btn && btn.closest('.chips-row');
   if(row) {
     row.querySelectorAll('.chip').forEach(function(b){ b.classList.remove('sel'); });
   }
-  btn.classList.add('sel');
+  if(btn) btn.classList.add('sel');
   updatePreviewInfo();
 }
 
@@ -663,7 +671,7 @@ function toggleTeste() {
 
 updatePreviewInfo();
 
-// ── Helpers UI ─────────────────────────────────────────────────────────────
+// ---
 function setStep(n, status, msg) {
   var dot = document.getElementById('d'+n);
   var desc = document.getElementById('s'+n);
@@ -674,7 +682,7 @@ function setStep(n, status, msg) {
 }
 function setP(v) { document.getElementById('progress').style.width = v+'%'; }
 
-// ── Gerar Roteiro ──────────────────────────────────────────────────────────
+// ---
 async function gerarRoteiro() {
   var titulo = document.getElementById('titulo').value.trim();
   if(!titulo) { alert('Digite um título'); return; }
@@ -739,8 +747,8 @@ function renderRoteiro(d) {
       +'<div style="flex:1">'
         +'<textarea data-idx="'+i+'" style="width:100%;background:#111;border:1px solid #333;border-radius:6px;padding:8px;font-size:12px;color:#ccc;font-family:inherit;resize:none;height:60px" onchange="state.prompts['+i+']=this.value">'+esc(p)+'</textarea>'
         +'<div style="display:flex;gap:6px;margin-top:3px">'
-          +'<button onclick="traduzirPrompt('+i+',this)" style="background:transparent;border:1px solid #333;border-radius:4px;padding:2px 8px;font-size:11px;color:#555;cursor:pointer;font-family:inherit">🌐 Traduzir</button>'
-          +'<button onclick="regenPrompt('+i+')" style="background:#E8593C;color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;font-family:inherit">↺ Regenerar</button>'
+          +'<button onclick="traduzirPrompt(this.dataset.v,this)" data-v="+i+" style="background:transparent;border:1px solid #333;border-radius:4px;padding:2px 8px;font-size:11px;color:#555;cursor:pointer;font-family:inherit">🌐 Traduzir</button>'
+          +'<button onclick="regenPrompt(this.dataset.v)" data-v="+i+" style="background:#E8593C;color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;font-family:inherit">↺ Regenerar</button>'
         +'</div>'
         +'<div id="trad-'+i+'" style="font-size:11px;color:#555;margin-top:3px;font-style:italic"></div>'
       +'</div>'
@@ -829,7 +837,7 @@ async function regenerarOpcoes(tipo) {
   } catch(e) {}
 }
 
-// ── Gerar Imagens e Áudio ──────────────────────────────────────────────────
+// ---
 async function gerarImagens() {
   var titulo = document.getElementById('titulo').value.trim();
   if(!state.roteiro) { alert('Gere o roteiro primeiro'); return; }
@@ -905,7 +913,7 @@ function renderGrid(total) {
   var html = '';
   for(var i=0;i<total;i++){
     var num = String(i+1).padStart(2,'0');
-    html += '<div class="img-cell" id="cell-'+i+'" onclick="openLightbox('+i+')">'
+    html += '<div class="img-cell" id="cell-'+i+'" onclick="openLightbox(this.dataset.v)" data-v="+i+">'
       +'<img src="/imagem/'+state.sessionId+'/'+i+'?t='+Date.now()+'" alt="IMG '+num+'" loading="lazy" onerror="this.style.display=\'none\'">'
       +'<span class="img-num">'+num+'</span>'
     +'</div>';
@@ -935,7 +943,7 @@ async function regenSingle() {
   await regenPrompt(idx);
 }
 
-// ── Clonar ─────────────────────────────────────────────────────────────────
+// ---
 async function clonarRoteiro() {
   var transcricao = document.getElementById('transcricao').value.trim();
   var titulo = document.getElementById('titulo-clone').value.trim();
@@ -967,7 +975,7 @@ async function clonarRoteiro() {
   }
 }
 
-// ── Calendário ─────────────────────────────────────────────────────────────
+// ---
 function addCalendario() {
   var titulo = document.getElementById('cal-titulo').value.trim();
   var data = document.getElementById('cal-data').value;
@@ -984,7 +992,7 @@ function renderCalendario() {
       +'<span class="cal-status cs-plan">'+item.status+'</span>'
       +'<span class="cal-title">'+esc(item.titulo)+'</span>'
       +'<span class="cal-date">'+item.data+'</span>'
-      +'<button class="cal-btn" onclick="usarTitulo('+i+')">Gerar</button>'
+      +'<button class="cal-btn" onclick="usarTitulo(this.dataset.v)" data-v="+i+">Gerar</button>'
     +'</div>';
   }).join('') || '<div style="color:#444;font-size:13px;padding:1rem">Nenhum vídeo planejado ainda.</div>';
   document.getElementById('cal-list').innerHTML = html;
@@ -996,7 +1004,7 @@ function usarTitulo(idx) {
   showTab('gerar', document.querySelectorAll('.tab')[0]);
 }
 
-// ── Utils ──────────────────────────────────────────────────────────────────
+// ---
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 document.getElementById('titulo').addEventListener('keydown', function(e){ if(e.key==='Enter') gerarRoteiro(); });
@@ -1004,7 +1012,7 @@ document.getElementById('titulo').addEventListener('keydown', function(e){ if(e.
 </body>
 </html>"""
 
-# ── Rotas ─────────────────────────────────────────────────────────────────────
+# ---
 @app.route('/')
 def index():
     return HTML
