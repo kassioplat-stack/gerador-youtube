@@ -360,11 +360,12 @@ async function gerarRoteiro() {
       data.prompts_final || []
     );
     renderRoteiro(data);
-    document.getElementById('btn-imagens').disabled = false;
-    document.getElementById('btn-imagens').style.opacity = '1';
-  } catch(e) { alert('Erro: ' + e.message); }
+    var btnNarr = document.getElementById('btn-narracao');
+    btnNarr.disabled = false;
+    btnNarr.style.opacity = '1';
+  } catch(e) { alert('Erro ao gerar roteiro: ' + e.message); }
   btn.disabled = false;
-  btn.textContent = 'Gerar Roteiro';
+  btn.textContent = '1. Gerar Roteiro';
 }
 
 async function gerarNarracao() {
