@@ -177,13 +177,11 @@ textarea{height:60px;resize:none}
     </div>
 
     <div class="card">
-      <div class="toggle-row">
-        <div class="toggle" id="toggle-teste" onclick="toggleTeste()"><div class="toggle-knob"></div></div>
-        <span class="toggle-label">Modo Teste - so roteiro e narracao, sem imagens</span>
-      </div>
+
       <div id="preview-info" class="preview-info"></div>
-      <button class="btn btn-secondary" id="btn-roteiro" onclick="gerarRoteiro()">Gerar Roteiro</button>
-      <button class="btn btn-primary" id="btn-imagens" onclick="gerarImagens()" disabled style="margin-top:8px;opacity:.4">Gerar Imagens e Audio</button>
+      <button class="btn btn-secondary" id="btn-roteiro" onclick="gerarRoteiro()" style="margin-top:4px">1. Gerar Roteiro</button>
+      <button class="btn" id="btn-narracao" onclick="gerarNarracao()" disabled style="margin-top:8px;opacity:.4;background:#7a4a9a;color:#fff">2. Gerar Narracao</button>
+      <button class="btn btn-primary" id="btn-imagens" onclick="gerarImagens()" disabled style="margin-top:8px;opacity:.4">3. Gerar Imagens</button>
       <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
     </div>
 
@@ -315,10 +313,7 @@ function updatePreviewInfo() {
   document.getElementById('preview-info').textContent = '~' + imgs + ' imagens em ' + state.duracao + 's';
 }
 
-function toggleTeste() {
-  state.modoTeste = !state.modoTeste;
-  document.getElementById('toggle-teste').classList.toggle('on', state.modoTeste);
-}
+
 
 updatePreviewInfo();
 
@@ -370,6 +365,45 @@ async function gerarRoteiro() {
   } catch(e) { alert('Erro: ' + e.message); }
   btn.disabled = false;
   btn.textContent = 'Gerar Roteiro';
+}
+
+async function gerarNarracao() {
+  if(!state.roteiro) { alert('Gere o roteiro primeiro'); return; }
+  var btn = document.getElementById('btn-narracao');
+  btn.disabled = true;
+  btn.textContent = 'Gerando narracao...';
+
+  var ganchoEl = document.querySelector('#gancho-opts .gancho-opt.sel');
+  var fraseEl = document.querySelector('#frase-opts .gancho-opt.sel');
+  var perguntaEl = document.querySelector('#pergunta-opts .gancho-opt.sel');
+  var narracao = document.getElementById('narracao-edit').value;
+
+  try {
+    var resp = await fetch('/narracao', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        narracao_custom: narracao,
+        gancho: ganchoEl ? ganchoEl.textContent : '',
+        frase_final: fraseEl ? fraseEl.textContent : '',
+        pergunta_divisora: perguntaEl ? perguntaEl.textContent : ''
+      })
+    });
+    var d = await resp.json();
+    if(d.erro) throw new Error(d.erro);
+    if(d.audio_url) {
+      state.sessionId = d.session_id;
+      var ap = document.getElementById('audio-player');
+      ap.src = d.audio_url;
+      ap.style.display = 'block';
+      document.getElementById('result-card').style.display = 'block';
+    }
+    document.getElementById('btn-imagens').disabled = false;
+    document.getElementById('btn-imagens').style.opacity = '1';
+    alert('Narracao gerada! Ouva e depois clique em Gerar Imagens.');
+  } catch(e) { alert('Erro: ' + e.message); }
+  btn.disabled = false;
+  btn.textContent = '2. Gerar Narracao';
 }
 
 function renderRoteiro(d) {
