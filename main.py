@@ -160,7 +160,10 @@ def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-5-2
                 timeout=300
             )
             text = r.json()["content"][0]["text"]
-            return re.sub(r"```json|```", "", text).strip()
+            text = re.sub(r"```json|```", "", text).strip()
+            # Remove trailing commas antes de fechar arrays/objetos
+            text = re.sub(r',(\s*[}\]])', r'', text)
+            return text
         except Exception as e:
             if tentativa == 2:
                 raise Exception(f"Claude erro: {str(e)}")
