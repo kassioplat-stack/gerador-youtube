@@ -156,6 +156,8 @@ REGRAS DA NARRACAO:
 5. Transicoes naturais entre historias: nunca "O proximo animal e..." — use "Mas nao e o unico." ou "Se isso ja te surpreendeu..."
 6. Viradas em frases curtissimas sem folego: "Ela nao foi embora. Ficou. Por tres dias."
 7. Final filosofico que desacelera: uma ou duas frases longas e profundas que ficam na cabeca
+8. PONTUACAO OBRIGATORIA: cada frase deve ser uma frase COMPLETA com sujeito, verbo e sentido completo. NUNCA deixe uma frase cortada no meio. Cada frase termina com ponto final, ponto de exclamacao ou ponto de interrogacao. Nunca termine uma frase com virgula ou sem pontuacao.
+9. FLUIDEZ: as frases devem soar naturais quando lidas em voz alta. Teste mentalmente — se soar cortado ou estranho, reescreva.
 
 REGRAS DOS PROMPTS DE IMAGEM:
 1. Cada prompt e a representacao visual EXATA da frase de narracao correspondente
@@ -455,6 +457,56 @@ def gerar():
             yield 'data:' + json.dumps({'step': 4, 'status': 'error', 'msg': f'Erro ZIP: {str(e)}', 'erro': str(e)}) + '\n\n'
 
     return Response(stream(), mimetype='text/event-stream')
+
+
+@app.route('/narracao', methods=['POST'])
+def gerar_narracao():
+    data = request.json
+    narracao_custom = data.get('narracao_custom', '')
+    gancho = data.get('gancho', '')
+    frase_final = data.get('frase_final', '')
+    pergunta_divisora = data.get('pergunta_divisora', '')
+
+    partes = [p for p in [gancho, narracao_custom, frase_final, pergunta_divisora] if p]
+    narracao_txt = ' '.join(partes) if partes else narracao_custom
+
+    session_id = str(int(time.time()))
+    sessions[session_id] = {'imagens': {}, 'prompts': [], 'audio': None}
+
+    audio_data = None
+    audio_service = ''
+    try:
+        if ELEVENLABS_KEY:
+            r = requests.post(
+                f'https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE}',
+                headers={'xi-api-key': ELEVENLABS_KEY, 'content-type': 'application/json'},
+                json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.5, 'similarity_boost': 0.8}},
+                timeout=60
+            )
+            if r.status_code == 200:
+                audio_data = r.content
+                audio_service = 'ElevenLabs'
+    except:
+        pass
+
+    if not audio_data:
+        try:
+            from gtts import gTTS
+            import io
+            tts = gTTS(narracao_txt, lang='pt')
+            buf = io.BytesIO()
+            tts.write_to_fp(buf)
+            audio_data = buf.getvalue()
+            audio_service = 'gTTS'
+        except:
+            pass
+
+    sessions[session_id]['audio'] = audio_data
+
+    if audio_data:
+        return jsonify({'ok': True, 'session_id': session_id, 'audio_url': f'/audio/{session_id}', 'servico': audio_service})
+    else:
+        return jsonify({'erro': 'Erro ao gerar narracao'}), 500
 
 @app.route('/audio/<session_id>')
 def audio(session_id):
