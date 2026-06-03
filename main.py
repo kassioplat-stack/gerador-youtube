@@ -724,9 +724,17 @@ function renderRoteiro(d) {
   // Ganchos
   var opts = [d.gancho_principal].concat(d.gancho_opcoes||[]);
   var ganchoHtml = opts.map(function(g,i){
-    return '<div class="gancho-opt'+(i===0?' sel':'')+'" onclick="selOpt(this,\'gancho\')">'+esc(g)+'</div>';
+    var d2 = document.createElement('div');
+    d2.className = 'gancho-opt' + (i===0?' sel':'');
+    d2.dataset.grp = 'gancho';
+    d2.textContent = g;
+    d2.onclick = function(){ selOpt(this,'gancho'); };
+    return d2.outerHTML;
   }).join('');
   document.getElementById('gancho-opts').innerHTML = ganchoHtml;
+  document.getElementById('gancho-opts').querySelectorAll('.gancho-opt').forEach(function(el){
+    el.onclick = function(){ selOpt(this,'gancho'); };
+  });
 
   // Narração
   var narracao = [d.gancho_principal]
@@ -758,15 +766,15 @@ function renderRoteiro(d) {
 
   // Frase final
   var frases = [d.frase_final_principal].concat(d.frase_final_opcoes||[]);
-  document.getElementById('frase-opts').innerHTML = frases.map(function(f,i){
-    return '<div class="gancho-opt'+(i===0?' sel':'')+'" onclick="selOpt(this,\'frase\')">'+esc(f)+'</div>';
-  }).join('');
+  var fraseContainer = document.getElementById('frase-opts');
+  fraseContainer.innerHTML = frases.map(function(f,i){ return '<div class="gancho-opt'+(i===0?' sel':'')+'" data-grp="frase">'+esc(f)+'</div>'; }).join('');
+  fraseContainer.querySelectorAll('.gancho-opt').forEach(function(el){ el.onclick=function(){ selOpt(this,'frase'); }; });
 
   // Pergunta divisora
   var perguntas = [d.pergunta_divisora_principal].concat(d.pergunta_divisora_opcoes||[]);
-  document.getElementById('pergunta-opts').innerHTML = perguntas.map(function(p,i){
-    return '<div class="gancho-opt'+(i===0?' sel':'')+'" onclick="selOpt(this,\'pergunta\')">'+esc(p)+'</div>';
-  }).join('');
+  var perguntaContainer = document.getElementById('pergunta-opts');
+  perguntaContainer.innerHTML = perguntas.map(function(p,i){ return '<div class="gancho-opt'+(i===0?' sel':'')+'" data-grp="pergunta">'+esc(p)+'</div>'; }).join('');
+  perguntaContainer.querySelectorAll('.gancho-opt').forEach(function(el){ el.onclick=function(){ selOpt(this,'pergunta'); }; });
 
   document.getElementById('roteiro-preview').style.display = 'block';
 }
@@ -822,16 +830,16 @@ async function regenerarOpcoes(tipo) {
     });
     var d = await r.json();
     if(tipo === 'gancho') {
-      document.getElementById('gancho-opts').innerHTML = d.opcoes.map(function(o,i){
-        return '<div class="gancho-opt'+(i===0?' sel':'')+'" onclick="selOpt(this,\'gancho\')">'+esc(o)+'</div>';
-      }).join('');
+      var gc = document.getElementById('gancho-opts');
+      gc.innerHTML = d.opcoes.map(function(o,i){ return '<div class="gancho-opt'+(i===0?' sel':'')+'" data-grp="gancho">'+esc(o)+'</div>'; }).join('');
+      gc.querySelectorAll('.gancho-opt').forEach(function(el){ el.onclick=function(){ selOpt(this,'gancho'); }; });
     } else if(tipo === 'frase') {
       document.getElementById('frase-opts').innerHTML = d.opcoes.map(function(o,i){
-        return '<div class="gancho-opt'+(i===0?' sel':'')+'" onclick="selOpt(this,\'frase\')">'+esc(o)+'</div>';
+        return '<div class="gancho-opt'+(i===0?' sel':'')+'" data-grp="frase">'+esc(o)+'</div>';
       }).join('');
     } else {
       document.getElementById('pergunta-opts').innerHTML = d.opcoes.map(function(o,i){
-        return '<div class="gancho-opt'+(i===0?' sel':'')+'" onclick="selOpt(this,\'pergunta\')">'+esc(o)+'</div>';
+        return '<div class="gancho-opt'+(i===0?' sel':'')+'" data-grp="pergunta">'+esc(o)+'</div>';
       }).join('');
     }
   } catch(e) {}
