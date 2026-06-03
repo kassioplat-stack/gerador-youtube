@@ -1,5 +1,605 @@
 <!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><title>Teste</title></head>
-<body><h1>Funcionando!</h1></body>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gerador YouTube</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,sans-serif;background:#0f0f0f;color:#fff;min-height:100vh;padding:2rem}
+.container{max-width:700px;margin:0 auto}
+.logo{font-size:11px;font-weight:600;color:#E8593C;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+h1{font-size:26px;font-weight:700;margin-bottom:4px}
+.sub{font-size:14px;color:#555;margin-bottom:2rem}
+.card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+.slbl{font-size:11px;font-weight:600;color:#444;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px}
+input[type=text],textarea{width:100%;background:#111;border:1px solid #333;border-radius:8px;padding:10px 12px;font-size:14px;color:#fff;font-family:inherit;outline:none;transition:border-color .2s;margin-bottom:8px}
+input[type=text]:focus,textarea:focus{border-color:#E8593C}
+textarea{height:60px;resize:none}
+.tabs{display:flex;margin-bottom:1.5rem;border-bottom:1px solid #222}
+.tab{padding:10px 20px;font-size:13px;font-weight:500;color:#555;cursor:pointer;border-bottom:2px solid transparent;background:none;border-top:none;border-left:none;border-right:none;font-family:inherit}
+.tab.active{color:#E8593C;border-bottom-color:#E8593C}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.model-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.style-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:1rem}
+.config-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:1rem}
+.config-block{background:#111;border:1px solid #2a2a2a;border-radius:10px;padding:10px}
+.model-card,.style-card{background:#111;border:1px solid #2a2a2a;border-radius:10px;padding:10px;cursor:pointer;transition:all .15s;text-align:left}
+.model-card.sel,.style-card.sel{border-color:#E8593C;background:#1f1510}
+.mc-icon{font-size:18px;margin-bottom:4px}
+.mc-name{font-size:12px;font-weight:500;color:#ccc}
+.mc-desc{font-size:11px;color:#444;margin-top:2px}
+.model-card.sel .mc-name,.style-card.sel .mc-name{color:#E8593C}
+.chips-row{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.chip{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:20px;padding:4px 10px;font-size:11px;color:#555;cursor:pointer;transition:all .15s;font-family:inherit}
+.chip.sel{background:#1f1510;border-color:#E8593C;color:#E8593C}
+.toggle-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.toggle{position:relative;width:40px;height:22px;background:#333;border-radius:11px;cursor:pointer;transition:background .2s}
+.toggle.on{background:#E8593C}
+.toggle-knob{position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:left .2s}
+.toggle.on .toggle-knob{left:21px}
+.toggle-label{font-size:13px;color:#777}
+.preview-info{font-size:12px;color:#333;margin-top:8px;text-align:center}
+.btn{width:100%;border:none;border-radius:8px;padding:12px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .2s;margin-top:4px}
+.btn-primary{background:#E8593C;color:#fff}
+.btn-secondary{background:#1a3a5c;color:#fff}
+.btn:hover{opacity:.85}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.steps-card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:1.25rem;margin-bottom:1rem;display:none}
+.step{display:flex;gap:12px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #222}
+.step:last-child{border:none}
+.dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;background:#222;color:#444;transition:all .3s}
+.dot.active{background:#E8593C;color:#fff}
+.dot.done{background:#1a6b3c;color:#fff}
+.dot.error{background:#6b1a1a;color:#fff}
+.step-title{font-size:13px;font-weight:500;color:#bbb;margin-bottom:2px}
+.step-desc{font-size:12px;color:#444;transition:color .3s}
+.step-desc.active{color:#E8593C}
+.step-desc.done{color:#27a05a}
+.step-desc.error{color:#e85c5c}
+.progress-bar{height:3px;background:#222;border-radius:3px;margin-top:12px;overflow:hidden}
+.progress-fill{height:100%;background:#E8593C;width:0%;transition:width .4s;border-radius:3px}
+.result-card{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:12px;padding:1.25rem;margin-bottom:1rem;display:none}
+.download-btn{display:block;width:100%;background:#1a6b3c;color:#fff;border:none;border-radius:8px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;text-align:center;text-decoration:none;transition:opacity .2s;font-family:inherit}
+.download-btn:hover{opacity:.85}
+.info-box{background:#111;border:1px solid #222;border-radius:8px;padding:12px;margin-top:10px;font-size:12px;color:#444;line-height:1.7}
+.gancho-opts{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.gancho-opt{background:#111;border:1px solid #2a2a2a;border-radius:8px;padding:10px 12px;cursor:pointer;font-size:13px;color:#ccc;transition:all .15s}
+.gancho-opt.sel{border-color:#E8593C;color:#fff}
+.regen-opts-btn{background:transparent;border:1px solid #333;border-radius:6px;padding:4px 10px;font-size:11px;color:#555;cursor:pointer;font-family:inherit;margin-top:6px}
+.img-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:12px}
+.img-cell{position:relative;aspect-ratio:9/16;background:#111;border-radius:6px;overflow:hidden;cursor:pointer}
+.img-cell img{width:100%;height:100%;object-fit:cover}
+.img-num{position:absolute;top:4px;left:4px;background:rgba(0,0,0,.7);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px}
+.calendar-list{display:flex;flex-direction:column;gap:8px}
+.cal-item{background:#111;border:1px solid #2a2a2a;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:12px}
+.cal-title{font-size:13px;color:#ccc;flex:1}
+.cal-date{font-size:11px;color:#444}
+.cal-btn{background:#E8593C;color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:inherit}
+.add-row{display:flex;gap:8px;margin-bottom:1rem}
+.add-row input{flex:1;margin:0}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="logo">Pipeline YouTube</div>
+  <h1>Gerador de Videos</h1>
+  <p class="sub">Escolha o modelo, configure e clique em gerar</p>
+
+  <div class="tabs">
+    <button class="tab active" id="tab-btn-gerar" onclick="showTab('gerar',this)">Gerar</button>
+    <button class="tab" id="tab-btn-clonar" onclick="showTab('clonar',this)">Clonar Roteiro</button>
+    <button class="tab" id="tab-btn-calendario" onclick="showTab('calendario',this)">Calendario</button>
+  </div>
+
+  <div class="tab-content active" id="tab-gerar">
+    <div class="card">
+      <span class="slbl">Modelo de conteudo</span>
+      <div class="model-grid">
+        <button class="model-card sel" id="m-animais" onclick="selModel('animais')">
+          <div class="mc-icon">🐾</div>
+          <div class="mc-name">Comportamento Animal</div>
+          <div class="mc-desc">3 animais em escalada</div>
+        </button>
+        <button class="model-card" id="m-psicologia" onclick="selModel('psicologia')">
+          <div class="mc-icon">🧠</div>
+          <div class="mc-name">Psicologia Humana</div>
+          <div class="mc-desc">3 comportamentos humanos</div>
+        </button>
+        <button class="model-card" id="m-fatos" onclick="selModel('fatos')">
+          <div class="mc-icon">💡</div>
+          <div class="mc-name">Fatos e Percepcao</div>
+          <div class="mc-desc">3 fatos cientificos</div>
+        </button>
+      </div>
+    </div>
+
+    <div class="card">
+      <span class="slbl">Titulo do video</span>
+      <input type="text" id="titulo" placeholder="Ex: Narcisistas da Floresta" />
+      <span class="slbl">Contexto (opcional)</span>
+      <textarea id="contexto" placeholder="Descreva o angulo, animais especificos, tom da historia..."></textarea>
+    </div>
+
+    <div class="card">
+      <span class="slbl">Estilo visual</span>
+      <div class="style-grid">
+        <button class="style-card sel" id="s-stylized_game" onclick="selStyle('stylized_game')"><div class="mc-icon">🎮</div><div class="mc-name">Stylized Game</div></button>
+        <button class="style-card" id="s-cinematic_doc" onclick="selStyle('cinematic_doc')"><div class="mc-icon">🎬</div><div class="mc-name">Cinematic Doc</div></button>
+        <button class="style-card" id="s-anime" onclick="selStyle('anime')"><div class="mc-icon">🌸</div><div class="mc-name">Anime</div></button>
+        <button class="style-card" id="s-dark_fantasy" onclick="selStyle('dark_fantasy')"><div class="mc-icon">⚔️</div><div class="mc-name">Dark Fantasy</div></button>
+        <button class="style-card" id="s-feature_film" onclick="selStyle('feature_film')"><div class="mc-icon">🎥</div><div class="mc-name">Feature Film</div></button>
+        <button class="style-card" id="s-macro_nature" onclick="selStyle('macro_nature')"><div class="mc-icon">🔬</div><div class="mc-name">Macro Nature</div></button>
+        <button class="style-card" id="s-anime_moderno" onclick="selStyle('anime_moderno')"><div class="mc-icon">🎌</div><div class="mc-name">Anime Moderno</div></button>
+        <button class="style-card" id="s-cartoon_flat" onclick="selStyle('cartoon_flat')"><div class="mc-icon">🎨</div><div class="mc-name">Cartoon Flat</div></button>
+      </div>
+    </div>
+
+    <div class="config-row">
+      <div class="config-block">
+        <span class="slbl">Num de historias</span>
+        <div class="chips-row">
+          <button class="chip" id="h1" onclick="selChip('historias','1','h1','h2','h3')">1 historia</button>
+          <button class="chip" id="h2" onclick="selChip('historias','2','h1','h2','h3')">2 historias</button>
+          <button class="chip sel" id="h3" onclick="selChip('historias','3','h1','h2','h3')">3 historias</button>
+        </div>
+      </div>
+      <div class="config-block">
+        <span class="slbl">Formato</span>
+        <div class="chips-row">
+          <button class="chip sel" id="f916" onclick="selChip('formato','9:16','f916','f169','f11')">9:16</button>
+          <button class="chip" id="f169" onclick="selChip('formato','16:9','f916','f169','f11')">16:9</button>
+          <button class="chip" id="f11" onclick="selChip('formato','1:1','f916','f169','f11')">1:1</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="config-row">
+      <div class="config-block">
+        <span class="slbl">Duracao do video</span>
+        <div class="chips-row">
+          <button class="chip" id="d30" onclick="selChip('duracao','30','d30','d50','d60','d90','d90m')">30s</button>
+          <button class="chip sel" id="d50" onclick="selChip('duracao','50','d30','d50','d60','d90','d90m')">50s</button>
+          <button class="chip" id="d60" onclick="selChip('duracao','60','d30','d50','d60','d90','d90m')">60s</button>
+          <button class="chip" id="d90" onclick="selChip('duracao','90','d30','d50','d60','d90','d90m')">90s</button>
+          <button class="chip" id="d90m" onclick="selChip('duracao','90m','d30','d50','d60','d90','d90m')">1:30</button>
+        </div>
+      </div>
+      <div class="config-block">
+        <span class="slbl">Ritmo de corte</span>
+        <div class="chips-row">
+          <button class="chip" id="rlento" onclick="selChip('ritmo','lento','rlento','rmedio','rrapido')">Lento 3s</button>
+          <button class="chip sel" id="rmedio" onclick="selChip('ritmo','medio','rlento','rmedio','rrapido')">Medio 2s</button>
+          <button class="chip" id="rrapido" onclick="selChip('ritmo','rapido','rlento','rmedio','rrapido')">Rapido 1.5s</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toggle-row">
+        <div class="toggle" id="toggle-teste" onclick="toggleTeste()"><div class="toggle-knob"></div></div>
+        <span class="toggle-label">Modo Teste - so roteiro e narracao, sem imagens</span>
+      </div>
+      <div id="preview-info" class="preview-info"></div>
+      <button class="btn btn-secondary" id="btn-roteiro" onclick="gerarRoteiro()">Gerar Roteiro</button>
+      <button class="btn btn-primary" id="btn-imagens" onclick="gerarImagens()" disabled style="margin-top:8px;opacity:.4">Gerar Imagens e Audio</button>
+      <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    </div>
+
+    <div class="steps-card" id="steps-card">
+      <div class="step"><div class="dot" id="d1">1</div><div><div class="step-title">Roteiro</div><div class="step-desc" id="s1">Aguardando...</div></div></div>
+      <div class="step"><div class="dot" id="d2">2</div><div><div class="step-title">Imagens - Leonardo</div><div class="step-desc" id="s2">Aguardando...</div></div></div>
+      <div class="step"><div class="dot" id="d3">3</div><div><div class="step-title">Narracao - ElevenLabs</div><div class="step-desc" id="s3">Aguardando...</div></div></div>
+      <div class="step"><div class="dot" id="d4">4</div><div><div class="step-title">ZIP</div><div class="step-desc" id="s4">Aguardando...</div></div></div>
+    </div>
+
+    <div id="roteiro-preview" style="display:none">
+      <div class="card">
+        <span class="slbl">Gancho - escolha uma opcao</span>
+        <div class="gancho-opts" id="gancho-opts"></div>
+        <button class="regen-opts-btn" onclick="regenerarOpcoes('gancho')">Regenerar ganchos</button>
+      </div>
+      <div class="card">
+        <span class="slbl">Narracao completa</span>
+        <textarea id="narracao-edit" style="height:200px"></textarea>
+      </div>
+      <div class="card">
+        <span class="slbl">Prompts de imagem</span>
+        <div id="prompts-list"></div>
+      </div>
+      <div class="card">
+        <span class="slbl">Frase final</span>
+        <div class="gancho-opts" id="frase-opts"></div>
+        <button class="regen-opts-btn" onclick="regenerarOpcoes('frase')">Regenerar frases</button>
+      </div>
+      <div class="card">
+        <span class="slbl">Pergunta divisora</span>
+        <div class="gancho-opts" id="pergunta-opts"></div>
+        <button class="regen-opts-btn" onclick="regenerarOpcoes('pergunta')">Regenerar perguntas</button>
+      </div>
+    </div>
+
+    <div class="result-card" id="result-card">
+      <audio id="audio-player" controls style="display:none;width:100%;margin-bottom:10px"></audio>
+      <button class="download-btn" id="dl-btn">Baixar ZIP - imagens + audio</button>
+      <div class="info-box">ZIP contem: imagens numeradas + narracao.mp3 + roteiro.txt</div>
+      <div id="img-grid" class="img-grid"></div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-clonar">
+    <div class="card">
+      <span class="slbl">Transcricao do video original</span>
+      <textarea id="transcricao" style="height:150px" placeholder="Cole o texto da narracao do video que quer clonar..."></textarea>
+      <span class="slbl">Seu titulo</span>
+      <input type="text" id="titulo-clone" placeholder="Qual tema voce quer usar?"/>
+      <span class="slbl">Observacoes (opcional)</span>
+      <textarea id="obs-clone" style="height:50px" placeholder="Ex: ritmo rapido, historias curtas..."></textarea>
+      <button class="btn btn-secondary" style="margin-top:8px" onclick="clonarRoteiro()">Analisar e Clonar</button>
+      <div id="clone-result" style="margin-top:1rem;font-size:13px;color:#777"></div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-calendario">
+    <div class="card">
+      <span class="slbl">Adicionar titulo a fila</span>
+      <div class="add-row">
+        <input type="text" id="cal-titulo" placeholder="Titulo do video..."/>
+        <input type="date" id="cal-data" style="width:150px;margin:0"/>
+        <button class="btn btn-primary" style="width:auto;padding:8px 16px;margin:0" onclick="addCalendario()">+</button>
+      </div>
+      <div class="calendar-list" id="cal-list"></div>
+    </div>
+  </div>
+
+</div>
+<script>
+var state = {
+  modelo: 'animais',
+  estilo: 'stylized_game',
+  historias: '3',
+  formato: '9:16',
+  duracao: '50',
+  ritmo: 'medio',
+  modoTeste: false,
+  roteiro: null,
+  prompts: [],
+  sessionId: null,
+  lbIdx: -1,
+  calendarioItems: []
+};
+
+try { state.calendarioItems = JSON.parse(localStorage.getItem('calendario') || '[]'); } catch(e) {}
+
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id === 'calendario') renderCalendario();
+}
+
+function selModel(val) {
+  state.modelo = val;
+  document.querySelectorAll('.model-card').forEach(function(b){ b.classList.remove('sel'); });
+  var el = document.getElementById('m-'+val);
+  if(el) el.classList.add('sel');
+  updatePreviewInfo();
+}
+
+function selStyle(val) {
+  state.estilo = val;
+  document.querySelectorAll('.style-card').forEach(function(b){ b.classList.remove('sel'); });
+  var el = document.getElementById('s-'+val);
+  if(el) el.classList.add('sel');
+}
+
+function selChip(key, val) {
+  state[key] = val;
+  var ids = Array.prototype.slice.call(arguments, 2);
+  ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.classList.remove('sel'); });
+  var btnId = key==='historias'?'h'+val:key==='formato'?'f'+val.replace(/:/g,''):key==='duracao'?'d'+val:'r'+val;
+  var btn = document.getElementById(btnId);
+  if(btn) btn.classList.add('sel');
+  updatePreviewInfo();
+}
+
+function updatePreviewInfo() {
+  var durMap = {30:30,50:50,60:60,90:90,'90m':90};
+  var ritMap = {lento:3.0,medio:2.0,rapido:1.5};
+  var dur = durMap[state.duracao] || 60;
+  var rit = ritMap[state.ritmo] || 2.0;
+  var imgs = Math.round(dur / rit);
+  document.getElementById('preview-info').textContent = '~' + imgs + ' imagens em ' + state.duracao + 's';
+}
+
+function toggleTeste() {
+  state.modoTeste = !state.modoTeste;
+  document.getElementById('toggle-teste').classList.toggle('on', state.modoTeste);
+}
+
+updatePreviewInfo();
+
+function setStep(n, status, msg) {
+  var dot = document.getElementById('d'+n);
+  var desc = document.getElementById('s'+n);
+  if(!dot || !desc) return;
+  dot.className = 'dot ' + status;
+  desc.className = 'step-desc ' + status;
+  desc.textContent = msg;
+  dot.textContent = status==='done'?'v':status==='error'?'x':status==='active'?'o':String(n);
+}
+
+function setP(v) { document.getElementById('progress').style.width = v+'%'; }
+
+async function gerarRoteiro() {
+  var titulo = document.getElementById('titulo').value.trim();
+  if(!titulo) { alert('Digite um titulo'); return; }
+  var btn = document.getElementById('btn-roteiro');
+  btn.disabled = true;
+  btn.textContent = 'Gerando roteiro...';
+  document.getElementById('roteiro-preview').style.display = 'none';
+  document.getElementById('btn-imagens').disabled = true;
+  document.getElementById('btn-imagens').style.opacity = '.4';
+  try {
+    var resp = await fetch('/roteiro', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        titulo: titulo,
+        contexto: document.getElementById('contexto').value,
+        modelo: state.modelo,
+        historias: state.historias,
+        duracao: state.duracao,
+        ritmo: state.ritmo
+      })
+    });
+    var data = await resp.json();
+    if(data.erro) throw new Error(data.erro);
+    state.roteiro = data;
+    state.prompts = [].concat(
+      data.caso1 && data.caso1.prompts || [],
+      data.caso2 && data.caso2.prompts || [],
+      data.caso3 && data.caso3.prompts || [],
+      data.prompts_final || []
+    );
+    renderRoteiro(data);
+    document.getElementById('btn-imagens').disabled = false;
+    document.getElementById('btn-imagens').style.opacity = '1';
+  } catch(e) { alert('Erro: ' + e.message); }
+  btn.disabled = false;
+  btn.textContent = 'Gerar Roteiro';
+}
+
+function renderRoteiro(d) {
+  function renderOpts(containerId, items, grp) {
+    var c = document.getElementById(containerId);
+    c.innerHTML = '';
+    items.forEach(function(text, i) {
+      var el = document.createElement('div');
+      el.className = 'gancho-opt' + (i===0?' sel':'');
+      el.textContent = text || '';
+      el.onclick = function() { selOpt(this); };
+      c.appendChild(el);
+    });
+  }
+  renderOpts('gancho-opts', [d.gancho_principal].concat(d.gancho_opcoes||[]), 'gancho');
+  renderOpts('frase-opts', [d.frase_final_principal].concat(d.frase_final_opcoes||[]), 'frase');
+  renderOpts('pergunta-opts', [d.pergunta_divisora_principal].concat(d.pergunta_divisora_opcoes||[]), 'pergunta');
+
+  var narracao = [d.gancho_principal]
+    .concat(d.narracao_caso1||[])
+    .concat(d.narracao_caso2||[])
+    .concat(d.micro_promessa?[d.micro_promessa]:[])
+    .concat(d.narracao_caso3||[])
+    .concat(d.narracao_final||[])
+    .concat(d.frase_final_principal?[d.frase_final_principal]:[])
+    .concat(d.pergunta_divisora_principal?[d.pergunta_divisora_principal]:[])
+    .filter(Boolean).join(' ');
+  document.getElementById('narracao-edit').value = narracao;
+
+  var html = '';
+  state.prompts.forEach(function(p, i) {
+    html += '<div style="display:flex;gap:8px;margin-bottom:8px">'
+      +'<span style="background:#E8593C;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;flex-shrink:0">'+(i+1)+'</span>'
+      +'<div style="flex:1">'
+      +'<textarea id="pt'+i+'" style="width:100%;background:#111;border:1px solid #333;border-radius:6px;padding:8px;font-size:12px;color:#ccc;font-family:inherit;resize:none;height:60px">'+esc(p)+'</textarea>'
+      +'<div style="display:flex;gap:6px;margin-top:3px">'
+      +'<button onclick="traduzirPrompt('+i+')" style="background:transparent;border:1px solid #333;border-radius:4px;padding:2px 8px;font-size:11px;color:#555;cursor:pointer;font-family:inherit">Traduzir</button>'
+      +'<button onclick="regenPrompt('+i+')" style="background:#E8593C;color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;font-family:inherit">Regenerar</button>'
+      +'</div>'
+      +'<div id="trad'+i+'" style="font-size:11px;color:#555;margin-top:3px;font-style:italic"></div>'
+      +'</div></div>';
+  });
+  document.getElementById('prompts-list').innerHTML = html;
+  document.getElementById('roteiro-preview').style.display = 'block';
+}
+
+function selOpt(el) {
+  el.closest('.gancho-opts').querySelectorAll('.gancho-opt').forEach(function(e){ e.classList.remove('sel'); });
+  el.classList.add('sel');
+}
+
+async function traduzirPrompt(idx) {
+  var ta = document.getElementById('pt'+idx);
+  if(!ta) return;
+  state.prompts[idx] = ta.value;
+  try {
+    var r = await fetch('/traduzir', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:ta.value})});
+    var d = await r.json();
+    var t = document.getElementById('trad'+idx);
+    if(t) t.textContent = d.traducao || '';
+  } catch(e) {}
+}
+
+async function regenPrompt(idx) {
+  var ta = document.getElementById('pt'+idx);
+  if(ta) state.prompts[idx] = ta.value;
+  try {
+    var r = await fetch('/regenerar-imagem', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({session_id:state.sessionId,idx:idx,prompt:state.prompts[idx],estilo:state.estilo,formato:state.formato})
+    });
+    var d = await r.json();
+    if(d.ok) {
+      var img = document.querySelector('#cell'+idx+' img');
+      if(img) img.src = '/imagem/'+state.sessionId+'/'+idx+'?t='+Date.now();
+    }
+  } catch(e) {}
+}
+
+async function regenerarOpcoes(tipo) {
+  var titulo = document.getElementById('titulo').value.trim();
+  try {
+    var r = await fetch('/regenerar-opcoes', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({titulo:titulo,tipo:tipo,modelo:state.modelo})
+    });
+    var d = await r.json();
+    var containerId = tipo==='gancho'?'gancho-opts':tipo==='frase'?'frase-opts':'pergunta-opts';
+    var c = document.getElementById(containerId);
+    c.innerHTML = '';
+    (d.opcoes||[]).forEach(function(text,i){
+      var el = document.createElement('div');
+      el.className = 'gancho-opt'+(i===0?' sel':'');
+      el.textContent = text;
+      el.onclick = function(){ selOpt(this); };
+      c.appendChild(el);
+    });
+  } catch(e) {}
+}
+
+async function gerarImagens() {
+  if(!state.roteiro) { alert('Gere o roteiro primeiro'); return; }
+  var titulo = document.getElementById('titulo').value.trim();
+  var ganchoEl = document.querySelector('#gancho-opts .gancho-opt.sel');
+  var fraseEl = document.querySelector('#frase-opts .gancho-opt.sel');
+  var perguntaEl = document.querySelector('#pergunta-opts .gancho-opt.sel');
+  state.prompts.forEach(function(p,i){ var ta=document.getElementById('pt'+i); if(ta) state.prompts[i]=ta.value; });
+  var payload = JSON.parse(JSON.stringify(state.roteiro));
+  payload.titulo = titulo;
+  payload.gancho = ganchoEl?ganchoEl.textContent:(state.roteiro.gancho_principal||'');
+  payload.frase_final = fraseEl?fraseEl.textContent:(state.roteiro.frase_final_principal||'');
+  payload.pergunta_divisora = perguntaEl?perguntaEl.textContent:(state.roteiro.pergunta_divisora_principal||'');
+  payload.narracao_custom = document.getElementById('narracao-edit').value;
+  payload.prompts_custom = state.prompts;
+  payload.estilo = state.estilo;
+  payload.formato = state.formato;
+  payload.modo_teste = state.modoTeste;
+  document.getElementById('steps-card').style.display = 'block';
+  document.getElementById('result-card').style.display = 'none';
+  document.getElementById('btn-imagens').disabled = true;
+  setP(5);
+  setStep(1,'done','Roteiro aprovado');
+  setStep(2,'active','Aguardando...');
+  setStep(3,'','Aguardando...');
+  setStep(4,'','Aguardando...');
+  try {
+    var resp = await fetch('/gerar', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    var reader = resp.body.getReader();
+    var dec = new TextDecoder();
+    var buf = '';
+    while(true) {
+      var res = await reader.read();
+      if(res.done) break;
+      buf += dec.decode(res.value,{stream:true});
+      var lines = buf.split('\n');
+      buf = lines.pop();
+      lines.forEach(function(line){
+        line = line.trim();
+        if(line.indexOf('data:')!==0) return;
+        try {
+          var d = JSON.parse(line.slice(5));
+          if(d.step) setStep(d.step,d.status,d.msg);
+          if(d.progress) setP(d.progress);
+          if(d.session_id) state.sessionId = d.session_id;
+          if(d.zip){
+            var zipPath = d.zip;
+            document.getElementById('dl-btn').onclick = function(){ window.location='/download?file='+zipPath; };
+            document.getElementById('result-card').style.display = 'block';
+          }
+          if(d.audio_url){
+            var ap = document.getElementById('audio-player');
+            ap.src = d.audio_url;
+            ap.style.display = 'block';
+          }
+          if(d.imgs_total) renderGrid(d.imgs_total);
+        } catch(e) {}
+      });
+    }
+  } catch(e) { alert('Erro: '+e.message); }
+  document.getElementById('btn-imagens').disabled = false;
+}
+
+function renderGrid(total) {
+  var html = '';
+  for(var i=0;i<total;i++){
+    var num = String(i+1).padStart(2,'0');
+    html += '<div class="img-cell" id="cell'+i+'">'
+      +'<img src="/imagem/'+state.sessionId+'/'+i+'?t='+Date.now()+'" alt="'+num+'" loading="lazy">'
+      +'<span class="img-num">'+num+'</span>'
+      +'</div>';
+  }
+  document.getElementById('img-grid').innerHTML = html;
+}
+
+async function clonarRoteiro() {
+  var transcricao = document.getElementById('transcricao').value.trim();
+  var titulo = document.getElementById('titulo-clone').value.trim();
+  if(!transcricao||!titulo){ alert('Preencha a transcricao e o titulo'); return; }
+  document.getElementById('clone-result').textContent = 'Analisando...';
+  try {
+    var r = await fetch('/clonar', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({transcricao:transcricao,titulo:titulo,obs:document.getElementById('obs-clone').value})
+    });
+    var d = await r.json();
+    if(d.erro) throw new Error(d.erro);
+    document.getElementById('clone-result').textContent = 'Modelo: '+(d.modelo_identificado||'Animal');
+    state.roteiro = d;
+    state.prompts = [].concat(d.caso1&&d.caso1.prompts||[],d.caso2&&d.caso2.prompts||[],d.caso3&&d.caso3.prompts||[],d.prompts_final||[]);
+    showTab('gerar',document.getElementById('tab-btn-gerar'));
+    renderRoteiro(d);
+    document.getElementById('btn-imagens').disabled = false;
+    document.getElementById('btn-imagens').style.opacity = '1';
+  } catch(e){ document.getElementById('clone-result').textContent = 'Erro: '+e.message; }
+}
+
+function addCalendario() {
+  var titulo = document.getElementById('cal-titulo').value.trim();
+  var data = document.getElementById('cal-data').value;
+  if(!titulo) return;
+  state.calendarioItems.push({titulo:titulo,data:data||'',status:'Planejado'});
+  try{ localStorage.setItem('calendario',JSON.stringify(state.calendarioItems)); }catch(e){}
+  document.getElementById('cal-titulo').value = '';
+  renderCalendario();
+}
+
+function renderCalendario() {
+  var html = '';
+  state.calendarioItems.forEach(function(item,i){
+    html += '<div class="cal-item">'
+      +'<span style="font-size:10px;font-weight:600;background:#1a3a5c;color:#5b9bd5;border-radius:4px;padding:2px 8px">'+item.status+'</span>'
+      +'<span class="cal-title">'+esc(item.titulo)+'</span>'
+      +'<span class="cal-date">'+item.data+'</span>'
+      +'<button class="cal-btn" onclick="usarCalItem('+i+')">Gerar</button>'
+      +'</div>';
+  });
+  document.getElementById('cal-list').innerHTML = html||'<div style="color:#444;font-size:13px;padding:1rem">Nenhum video planejado.</div>';
+}
+
+function usarCalItem(idx) {
+  document.getElementById('titulo').value = state.calendarioItems[idx].titulo;
+  showTab('gerar',document.getElementById('tab-btn-gerar'));
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+document.getElementById('titulo').addEventListener('keydown',function(e){ if(e.key==='Enter') gerarRoteiro(); });
+</script>
+</body>
 </html>
