@@ -100,53 +100,53 @@ def build_system(modelo, nh, dist, total_palavras):
 
     system = (ctx + "\n\n"
         "PSICOLOGIA DO ROTEIRO:\n"
-        "1. EMOCAO-ANCORA: defina uma emocao central que conecta tudo ao espectador. Exemplos: reconhecimento culpado, admiracao perturbadora, identificacao involuntaria.\n"
-        "2. PERGUNTA INVISIVEL: uma pergunta que o video responde sem nunca dizer em voz alta. Ela vive na cabeca do espectador.\n"
-        "3. GANCHO — escolha o tipo mais poderoso: PROVOCACAO (afirmacao que desafia), CONTRADICAO (quebra crenca), ESPELHO HUMANO (animal faz algo humano demais), NUMERO CURIOSO (dado especifico que para o scroll). O gancho vai DIRETO — sem apresentacao do video.\n\n"
-        "SUB-ARCOS DE CADA HISTORIA (OBRIGATORIOS):\n"
-        "- Apresentacao 2s: UM detalhe unico e humanizante do personagem\n"
-        "- Tensao 3-4s: algo esta errado, o espectador pressente\n"
-        "- Escalada 4-5s: situacao piora, detalhes ficam mais especificos\n"
-        "- Twist 2-3s: revelacao que muda tudo — o espectador NAO esperava\n\n"
-        "MICRO-PROMESSA entre caso 2 e 3: frase que promete algo maior. NUNCA use transicao mecanica como O proximo animal e.\n\n"
-        "NARRACAO — REGRAS ABSOLUTAS:\n"
-        "1. Frases COMPLETAS com sujeito, verbo e sentido — nunca frase cortada no meio\n"
-        "2. Nome do animal explicitamente nas primeiras frases — nunca so ele ou ela sem apresentar\n"
-        "3. Detalhes especificos: nunca muito tempo, use 47 dias. Nunca ficou triste, use parou de comer 11 dias\n"
-        "4. Ritmo variado: alterne frases curtas de impacto (3-5 palavras) com frases medias (10-15 palavras)\n"
-        "5. Conectores naturais: Mas o que ninguem esperava era... E entao algo impossivel aconteceu.\n"
-        "6. Transicoes organicas: nunca O proximo animal e. Use Mas nao e o unico. ou Se isso ja te surpreendeu...\n"
-        "7. Viradas em rafagas: Ele nao foi embora. Ficou. Por tres dias. Olhando.\n"
-        "8. SEM REPETICAO: cada frase avanca a historia — nunca repita a mesma ideia\n"
-        "9. Pontuacao correta: ponto final, exclamacao ou interrogacao. Nunca termine com virgula\n"
-        "10. Total aproximado: " + str(total_palavras) + " palavras para TODA a narracao\n\n"
-        "PROMPTS DE IMAGEM:\n"
-        "1. Cada prompt e par EXATO da frase de narracao correspondente\n"
-        "2. Define fisico unico do animal no inicio de cada historia e repete em todos os prompts dessa historia\n"
-        "3. Formato: [fisico especifico] + [acao exata] + [angulo camera] + [iluminacao] + [movimento]\n"
-        "4. NUNCA use cinematic, realistic, documentary — o estilo e adicionado pelo sistema\n"
-        "5. NUNCA use an animal — sempre o nome especifico\n\n"
+        "1. EMOCAO-ANCORA: defina uma emocao central que conecta tudo ao espectador.\n"
+        "2. PERGUNTA INVISIVEL: uma pergunta que o video responde sem nunca dizer em voz alta.\n"
+        "3. GANCHO: PROVOCACAO, CONTRADICAO, ESPELHO HUMANO ou NUMERO CURIOSO. Vai DIRETO sem apresentacao.\n\n"
+        "SUB-ARCOS DE CADA HISTORIA:\n"
+        "- Apresentacao 2s: detalhe unico e humanizante\n"
+        "- Tensao 3-4s: algo esta errado\n"
+        "- Escalada 4-5s: situacao piora com detalhes especificos\n"
+        "- Twist 2-3s: revelacao que muda tudo\n\n"
+        "MICRO-PROMESSA entre caso 2 e 3: frase que promete algo maior. NUNCA transicao mecanica.\n\n"
+        "NARRACAO:\n"
+        "1. Frases COMPLETAS — nunca cortadas no meio\n"
+        "2. Nome do animal explicitamente nas primeiras frases\n"
+        "3. Detalhes especificos: 47 dias, nao muito tempo. Parou de comer 11 dias, nao ficou triste\n"
+        "4. Ritmo variado: curtas de impacto (3-5 palavras) alternando com medias (10-15 palavras)\n"
+        "5. Conectores naturais entre frases\n"
+        "6. Transicoes organicas entre historias — nunca O proximo animal e\n"
+        "7. Viradas em rafagas curtissimas\n"
+        "8. SEM REPETICAO — cada frase avanca a historia\n"
+        "9. Pontuacao correta: ponto, exclamacao ou interrogacao. Nunca virgula no final\n"
+        "10. Total: " + str(total_palavras) + " palavras para TODA a narracao\n\n"
+        "PROMPTS:\n"
+        "1. Par exato da frase de narracao correspondente\n"
+        "2. Fisico unico do animal definido no inicio e repetido em todos os prompts da historia\n"
+        "3. Formato: fisico + acao exata + angulo + iluminacao + movimento\n"
+        "4. NUNCA: cinematic, realistic, documentary\n"
+        "5. NUNCA: an animal — sempre o nome especifico\n\n"
         + struct + "\n\n"
         "Responda SOMENTE em JSON valido sem markdown:\n"
         "{\n"
         '  "pergunta_invisivel": "string",\n'
         '  "emocao_ancora": "string",\n'
         '  "tipo_gancho": "PROVOCACAO | CONTRADICAO | ESPELHO HUMANO | NUMERO CURIOSO",\n'
-        '  "gancho_principal": "string — primeira frase, vai direto sem apresentacao",\n'
-        '  "gancho_opcoes": ["variacao2","variacao3","variacao4"],\n'
+        '  "gancho_principal": "string",\n'
+        '  "gancho_opcoes": ["op2","op3","op4"],\n'
         '  "caso1": {"nome":"string","animal":"string","nivel":"Interessante","apresentacao":"string","tensao":"string","escalada":"string","twist":"string","prompts":["' + str(dist['caso1']) + ' prompts ingles"]},\n'
         '  "caso2": {"nome":"string","animal":"string","nivel":"Surpreendente","apresentacao":"string","tensao":"string","escalada":"string","twist":"string","prompts":["' + str(dist['caso2']) + ' prompts ingles"]},\n'
         '  "caso3": {"nome":"string","animal":"string","nivel":"Chocante","apresentacao":"string","tensao":"string","escalada":"string","twist":"string","prompts":["' + str(dist['caso3']) + ' prompts ingles"]},\n'
-        '  "micro_promessa": "string — sem transicao mecanica",\n'
-        '  "prompts_final": ["' + str(dist['final']) + ' prompts ingles — ultimo e espelho humano"],\n'
-        '  "narracao_caso1": ["' + str(dist['caso1']) + ' frases portugues — fluidas completas"],\n'
+        '  "micro_promessa": "string",\n'
+        '  "prompts_final": ["' + str(dist['final']) + ' prompts ingles"],\n'
+        '  "narracao_caso1": ["' + str(dist['caso1']) + ' frases portugues"],\n'
         '  "narracao_caso2": ["' + str(dist['caso2']) + ' frases portugues"],\n'
         '  "narracao_caso3": ["' + str(dist['caso3']) + ' frases portugues"],\n'
-        '  "narracao_final": ["' + str(dist['final']) + ' frases portugues — ultima e filosofica"],\n'
-        '  "frase_final_principal": "string filosofica lenta e profunda",\n'
-        '  "frase_final_opcoes": ["variacao2","variacao3","variacao4"],\n'
-        '  "pergunta_divisora_principal": "string — divide opinioes sem resposta obvia",\n'
-        '  "pergunta_divisora_opcoes": ["variacao2","variacao3","variacao4"]\n'
+        '  "narracao_final": ["' + str(dist['final']) + ' frases portugues"],\n'
+        '  "frase_final_principal": "string filosofica",\n'
+        '  "frase_final_opcoes": ["op2","op3","op4"],\n'
+        '  "pergunta_divisora_principal": "string",\n'
+        '  "pergunta_divisora_opcoes": ["op2","op3","op4"]\n'
         "}")
     return system
 
@@ -196,6 +196,47 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game"):
                 raise
             time.sleep(5)
 
+def gerar_audio(narracao_txt, session_id):
+    audio_data = None
+    audio_service = ''
+    try:
+        if ELEVENLABS_KEY:
+            r = requests.post(
+                f'https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE}',
+                headers={'xi-api-key': ELEVENLABS_KEY, 'content-type': 'application/json'},
+                json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.5, 'similarity_boost': 0.8}},
+                timeout=60
+            )
+            if r.status_code == 200 and len(r.content) > 100:
+                audio_data = r.content
+                audio_service = 'ElevenLabs'
+            else:
+                print(f"ElevenLabs status={r.status_code} bytes={len(r.content)}")
+    except Exception as e:
+        print(f"ElevenLabs erro: {e}")
+
+    if not audio_data:
+        try:
+            from gtts import gTTS
+            import io
+            tts = gTTS(narracao_txt, lang='pt')
+            buf = io.BytesIO()
+            tts.write_to_fp(buf)
+            audio_data = buf.getvalue()
+            audio_service = 'gTTS'
+        except Exception as e:
+            print(f"gTTS erro: {e}")
+
+    if audio_data:
+        sessions[session_id]['audio'] = audio_data
+        try:
+            with open(f'/tmp/narracao_{session_id}.mp3', 'wb') as f:
+                f.write(audio_data)
+        except: pass
+
+    print(f"AUDIO: servico={audio_service} bytes={len(audio_data) if audio_data else 0}")
+    return audio_data, audio_service
+
 @app.route('/')
 def index():
     try:
@@ -204,42 +245,6 @@ def index():
         return Response(html, mimetype='text/html; charset=utf-8')
     except:
         return "<h1>Sistema carregando...</h1>", 200
-
-
-
-def validar_e_resumir_narracao(d, duracao_str):
-    palavras_alvo = {"30": 65, "50": 108, "60": 130, "90": 195, "90m": 325}
-    alvo = palavras_alvo.get(str(duracao_str), 130)
-    margem_30s = 65  # 30 segundos = ~65 palavras extras
-    limite = alvo + margem_30s
-    campos = ['narracao_caso1', 'narracao_caso2', 'narracao_caso3', 'narracao_final']
-    todas = []
-    for campo in campos:
-        todas.extend(d.get(campo, []))
-    total = sum(len(f.split()) for f in todas)
-    if total <= limite:
-        return d
-    # Resumo proporcional — encurta cada frase mantendo essência
-    fator = alvo / total
-    for campo in campos:
-        frases = d.get(campo, [])
-        novas = []
-        for frase in frases:
-            palavras = frase.split()
-            limite_frase = max(6, int(len(palavras) * fator))
-            if len(palavras) > limite_frase:
-                # Corta na última pontuação dentro do limite
-                cortada = ' '.join(palavras[:limite_frase])
-                for sep in ['.', '?', '!', ',']:
-                    idx = cortada.rfind(sep)
-                    if idx > len(cortada) * 0.6:
-                        cortada = cortada[:idx+1]
-                        break
-                novas.append(cortada)
-            else:
-                novas.append(frase)
-        d[campo] = novas
-    return d
 
 @app.route('/roteiro', methods=['POST'])
 def roteiro():
@@ -259,7 +264,6 @@ def roteiro():
     try:
         text = chamar_claude(system, user_msg)
         d = json.loads(text)
-        d = validar_e_resumir_narracao(d, duracao)
         animais = [d.get(k, {}).get('animal', '') for k in ['caso1', 'caso2', 'caso3'] if d.get(k, {}).get('animal')]
         if animais:
             salvar_historico(titulo, animais)
@@ -267,14 +271,35 @@ def roteiro():
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
 
+@app.route('/narracao', methods=['POST'])
+def gerar_narracao():
+    data = request.json
+    print(f"NARRACAO REQUEST keys={list(data.keys())}")
+    # Aceita narracao_completa (novo fluxo) ou monta das partes (legado)
+    narracao_txt = data.get('narracao_completa', '').strip()
+    if not narracao_txt:
+        partes = [data.get('gancho',''), data.get('narracao_custom',''), data.get('frase_final',''), data.get('pergunta_divisora','')]
+        narracao_txt = ' '.join(p for p in partes if p)
+    print(f"NARRACAO TXT chars={len(narracao_txt)} preview={narracao_txt[:80]}")
+
+    session_id = str(int(time.time()))
+    sessions[session_id] = {'imagens': {}, 'prompts': [], 'audio': None}
+
+    audio_data, audio_service = gerar_audio(narracao_txt, session_id)
+
+    if audio_data:
+        return jsonify({'ok': True, 'session_id': session_id, 'audio_url': f'/audio/{session_id}', 'servico': audio_service})
+    else:
+        return jsonify({'erro': 'Erro ao gerar narracao'}), 500
+
 @app.route('/gerar', methods=['POST'])
 def gerar():
     data = request.json
     estilo = data.get('estilo', 'stylized_game')
     formato = data.get('formato', '9:16')
-    modo_teste = data.get('modo_teste', False)
     prompts_custom = data.get('prompts_custom', [])
     narracao_custom = data.get('narracao_custom', '')
+    narracao_session_id = data.get('narracao_session_id')
 
     narracao_txt = narracao_custom if narracao_custom else ' '.join(filter(None, [
         data.get('gancho', ''),
@@ -301,65 +326,55 @@ def gerar():
         yield 'data:' + json.dumps({'session_id': session_id}) + '\n\n'
         yield 'data:' + json.dumps({'step': 1, 'status': 'done', 'msg': 'Roteiro aprovado', 'progress': 15}) + '\n\n'
 
-        if not modo_teste:
-            yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': 'Gerando imagens...', 'progress': 18}) + '\n\n'
-            erros = []
-            for i, prompt in enumerate(prompts):
-                num = str(i + 1).zfill(2)
-                try:
-                    img = leonardo_generate(prompt, formato, estilo)
-                    sessions[session_id]['imagens'][i] = img
-                    # Salva também em disco como backup
-                    img_path = f'/tmp/{session_id}_{i}.jpg'
-                    with open(img_path, 'wb') as f_img:
-                        f_img.write(img)
-                    pct = 18 + int((i + 1) / max(len(prompts), 1) * 50)
-                    yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num}/{len(prompts)} ok', 'progress': pct}) + '\n\n'
-                except Exception as e:
-                    erros.append(num)
-                    erro_msg = str(e)[:80]
-                    print(f"ERRO IMAGEM {num}: {erro_msg}")
-                    yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num} falhou: {erro_msg}', 'progress': 18 + int((i + 1) / max(len(prompts), 1) * 50)}) + '\n\n'
-            msg_imgs = f"{len(sessions[session_id]['imagens'])}/{len(prompts)} imagens geradas"
-            if erros:
-                msg_imgs += f" (falharam: {', '.join(erros)})"
-            yield 'data:' + json.dumps({'step': 2, 'status': 'done', 'msg': msg_imgs, 'progress': 70}) + '\n\n'
-            yield 'data:' + json.dumps({'imgs_total': len(prompts)}) + '\n\n'
-        else:
-            yield 'data:' + json.dumps({'step': 2, 'status': 'done', 'msg': 'Modo Teste - imagens nao geradas', 'progress': 70}) + '\n\n'
+        yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': 'Gerando imagens...', 'progress': 18}) + '\n\n'
+        erros = []
+        for i, prompt in enumerate(prompts):
+            num = str(i + 1).zfill(2)
+            try:
+                img = leonardo_generate(prompt, formato, estilo)
+                sessions[session_id]['imagens'][i] = img
+                img_path = f'/tmp/{session_id}_{i}.jpg'
+                with open(img_path, 'wb') as f_img:
+                    f_img.write(img)
+                pct = 18 + int((i + 1) / max(len(prompts), 1) * 50)
+                yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num}/{len(prompts)} ok', 'progress': pct}) + '\n\n'
+            except Exception as e:
+                erros.append(num)
+                erro_msg = str(e)[:80]
+                print(f"ERRO IMAGEM {num}: {erro_msg}")
+                yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num} falhou: {erro_msg}', 'progress': 18 + int((i + 1) / max(len(prompts), 1) * 50)}) + '\n\n'
 
-        yield 'data:' + json.dumps({'step': 3, 'status': 'active', 'msg': 'Gerando narracao...', 'progress': 72}) + '\n\n'
+        msg_imgs = f"{len(sessions[session_id]['imagens'])}/{len(prompts)} imagens geradas"
+        if erros:
+            msg_imgs += f" (falharam: {', '.join(erros)})"
+        yield 'data:' + json.dumps({'step': 2, 'status': 'done', 'msg': msg_imgs, 'progress': 70}) + '\n\n'
+        yield 'data:' + json.dumps({'imgs_total': len(prompts)}) + '\n\n'
+
+        # Reutiliza áudio já gerado ou gera novo
+        yield 'data:' + json.dumps({'step': 3, 'status': 'active', 'msg': 'Preparando narracao...', 'progress': 72}) + '\n\n'
         audio_data = None
         audio_service = ''
-        try:
-            if ELEVENLABS_KEY:
-                r = requests.post(
-                    f'https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE}',
-                    headers={'xi-api-key': ELEVENLABS_KEY, 'content-type': 'application/json'},
-                    json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.5, 'similarity_boost': 0.8}},
-                    timeout=60
-                )
-                if r.status_code == 200:
-                    audio_data = r.content
-                    audio_service = 'ElevenLabs'
-        except:
-            pass
 
+        # Tenta reutilizar narração já gerada
+        if narracao_session_id:
+            s = sessions.get(narracao_session_id)
+            if s and s.get('audio'):
+                audio_data = s['audio']
+                audio_service = 'reutilizado'
+            else:
+                audio_path = f'/tmp/narracao_{narracao_session_id}.mp3'
+                if os.path.exists(audio_path):
+                    with open(audio_path, 'rb') as fa:
+                        audio_data = fa.read()
+                    audio_service = 'disco'
+
+        # Se não tem narração, gera nova
         if not audio_data:
-            try:
-                from gtts import gTTS
-                import io
-                tts = gTTS(narracao_txt, lang='pt')
-                buf = io.BytesIO()
-                tts.write_to_fp(buf)
-                audio_data = buf.getvalue()
-                audio_service = 'gTTS'
-            except:
-                pass
+            audio_data, audio_service = gerar_audio(narracao_txt, session_id)
 
         sessions[session_id]['audio'] = audio_data
         status_audio = 'done' if audio_data else 'error'
-        msg_audio = f'Narracao gerada via {audio_service}' if audio_data else 'Erro na narracao'
+        msg_audio = f'Narracao via {audio_service}' if audio_data else 'Erro na narracao'
         yield 'data:' + json.dumps({'step': 3, 'status': status_audio, 'msg': msg_audio, 'progress': 88}) + '\n\n'
         if audio_data:
             yield 'data:' + json.dumps({'audio_url': f'/audio/{session_id}'}) + '\n\n'
@@ -372,7 +387,7 @@ def gerar():
                     zf.writestr(f'IMG_{str(idx + 1).zfill(2)}.jpg', img)
                 if audio_data:
                     zf.writestr('narracao.mp3', audio_data)
-                rot = f"TITULO: {data.get('titulo', '')}\n\nGANCHO: {data.get('gancho', '')}\n\n"
+                rot = f"TITULO: {data.get('titulo', '')}\n\n"
                 for i, n in enumerate(narracao_txt.split('.')):
                     if n.strip():
                         rot += f"{str(i + 1).zfill(2)}. {n.strip()}.\n"
@@ -381,76 +396,27 @@ def gerar():
                 zf.writestr('prompts.txt', prompts_txt.encode('utf-8'))
             yield 'data:' + json.dumps({'step': 4, 'status': 'done', 'msg': 'Pronto! Clique para baixar', 'progress': 100, 'zip': zip_path}) + '\n\n'
         except Exception as e:
-            yield 'data:' + json.dumps({'step': 4, 'status': 'error', 'msg': f'Erro ZIP: {str(e)}', 'erro': str(e)}) + '\n\n'
+            yield 'data:' + json.dumps({'step': 4, 'status': 'error', 'msg': f'Erro ZIP: {str(e)}'}) + '\n\n'
 
     return Response(stream(), mimetype='text/event-stream')
-
-
-@app.route('/narracao', methods=['POST'])
-def gerar_narracao():
-    data = request.json
-    narracao_custom = data.get('narracao_custom', '')
-    gancho = data.get('gancho', '')
-    frase_final = data.get('frase_final', '')
-    pergunta_divisora = data.get('pergunta_divisora', '')
-
-    partes = [p for p in [gancho, narracao_custom, frase_final, pergunta_divisora] if p]
-    narracao_txt = ' '.join(partes) if partes else narracao_custom
-
-    session_id = str(int(time.time()))
-    sessions[session_id] = {'imagens': {}, 'prompts': [], 'audio': None}
-
-    audio_data = None
-    audio_service = ''
-    try:
-        if ELEVENLABS_KEY:
-            r = requests.post(
-                f'https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE}',
-                headers={'xi-api-key': ELEVENLABS_KEY, 'content-type': 'application/json'},
-                json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.5, 'similarity_boost': 0.8}},
-                timeout=60
-            )
-            if r.status_code == 200:
-                audio_data = r.content
-                audio_service = 'ElevenLabs'
-    except:
-        pass
-
-    if not audio_data:
-        try:
-            from gtts import gTTS
-            import io
-            tts = gTTS(narracao_txt, lang='pt')
-            buf = io.BytesIO()
-            tts.write_to_fp(buf)
-            audio_data = buf.getvalue()
-            audio_service = 'gTTS'
-        except:
-            pass
-
-    sessions[session_id]['audio'] = audio_data
-
-    if audio_data:
-        return jsonify({'ok': True, 'session_id': session_id, 'audio_url': f'/audio/{session_id}', 'servico': audio_service})
-    else:
-        return jsonify({'erro': 'Erro ao gerar narracao'}), 500
 
 @app.route('/audio/<session_id>')
 def audio(session_id):
     s = sessions.get(session_id)
-    if not s or not s.get('audio'):
-        return 'Nao encontrado', 404
-    import io
-    return send_file(io.BytesIO(s['audio']), mimetype='audio/mpeg')
+    if s and s.get('audio'):
+        import io
+        return send_file(io.BytesIO(s['audio']), mimetype='audio/mpeg')
+    audio_path = f'/tmp/narracao_{session_id}.mp3'
+    if os.path.exists(audio_path):
+        return send_file(audio_path, mimetype='audio/mpeg')
+    return 'Nao encontrado', 404
 
 @app.route('/imagem/<session_id>/<int:idx>')
 def imagem(session_id, idx):
     import io
-    # Tenta primeiro na RAM
     s = sessions.get(session_id)
     if s and idx in s.get('imagens', {}):
         return send_file(io.BytesIO(s['imagens'][idx]), mimetype='image/jpeg')
-    # Tenta no disco
     img_path = f'/tmp/{session_id}_{idx}.jpg'
     if os.path.exists(img_path):
         return send_file(img_path, mimetype='image/jpeg')
