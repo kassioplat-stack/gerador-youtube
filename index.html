@@ -254,6 +254,7 @@ textarea{height:60px;resize:none}
   </div>
 
 </div>
+
 <script>
 var state = {
   modelo: 'animais',
@@ -299,7 +300,7 @@ function selChip(key, val) {
   state[key] = val;
   var ids = Array.prototype.slice.call(arguments, 2);
   ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.classList.remove('sel'); });
-  var btnId = key==='historias'?'h'+val:key==='formato'?'f'+val.replace(/:/g,''):key==='duracao'?'d'+val:'r'+val;
+  var btnId = key === 'historias' ? 'h'+val : key === 'formato' ? 'f'+val.replace(/:/g,'') : key === 'duracao' ? 'd'+val : 'r'+val;
   var btn = document.getElementById(btnId);
   if(btn) btn.classList.add('sel');
   updatePreviewInfo();
@@ -328,9 +329,8 @@ function setStep(n, status, msg) {
   dot.className = 'dot ' + status;
   desc.className = 'step-desc ' + status;
   desc.textContent = msg;
-  dot.textContent = status==='done'?'v':status==='error'?'x':status==='active'?'o':String(n);
+  dot.textContent = status==='done'?'✓':status==='error'?'✗':status==='active'?'●':String(n);
 }
-
 function setP(v) { document.getElementById('progress').style.width = v+'%'; }
 
 async function gerarRoteiro() {
@@ -378,45 +378,45 @@ function renderRoteiro(d) {
     c.innerHTML = '';
     items.forEach(function(text, i) {
       var el = document.createElement('div');
-      el.className = 'gancho-opt' + (i===0?' sel':'');
+      el.className = 'gancho-opt' + (i === 0 ? ' sel' : '');
       el.textContent = text || '';
-      el.onclick = function() { selOpt(this); };
+      el.onclick = function() { selOpt(this, grp); };
       c.appendChild(el);
     });
   }
-  renderOpts('gancho-opts', [d.gancho_principal].concat(d.gancho_opcoes||[]), 'gancho');
-  renderOpts('frase-opts', [d.frase_final_principal].concat(d.frase_final_opcoes||[]), 'frase');
-  renderOpts('pergunta-opts', [d.pergunta_divisora_principal].concat(d.pergunta_divisora_opcoes||[]), 'pergunta');
+  renderOpts('gancho-opts', [d.gancho_principal].concat(d.gancho_opcoes || []), 'gancho');
+  renderOpts('frase-opts', [d.frase_final_principal].concat(d.frase_final_opcoes || []), 'frase');
+  renderOpts('pergunta-opts', [d.pergunta_divisora_principal].concat(d.pergunta_divisora_opcoes || []), 'pergunta');
 
   var narracao = [d.gancho_principal]
-    .concat(d.narracao_caso1||[])
-    .concat(d.narracao_caso2||[])
-    .concat(d.micro_promessa?[d.micro_promessa]:[])
-    .concat(d.narracao_caso3||[])
-    .concat(d.narracao_final||[])
-    .concat(d.frase_final_principal?[d.frase_final_principal]:[])
-    .concat(d.pergunta_divisora_principal?[d.pergunta_divisora_principal]:[])
+    .concat(d.narracao_caso1 || [])
+    .concat(d.narracao_caso2 || [])
+    .concat(d.micro_promessa ? [d.micro_promessa] : [])
+    .concat(d.narracao_caso3 || [])
+    .concat(d.narracao_final || [])
+    .concat(d.frase_final_principal ? [d.frase_final_principal] : [])
+    .concat(d.pergunta_divisora_principal ? [d.pergunta_divisora_principal] : [])
     .filter(Boolean).join(' ');
   document.getElementById('narracao-edit').value = narracao;
 
   var html = '';
   state.prompts.forEach(function(p, i) {
     html += '<div style="display:flex;gap:8px;margin-bottom:8px">'
-      +'<span style="background:#E8593C;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;flex-shrink:0">'+(i+1)+'</span>'
-      +'<div style="flex:1">'
-      +'<textarea id="pt'+i+'" style="width:100%;background:#111;border:1px solid #333;border-radius:6px;padding:8px;font-size:12px;color:#ccc;font-family:inherit;resize:none;height:60px">'+esc(p)+'</textarea>'
-      +'<div style="display:flex;gap:6px;margin-top:3px">'
-      +'<button onclick="traduzirPrompt('+i+')" style="background:transparent;border:1px solid #333;border-radius:4px;padding:2px 8px;font-size:11px;color:#555;cursor:pointer;font-family:inherit">Traduzir</button>'
-      +'<button onclick="regenPrompt('+i+')" style="background:#E8593C;color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;font-family:inherit">Regenerar</button>'
-      +'</div>'
-      +'<div id="trad'+i+'" style="font-size:11px;color:#555;margin-top:3px;font-style:italic"></div>'
-      +'</div></div>';
+      + '<span style="background:#E8593C;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;flex-shrink:0">' + (i+1) + '</span>'
+      + '<div style="flex:1">'
+      + '<textarea id="pt'+i+'" style="width:100%;background:#111;border:1px solid #333;border-radius:6px;padding:8px;font-size:12px;color:#ccc;font-family:inherit;resize:none;height:60px">' + esc(p) + '</textarea>'
+      + '<div style="display:flex;gap:6px;margin-top:3px">'
+      + '<button onclick="traduzirPrompt(' + i + ')" style="background:transparent;border:1px solid #333;border-radius:4px;padding:2px 8px;font-size:11px;color:#555;cursor:pointer;font-family:inherit">Traduzir</button>'
+      + '<button onclick="regenPrompt(' + i + ')" style="background:#E8593C;color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;font-family:inherit">Regenerar</button>'
+      + '</div>'
+      + '<div id="trad'+i+'" style="font-size:11px;color:#555;margin-top:3px;font-style:italic"></div>'
+      + '</div></div>';
   });
   document.getElementById('prompts-list').innerHTML = html;
   document.getElementById('roteiro-preview').style.display = 'block';
 }
 
-function selOpt(el) {
+function selOpt(el, grp) {
   el.closest('.gancho-opts').querySelectorAll('.gancho-opt').forEach(function(e){ e.classList.remove('sel'); });
   el.classList.add('sel');
 }
@@ -426,7 +426,7 @@ async function traduzirPrompt(idx) {
   if(!ta) return;
   state.prompts[idx] = ta.value;
   try {
-    var r = await fetch('/traduzir', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:ta.value})});
+    var r = await fetch('/traduzir', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({prompt: ta.value})});
     var d = await r.json();
     var t = document.getElementById('trad'+idx);
     if(t) t.textContent = d.traducao || '';
@@ -438,9 +438,9 @@ async function regenPrompt(idx) {
   if(ta) state.prompts[idx] = ta.value;
   try {
     var r = await fetch('/regenerar-imagem', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({session_id:state.sessionId,idx:idx,prompt:state.prompts[idx],estilo:state.estilo,formato:state.formato})
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({session_id: state.sessionId, idx: idx, prompt: state.prompts[idx], estilo: state.estilo, formato: state.formato})
     });
     var d = await r.json();
     if(d.ok) {
@@ -454,19 +454,19 @@ async function regenerarOpcoes(tipo) {
   var titulo = document.getElementById('titulo').value.trim();
   try {
     var r = await fetch('/regenerar-opcoes', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({titulo:titulo,tipo:tipo,modelo:state.modelo})
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({titulo: titulo, tipo: tipo, modelo: state.modelo})
     });
     var d = await r.json();
-    var containerId = tipo==='gancho'?'gancho-opts':tipo==='frase'?'frase-opts':'pergunta-opts';
+    var containerId = tipo === 'gancho' ? 'gancho-opts' : tipo === 'frase' ? 'frase-opts' : 'pergunta-opts';
     var c = document.getElementById(containerId);
     c.innerHTML = '';
-    (d.opcoes||[]).forEach(function(text,i){
+    (d.opcoes || []).forEach(function(text, i) {
       var el = document.createElement('div');
-      el.className = 'gancho-opt'+(i===0?' sel':'');
+      el.className = 'gancho-opt' + (i === 0 ? ' sel' : '');
       el.textContent = text;
-      el.onclick = function(){ selOpt(this); };
+      el.onclick = function() { selOpt(this, tipo); };
       c.appendChild(el);
     });
   } catch(e) {}
@@ -478,17 +478,23 @@ async function gerarImagens() {
   var ganchoEl = document.querySelector('#gancho-opts .gancho-opt.sel');
   var fraseEl = document.querySelector('#frase-opts .gancho-opt.sel');
   var perguntaEl = document.querySelector('#pergunta-opts .gancho-opt.sel');
-  state.prompts.forEach(function(p,i){ var ta=document.getElementById('pt'+i); if(ta) state.prompts[i]=ta.value; });
+
+  state.prompts.forEach(function(p, i) {
+    var ta = document.getElementById('pt'+i);
+    if(ta) state.prompts[i] = ta.value;
+  });
+
   var payload = JSON.parse(JSON.stringify(state.roteiro));
   payload.titulo = titulo;
-  payload.gancho = ganchoEl?ganchoEl.textContent:(state.roteiro.gancho_principal||'');
-  payload.frase_final = fraseEl?fraseEl.textContent:(state.roteiro.frase_final_principal||'');
-  payload.pergunta_divisora = perguntaEl?perguntaEl.textContent:(state.roteiro.pergunta_divisora_principal||'');
+  payload.gancho = ganchoEl ? ganchoEl.textContent : (state.roteiro.gancho_principal || '');
+  payload.frase_final = fraseEl ? fraseEl.textContent : (state.roteiro.frase_final_principal || '');
+  payload.pergunta_divisora = perguntaEl ? perguntaEl.textContent : (state.roteiro.pergunta_divisora_principal || '');
   payload.narracao_custom = document.getElementById('narracao-edit').value;
   payload.prompts_custom = state.prompts;
   payload.estilo = state.estilo;
   payload.formato = state.formato;
   payload.modo_teste = state.modoTeste;
+
   document.getElementById('steps-card').style.display = 'block';
   document.getElementById('result-card').style.display = 'none';
   document.getElementById('btn-imagens').disabled = true;
@@ -497,31 +503,37 @@ async function gerarImagens() {
   setStep(2,'active','Aguardando...');
   setStep(3,'','Aguardando...');
   setStep(4,'','Aguardando...');
+
   try {
-    var resp = await fetch('/gerar', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    var resp = await fetch('/gerar', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
     var reader = resp.body.getReader();
     var dec = new TextDecoder();
     var buf = '';
     while(true) {
       var res = await reader.read();
       if(res.done) break;
-      buf += dec.decode(res.value,{stream:true});
+      buf += dec.decode(res.value, {stream: true});
       var lines = buf.split('\n');
       buf = lines.pop();
-      lines.forEach(function(line){
+      lines.forEach(function(line) {
         line = line.trim();
-        if(line.indexOf('data:')!==0) return;
+        if(line.indexOf('data:') !== 0) return;
         try {
           var d = JSON.parse(line.slice(5));
-          if(d.step) setStep(d.step,d.status,d.msg);
+          if(d.step) setStep(d.step, d.status, d.msg);
           if(d.progress) setP(d.progress);
           if(d.session_id) state.sessionId = d.session_id;
-          if(d.zip){
+          if(d.zip) {
+            var dlBtn = document.getElementById('dl-btn');
             var zipPath = d.zip;
-            document.getElementById('dl-btn').onclick = function(){ window.location='/download?file='+zipPath; };
+            dlBtn.onclick = function(){ window.location = '/download?file=' + zipPath; };
             document.getElementById('result-card').style.display = 'block';
           }
-          if(d.audio_url){
+          if(d.audio_url) {
             var ap = document.getElementById('audio-player');
             ap.src = d.audio_url;
             ap.style.display = 'block';
@@ -530,18 +542,18 @@ async function gerarImagens() {
         } catch(e) {}
       });
     }
-  } catch(e) { alert('Erro: '+e.message); }
+  } catch(e) { alert('Erro: ' + e.message); }
   document.getElementById('btn-imagens').disabled = false;
 }
 
 function renderGrid(total) {
   var html = '';
-  for(var i=0;i<total;i++){
+  for(var i = 0; i < total; i++) {
     var num = String(i+1).padStart(2,'0');
     html += '<div class="img-cell" id="cell'+i+'">'
-      +'<img src="/imagem/'+state.sessionId+'/'+i+'?t='+Date.now()+'" alt="'+num+'" loading="lazy">'
-      +'<span class="img-num">'+num+'</span>'
-      +'</div>';
+      + '<img src="/imagem/'+state.sessionId+'/'+i+'?t='+Date.now()+'" alt="'+num+'" loading="lazy">'
+      + '<span class="img-num">'+num+'</span>'
+      + '</div>';
   }
   document.getElementById('img-grid').innerHTML = html;
 }
@@ -549,57 +561,63 @@ function renderGrid(total) {
 async function clonarRoteiro() {
   var transcricao = document.getElementById('transcricao').value.trim();
   var titulo = document.getElementById('titulo-clone').value.trim();
-  if(!transcricao||!titulo){ alert('Preencha a transcricao e o titulo'); return; }
+  if(!transcricao || !titulo) { alert('Preencha a transcricao e o titulo'); return; }
   document.getElementById('clone-result').textContent = 'Analisando...';
   try {
     var r = await fetch('/clonar', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({transcricao:transcricao,titulo:titulo,obs:document.getElementById('obs-clone').value})
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({transcricao: transcricao, titulo: titulo, obs: document.getElementById('obs-clone').value})
     });
     var d = await r.json();
     if(d.erro) throw new Error(d.erro);
-    document.getElementById('clone-result').textContent = 'Modelo: '+(d.modelo_identificado||'Animal');
+    document.getElementById('clone-result').textContent = 'Modelo: ' + (d.modelo_identificado || 'Animal');
     state.roteiro = d;
-    state.prompts = [].concat(d.caso1&&d.caso1.prompts||[],d.caso2&&d.caso2.prompts||[],d.caso3&&d.caso3.prompts||[],d.prompts_final||[]);
-    showTab('gerar',document.getElementById('tab-btn-gerar'));
+    state.prompts = [].concat(d.caso1&&d.caso1.prompts||[], d.caso2&&d.caso2.prompts||[], d.caso3&&d.caso3.prompts||[], d.prompts_final||[]);
+    showTab('gerar', document.getElementById('tab-btn-gerar'));
     renderRoteiro(d);
     document.getElementById('btn-imagens').disabled = false;
     document.getElementById('btn-imagens').style.opacity = '1';
-  } catch(e){ document.getElementById('clone-result').textContent = 'Erro: '+e.message; }
+  } catch(e) {
+    document.getElementById('clone-result').textContent = 'Erro: ' + e.message;
+  }
 }
 
 function addCalendario() {
   var titulo = document.getElementById('cal-titulo').value.trim();
   var data = document.getElementById('cal-data').value;
   if(!titulo) return;
-  state.calendarioItems.push({titulo:titulo,data:data||'',status:'Planejado'});
-  try{ localStorage.setItem('calendario',JSON.stringify(state.calendarioItems)); }catch(e){}
+  state.calendarioItems.push({titulo: titulo, data: data || '', status: 'Planejado'});
+  try { localStorage.setItem('calendario', JSON.stringify(state.calendarioItems)); } catch(e) {}
   document.getElementById('cal-titulo').value = '';
   renderCalendario();
 }
 
 function renderCalendario() {
   var html = '';
-  state.calendarioItems.forEach(function(item,i){
+  state.calendarioItems.forEach(function(item, i) {
     html += '<div class="cal-item">'
-      +'<span style="font-size:10px;font-weight:600;background:#1a3a5c;color:#5b9bd5;border-radius:4px;padding:2px 8px">'+item.status+'</span>'
-      +'<span class="cal-title">'+esc(item.titulo)+'</span>'
-      +'<span class="cal-date">'+item.data+'</span>'
-      +'<button class="cal-btn" onclick="usarCalItem('+i+')">Gerar</button>'
-      +'</div>';
+      + '<span style="font-size:10px;font-weight:600;background:#1a3a5c;color:#5b9bd5;border-radius:4px;padding:2px 8px">'+item.status+'</span>'
+      + '<span class="cal-title">'+esc(item.titulo)+'</span>'
+      + '<span class="cal-date">'+item.data+'</span>'
+      + '<button class="cal-btn" onclick="usarCalItem('+i+')">Gerar</button>'
+      + '</div>';
   });
-  document.getElementById('cal-list').innerHTML = html||'<div style="color:#444;font-size:13px;padding:1rem">Nenhum video planejado.</div>';
+  document.getElementById('cal-list').innerHTML = html || '<div style="color:#444;font-size:13px;padding:1rem">Nenhum video planejado.</div>';
 }
 
 function usarCalItem(idx) {
   document.getElementById('titulo').value = state.calendarioItems[idx].titulo;
-  showTab('gerar',document.getElementById('tab-btn-gerar'));
+  showTab('gerar', document.getElementById('tab-btn-gerar'));
 }
 
-function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
-document.getElementById('titulo').addEventListener('keydown',function(e){ if(e.key==='Enter') gerarRoteiro(); });
+document.getElementById('titulo').addEventListener('keydown', function(e) {
+  if(e.key === 'Enter') gerarRoteiro();
+});
 </script>
 </body>
 </html>
