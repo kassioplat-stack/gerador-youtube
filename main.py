@@ -546,16 +546,3 @@ Responda em JSON no mesmo formato padrão do sistema com campo adicional modelo_
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
-
-
-    user_msg = f"Transcrição:\n{transcricao}\n\nNovo título: {titulo}\nObservações: {obs}"
-    try:
-        text = chamar_claude(system, user_msg)
-        d = json.loads(text)
-        return jsonify(d)
-    except Exception as e:
-        return jsonify({'erro': str(e)}), 500
-
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port, debug=False)
