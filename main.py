@@ -382,6 +382,10 @@ def gerar():
                 try:
                     img = leonardo_generate(prompt, formato, estilo)
                     sessions[session_id]['imagens'][i] = img
+                    # Salva também em disco como backup
+                    img_path = f'/tmp/{session_id}_{i}.jpg'
+                    with open(img_path, 'wb') as f_img:
+                        f_img.write(img)
                     pct = 18 + int((i + 1) / max(len(prompts), 1) * 50)
                     yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num}/{len(prompts)} ok', 'progress': pct}) + '\n\n'
                 except Exception as e:
@@ -462,11 +466,16 @@ def audio(session_id):
 
 @app.route('/imagem/<session_id>/<int:idx>')
 def imagem(session_id, idx):
-    s = sessions.get(session_id)
-    if not s or idx not in s.get('imagens', {}):
-        return 'Nao encontrado', 404
     import io
-    return send_file(io.BytesIO(s['imagens'][idx]), mimetype='image/jpeg')
+    # Tenta primeiro na RAM
+    s = sessions.get(session_id)
+    if s and idx in s.get('imagens', {}):
+        return send_file(io.BytesIO(s['imagens'][idx]), mimetype='image/jpeg')
+    # Tenta no disco
+    img_path = f'/tmp/{session_id}_{idx}.jpg'
+    if os.path.exists(img_path):
+        return send_file(img_path, mimetype='image/jpeg')
+    return 'Nao encontrado', 404
 
 @app.route('/download')
 def download():
