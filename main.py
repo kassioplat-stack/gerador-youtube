@@ -638,8 +638,12 @@ function selStyle(val, btn) {
 }
 
 function selChip(btn, group, val) {
-  state[group.replace('-','_')] = val;
-  btn.closest('.chips-row').querySelectorAll('.chip').forEach(function(b){ b.classList.remove('sel'); });
+  var key = group.replace(/-/g,'_');
+  state[key] = val;
+  var row = btn.closest('.chips-row');
+  if(row) {
+    row.querySelectorAll('.chip').forEach(function(b){ b.classList.remove('sel'); });
+  }
   btn.classList.add('sel');
   updatePreviewInfo();
 }
