@@ -289,7 +289,7 @@ with open("index.html", encoding="utf-8") as _f:
 # ---
 @app.route('/')
 def index():
-    return render_template_string(HTML)
+    return Response(HTML, mimetype='text/html')
 
 @app.route('/roteiro', methods=['POST'])
 def roteiro():
