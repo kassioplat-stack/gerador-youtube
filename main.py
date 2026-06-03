@@ -93,7 +93,7 @@ def build_system(modelo, nh, dist, total_palavras):
             "Caso 1 FAMILIAR: elefante africano, golfinho, cachorro, leao, gorila, urso polar, baleia jubarte, cavalo, lobo, orangotango, pinguim, tartaruga gigante.\n"
             "Caso 2 MEDIO: corvo, orca, chimpanze, lontra, hiena, falcao peregrino, polvo gigante, texugo, capivara, morcego vampiro, canguru, alce.\n"
             "Caso 3 INESPERADO — NUNCA o obvio, sempre surpreendente: vespa-esmeralda, medusa imortal Turritopsis, tardigrado, polvo mimic, formiga-cortadeira, borboleta Maculinea, louva-a-deus, lula colossal.\n"
-            "REGRA ABSOLUTA: os 3 animais devem ser COMPLETAMENTE DIFERENTES entre si.\nREALISMO OBRIGATORIO: os comportamentos narrados devem ser reais, documentados ou pelo menos biologicamente plausiveis e crediveis. Nao invente nomes de animais especificos. Nao crie historias mirabolantes que ninguem acreditaria. Se usar um comportamento documentado, use os fatos reais. Se criar uma situacao hipotetica, ela deve ser completamente possivel e crivel."
+            "REGRA ABSOLUTA: os 3 animais devem ser COMPLETAMENTE DIFERENTES entre si.\nREALISMO OBRIGATORIO:\nOs comportamentos narrados devem ser REAIS e documentados pela ciencia — pesquisas, estudos, observacoes de campo.\nSe o comportamento for real, use os fatos exatos: numeros reais, locais reais, anos reais.\nSe for um comportamento plausivel mas nao documentado, ele deve ser 100% possivel biologicamente e crivel para qualquer pessoa.\nNUNCA invente comportamentos impossíveis ou exagerados demais.\nNUNCA crie historias de animais especificos com nomes proprios inventados.\nO espectador deve terminar o video pensando: isso e real, eu acredito nisso."
         )
 
     if nh == 1:
@@ -290,7 +290,7 @@ def gerar_audio(narracao_txt, session_id):
             r = requests.post(
                 f'https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE}',
                 headers={'xi-api-key': ELEVENLABS_KEY, 'content-type': 'application/json'},
-                json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.75, 'similarity_boost': 0.75, 'style': 0.0, 'use_speaker_boost': True}},
+                json={'text': narracao_txt, 'model_id': 'eleven_turbo_v2_5', 'voice_settings': {'stability': 0.65, 'similarity_boost': 0.85, 'style': 0.0, 'use_speaker_boost': True}},
                 timeout=60
             )
             if r.status_code == 200 and len(r.content) > 100:
@@ -343,14 +343,17 @@ def roteiro():
     ritmo = data.get('ritmo', 'medio')
     dist = calc_imagens(duracao, ritmo, nh)
     total_palavras = PALAVRAS.get(duracao, 130)
+    duracao_s = {"30":30,"50":50,"60":60,"90":90,"90m":90}.get(duracao, 60)
     system = build_system(modelo, nh, dist, total_palavras)
-    user_msg = f"Titulo: {titulo}"
+    chars_limite = duracao_s * 13
+    user_msg = f"Titulo: {titulo}\n\nLIMITE ABSOLUTO: a narracao completa deve ter NO MAXIMO {chars_limite} caracteres totais (equivale a {duracao_s} segundos de audio a 13 chars/segundo). Respeite rigorosamente."
     if contexto:
         user_msg += f"\nContexto: {contexto}"
     try:
         text = chamar_claude(system, user_msg)
         d = json.loads(text)
         # Valida tamanho da narracao — margem de 30s
+        print(f'NARRACAO GERADA: {sum(len(f) for campo in ["narracao_caso1","narracao_caso2","narracao_caso3","narracao_final"] for f in d.get(campo, []))} chars, limite={(duracao_s+30)*13} chars')
         chars_por_segundo = 13
         duracao_s = {"30":30,"50":50,"60":60,"90":90,"90m":90}.get(duracao, 60)
         limite_chars = (duracao_s + 30) * chars_por_segundo
