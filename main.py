@@ -73,47 +73,149 @@ def build_system(modelo, nh, dist, total_palavras):
     restr = f"Animais usados nos ultimos 7 dias - NAO repita: {', '.join(restricao)}." if restricao else "Sem restricao de animais."
 
     if modelo == "psicologia":
-        ctx = "Voce cria roteiros virais sobre psicologia humana. Os casos sao comportamentos humanos. Narracao em segunda pessoa. Prompts mostram HUMANOS."
+        ctx = """Voce e especialista em roteiros virais de psicologia humana para YouTube.
+Os casos sao comportamentos humanos em escalada: comum, surpreendente, perturbador.
+A narracao usa segunda pessoa direta: "Voce faz isso", "Voce ja percebeu", "Isso acontece com voce".
+Os prompts mostram HUMANOS em situacoes cotidianas reconheciveis."""
     elif modelo == "fatos":
-        ctx = "Voce cria roteiros virais sobre fatos cientificos. Os casos contradizem o senso comum. Prompts mostram ciencia, natureza, descobertas."
+        ctx = """Voce e especialista em roteiros virais de ciencia e percepcao para YouTube.
+Os casos sao fatos que contradizem crencas populares: surpreendente, chocante, muda tudo.
+A narracao comeca contradizendo uma crenca: "Voce acredita que X. A ciencia prova que esta errado."
+Os prompts mostram: cerebros, experimentos, universo, natureza, descobertas cientificas."""
     else:
-        ctx = f"Voce cria roteiros virais sobre comportamento animal. {restr} Use animais diferentes e surpreendentes."
+        ctx = f"""Voce e especialista em roteiros virais de comportamento animal para YouTube.
+{restr}
+BANCO DE ANIMAIS:
+- Caso 1 familiar: Elefante africano, golfinho, cachorro, leao, gorila, urso polar, baleia jubarte, cavalo, lobo, orangotango
+- Caso 2 medio: Corvo, orca, chimpanze, lontra, hiena, falcao peregrino, polvo gigante, texugo, capivara, morcego vampiro
+- Caso 3 inesperado: Abelha, formiga-cortadeira, borboleta Maculinea, polvo mimic, vespa-esmeralda, louva-a-deus, medusa imortal Turritopsis"""
 
     if nh == 1:
-        struct = f"Gere caso1 com {dist['caso1']} prompts e {dist['caso1']} narracoes. Gere prompts_final com {dist['final']} prompts e narracao_final com {dist['final']} frases."
+        struct = f"""ESTRUTURA 1 historia profunda:
+- caso1: {dist['caso1']} prompts com 6 sub-arcos expandidos: apresentacao, desenvolvimento, crise, escalada, twist, resolucao
+- prompts_final: {dist['final']} prompts de revelacao filosofica
+- narracao_caso1: {dist['caso1']} frases, narracao_final: {dist['final']} frases"""
     elif nh == 2:
-        struct = f"Gere caso1 com {dist['caso1']} prompts, caso2 com {dist['caso2']} prompts, prompts_final com {dist['final']} prompts. Narracoes correspondentes."
+        struct = f"""ESTRUTURA 2 historias em contraste:
+- caso1: {dist['caso1']} prompts historia familiar
+- caso2: {dist['caso2']} prompts historia inesperada  
+- prompts_final: {dist['final']} prompts revelacao
+- narracoes correspondentes para cada historia"""
     else:
-        struct = f"Gere caso1 com {dist['caso1']} prompts, caso2 com {dist['caso2']} prompts, caso3 com {dist['caso3']} prompts, prompts_final com {dist['final']} prompts. Narracoes correspondentes."
+        struct = f"""ESTRUTURA 3 historias em escalada obrigatoria:
+- caso1: {dist['caso1']} prompts — animal FAMILIAR, nivel Interessante
+- caso2: {dist['caso2']} prompts — animal MEDIO, nivel Surpreendente
+- caso3: {dist['caso3']} prompts — animal INESPERADO, nivel Chocante — nunca o mais obvio
+- prompts_final: {dist['final']} prompts — revelacao filosofica, ultimo prompt deve ser espelho humano
+- narracoes correspondentes para cada historia"""
 
     return f"""{ctx}
 
-NARRACAO: Escreva como um roteiro de filme. Fluido, emocional, envolvente. Total aproximado: {total_palavras} palavras. Cite o nome do animal explicitamente. Use detalhes especificos (numeros, comportamentos documentados). Conecte as frases naturalmente.
+PSICOLOGIA DO ROTEIRO — ESSENCIA OBRIGATORIA:
 
-PROMPTS: Cada prompt e a representacao visual EXATA da narracao correspondente. Em ingles. Nunca generico. Inclua: personagem especifico + acao exata + angulo de camera + iluminacao + movimento. Nunca use "cinematic" ou "realistic" - o estilo e adicionado pelo sistema.
+EMOCAO-ANCORA: Defina UMA emocao central que conecta todas as historias ao espectador.
+Exemplos: "reconhecimento culpado" — o espectador se ve no animal e nao gosta.
+"admiracao perturbadora" — o espectador admira mas fica incomodado.
+"identificacao involuntaria" — o espectador nao quer se identificar mas se identifica.
+
+PERGUNTA INVISIVEL: Uma pergunta que o video responde sem nunca fazer em voz alta.
+Exemplos: "Sera que sou narcisista como esse animal?"
+"Sera que o que chamo de amor e apenas instinto?"
+O espectador deve terminar o video com essa pergunta na cabeca sem saber que ela foi plantada.
+
+GANCHO — 4 TIPOS, escolha o mais poderoso para o tema:
+1. PROVOCACAO: Afirmacao que ofende ou desafia uma crenca. "Esse animal e mais honesto que a maioria das pessoas."
+2. CONTRADICAO: Quebra uma crenca popular. "O animal que voce acha romantico e na verdade o maior manipulador da natureza."
+3. ESPELHO HUMANO: Mostra o animal fazendo algo humano demais. "Esse animal contrata seguranças. Literalmente."
+4. NUMERO CURIOSO: Dado especifico que para o scroll. "Esse animal passou 47 dias chorando. A ciencia mediu."
+
+SUB-ARCOS POR HISTORIA — cada historia tem 4 momentos:
+- Apresentacao 2s: apresenta o personagem com um detalhe unico e humanizante
+- Tensao 3-4s: algo esta errado, o espectador sente que algo vai acontecer
+- Escalada 4-5s: a situacao piora, o comportamento se intensifica
+- Twist 2-3s: a revelacao que muda tudo, o espectador nao esperava
+
+MICRO-PROMESSA entre historia 2 e 3: Uma frase que promete algo ainda maior.
+"Mas tem um terceiro. Esse vai te incomodar de verdade."
+"E o ultimo caso? Nenhum cientista acreditou quando publicaram."
+
+FILOSOFIA DE NARRACAO — LEI ABSOLUTA:
+A narracao e um roteiro de filme. Uma historia unica que respira, acelera, para, surpreende.
+Total aproximado: {total_palavras} palavras. Fluido e natural como um narrador humano apaixonado.
+
+REGRAS DA NARRACAO:
+1. Cite o nome do animal explicitamente nas primeiras frases de cada historia
+2. Use detalhes especificos — nunca "muito tempo", use "47 dias". Nunca "ficou triste", use "parou de comer por 11 dias"
+3. Alterne frases curtas de impacto com frases medias descritivas
+4. Conectores naturais entre frases: "Mas o que ninguem esperava era...", "E entao algo impossivel aconteceu."
+5. Transicoes naturais entre historias: nunca "O proximo animal e..." — use "Mas nao e o unico." ou "Se isso ja te surpreendeu..."
+6. Viradas em frases curtissimas sem folego: "Ela nao foi embora. Ficou. Por tres dias."
+7. Final filosofico que desacelera: uma ou duas frases longas e profundas que ficam na cabeca
+
+REGRAS DOS PROMPTS DE IMAGEM:
+1. Cada prompt e a representacao visual EXATA da frase de narracao correspondente
+2. Define caracteristicas fisicas unicas do animal no inicio de cada historia e mantem em todos os prompts
+3. Formato: personagem especifico + acao exata da cena + angulo de camera + iluminacao + movimento
+4. Angulos: close-up, wide shot, aerial, macro, over the shoulder
+5. Iluminacao: golden hour, single spotlight, soft natural light, blue hour, dramatic shadows
+6. Movimento: mid-motion, frozen in the moment, slow motion
+7. NUNCA use "cinematic", "realistic", "documentary" — o estilo e adicionado pelo sistema
+8. NUNCA use "an animal" — sempre o nome especifico
+
+PERGUNTA DIVISORA — divide opinioes e gera comentarios:
+Deve ser pessoal, direta, sem resposta obvia. Divide o publico em dois lados claros.
+"Voce acha que isso e instinto ou escolha?"
+"Isso te faz ver os animais diferente — ou as pessoas?"
 
 {struct}
 
 Responda SOMENTE em JSON valido sem markdown:
 {{
-  "pergunta_invisivel": "string",
-  "emocao_ancora": "string",
-  "tipo_gancho": "ESPELHO HUMANO | PROVOCACAO | CONTRADICAO | NUMERO CURIOSO",
-  "gancho_principal": "string",
-  "gancho_opcoes": ["op2","op3","op4"],
-  "caso1": {{"nome":"string","animal":"string","nivel":"string","apresentacao":"string","tensao":"string","escalada":"string","twist":"string","prompts":["array de {dist['caso1']} prompts em ingles"]}},
-  "caso2": {{"nome":"string","animal":"string","nivel":"string","apresentacao":"string","tensao":"string","escalada":"string","twist":"string","prompts":["array de {dist['caso2']} prompts em ingles"]}},
-  "caso3": {{"nome":"string","animal":"string","nivel":"string","apresentacao":"string","tensao":"string","escalada":"string","twist":"string","prompts":["array de {dist['caso3']} prompts em ingles"]}},
-  "micro_promessa": "string",
-  "prompts_final": ["array de {dist['final']} prompts em ingles"],
-  "narracao_caso1": ["array de {dist['caso1']} frases em portugues"],
+  "pergunta_invisivel": "string — pergunta que o video responde sem dizer em voz alta",
+  "emocao_ancora": "string — emocao central que conecta tudo ao espectador",
+  "tipo_gancho": "PROVOCACAO | CONTRADICAO | ESPELHO HUMANO | NUMERO CURIOSO",
+  "gancho_principal": "string — primeira frase do video, vai direto sem apresentacao",
+  "gancho_opcoes": ["variacao 2", "variacao 3", "variacao 4"],
+  "caso1": {{
+    "nome": "string — nome da historia",
+    "animal": "string — nome do animal",
+    "nivel": "Interessante",
+    "apresentacao": "string — detalhe unico e humanizante",
+    "tensao": "string — algo esta errado",
+    "escalada": "string — situacao se intensifica",
+    "twist": "string — revelacao que muda tudo",
+    "prompts": ["array de {dist['caso1']} prompts em ingles fieis a narracao"]
+  }},
+  "caso2": {{
+    "nome": "string",
+    "animal": "string",
+    "nivel": "Surpreendente",
+    "apresentacao": "string",
+    "tensao": "string",
+    "escalada": "string",
+    "twist": "string",
+    "prompts": ["array de {dist['caso2']} prompts em ingles"]
+  }},
+  "caso3": {{
+    "nome": "string",
+    "animal": "string",
+    "nivel": "Chocante",
+    "apresentacao": "string",
+    "tensao": "string",
+    "escalada": "string",
+    "twist": "string",
+    "prompts": ["array de {dist['caso3']} prompts em ingles"]
+  }},
+  "micro_promessa": "string — frase entre historia 2 e 3 que promete algo maior",
+  "prompts_final": ["array de {dist['final']} prompts em ingles — ultimo e espelho humano"],
+  "narracao_caso1": ["array de {dist['caso1']} frases em portugues — fluidas e emocionais"],
   "narracao_caso2": ["array de {dist['caso2']} frases em portugues"],
   "narracao_caso3": ["array de {dist['caso3']} frases em portugues"],
-  "narracao_final": ["array de {dist['final']} frases em portugues"],
-  "frase_final_principal": "string filosofica",
-  "frase_final_opcoes": ["op2","op3","op4"],
-  "pergunta_divisora_principal": "string",
-  "pergunta_divisora_opcoes": ["op2","op3","op4"]
+  "narracao_final": ["array de {dist['final']} frases em portugues — ultima e filosofica"],
+  "frase_final_principal": "string — frase filosofica que fica na cabeca",
+  "frase_final_opcoes": ["variacao 2", "variacao 3", "variacao 4"],
+  "pergunta_divisora_principal": "string — divide opinioes, gera comentarios",
+  "pergunta_divisora_opcoes": ["variacao 2", "variacao 3", "variacao 4"]
 }}"""
 
 def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-5-20250929"):
@@ -171,6 +273,23 @@ def index():
     except:
         return "<h1>Sistema carregando...</h1>", 200
 
+
+def cortar_narracao(texto, duracao_str):
+    """Corta a narração para respeitar a duração escolhida."""
+    palavras_alvo = {
+        "30": 65, "50": 108, "60": 130, "90": 195, "90m": 325
+    }
+    alvo = palavras_alvo.get(str(duracao_str), 130)
+    palavras = texto.split()
+    if len(palavras) > alvo:
+        # Corta e fecha na última frase completa
+        cortado = ' '.join(palavras[:alvo])
+        ultimo_ponto = max(cortado.rfind('.'), cortado.rfind('?'), cortado.rfind('!'))
+        if ultimo_ponto > len(cortado) * 0.7:
+            cortado = cortado[:ultimo_ponto+1]
+        return cortado
+    return texto
+
 @app.route('/roteiro', methods=['POST'])
 def roteiro():
     data = request.json
@@ -205,6 +324,7 @@ def gerar():
     prompts_custom = data.get('prompts_custom', [])
     narracao_custom = data.get('narracao_custom', '')
 
+    duracao_param = data.get('duracao', '50')
     narracao_txt = narracao_custom if narracao_custom else ' '.join(filter(None, [
         data.get('gancho', ''),
         *data.get('narracao_caso1', []),
@@ -215,6 +335,9 @@ def gerar():
         data.get('frase_final', ''),
         data.get('pergunta_divisora', '')
     ]))
+
+    if not narracao_custom:
+        narracao_txt = cortar_narracao(narracao_txt, duracao_param)
 
     prompts = prompts_custom if prompts_custom else (
         data.get('caso1', {}).get('prompts', []) +
