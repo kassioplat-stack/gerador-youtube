@@ -594,15 +594,11 @@ async function regenerarOpcoes(tipo) {
     });
     var d = await r.json();
     var containerId = tipo === 'gancho' ? 'gancho-opts' : tipo === 'frase' ? 'frase-opts' : 'pergunta-opts';
-    var c = document.getElementById(containerId);
-    c.innerHTML = '';
-    (d.opcoes || []).forEach(function(text, i) {
-      var el = document.createElement('div');
-      el.className = 'gancho-opt' + (i === 0 ? ' sel' : '');
-      el.textContent = text;
-      el.onclick = function() { selOpt(this, tipo); };
-      c.appendChild(el);
-    });
+    renderOpts(containerId, d.opcoes || [], tipo);
+    var editId = tipo + '-edit';
+    var editEl = document.getElementById(editId);
+    if(editEl && d.opcoes && d.opcoes[0]) editEl.value = d.opcoes[0];
+    atualizarScriptFinal();
   } catch(e) {}
 }
 
@@ -621,9 +617,9 @@ async function gerarImagens() {
 
   var payload = JSON.parse(JSON.stringify(state.roteiro));
   payload.titulo = titulo;
-  payload.gancho = ganchoEl ? ganchoEl.textContent : (state.roteiro.gancho_principal || '');
-  payload.frase_final = fraseEl ? fraseEl.textContent : (state.roteiro.frase_final_principal || '');
-  payload.pergunta_divisora = perguntaEl ? perguntaEl.textContent : (state.roteiro.pergunta_divisora_principal || '');
+  payload.gancho = (document.getElementById('gancho-edit') || {}).value || (ganchoEl ? ganchoEl.textContent : (state.roteiro.gancho_principal || ''));
+  payload.frase_final = (document.getElementById('frase-edit') || {}).value || (fraseEl ? fraseEl.textContent : (state.roteiro.frase_final_principal || ''));
+  payload.pergunta_divisora = (document.getElementById('pergunta-edit') || {}).value || (perguntaEl ? perguntaEl.textContent : (state.roteiro.pergunta_divisora_principal || ''));
   payload.narracao_custom = (document.getElementById('script-final') || {}).value || document.getElementById('narracao-edit').value;
   payload.narracao_session_id = state.narracao_session_id || null;
   payload.prompts_custom = state.prompts;
