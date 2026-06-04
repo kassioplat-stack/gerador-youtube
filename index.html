@@ -181,7 +181,8 @@ textarea{height:60px;resize:none}
       <div id="preview-info" class="preview-info"></div>
       <button class="btn btn-secondary" id="btn-roteiro" onclick="gerarRoteiro()" style="margin-top:4px">1. Gerar Roteiro</button>
       <button class="btn" id="btn-narracao" onclick="gerarNarracao()" disabled style="margin-top:8px;opacity:.4;background:#7a4a9a;color:#fff">2. Gerar Narracao</button>
-      <button class="btn btn-primary" id="btn-imagens" onclick="gerarImagens()" disabled style="margin-top:8px;opacity:.4">3. Gerar Imagens</button>
+      <button class="btn" id="btn-prompts" onclick="gerarPrompts()" disabled style="margin-top:8px;opacity:.4;background:#1a5c3a;color:#fff">3. Gerar Prompts de Imagem</button>
+      <button class="btn btn-primary" id="btn-imagens" onclick="gerarImagens()" disabled style="margin-top:8px;opacity:.4">4. Gerar Imagens</button>
       <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
     </div>
 
@@ -200,7 +201,7 @@ textarea{height:60px;resize:none}
       </div>
       <div class="card">
         <span class="slbl">Narracao completa</span>
-        <textarea id="narracao-edit" style="height:200px"></textarea>
+        <textarea id="narracao-edit" style="height:200px" oninput="atualizarScriptFinal()"></textarea>
       </div>
       <div class="card">
         <span class="slbl">Prompts de imagem</span>
@@ -215,6 +216,11 @@ textarea{height:60px;resize:none}
         <span class="slbl">Pergunta divisora</span>
         <div class="gancho-opts" id="pergunta-opts"></div>
         <button class="regen-opts-btn" onclick="regenerarOpcoes('pergunta')">Regenerar perguntas</button>
+      </div>
+      <div class="card">
+        <span class="slbl">Script Final — texto que sera narrado</span>
+        <textarea id="script-final" style="height:220px;background:#0a0a0a;border-color:#E8593C;color:#fff;font-size:13px;line-height:1.7"></textarea>
+        <div style="font-size:11px;color:#444;margin-top:4px">Resultado de: Gancho + Texto principal + Frase final + Pergunta divisora. Edite se precisar de ajuste fino.</div>
       </div>
     </div>
 
@@ -409,8 +415,8 @@ async function gerarNarracao() {
       ap.style.display = 'block';
       document.getElementById('result-card').style.display = 'block';
     }
-    document.getElementById('btn-imagens').disabled = false;
-    document.getElementById('btn-imagens').style.opacity = '1';
+    document.getElementById('btn-prompts').disabled = false;
+    document.getElementById('btn-prompts').style.opacity = '1';
   } catch(e) { alert('Erro: ' + e.message); }
   btn.disabled = false;
   btn.textContent = '2. Gerar Narracao';
@@ -432,7 +438,7 @@ function renderRoteiro(d) {
   renderOpts('frase-opts', [d.frase_final_principal].concat(d.frase_final_opcoes || []), 'frase');
   renderOpts('pergunta-opts', [d.pergunta_divisora_principal].concat(d.pergunta_divisora_opcoes || []), 'pergunta');
 
-  // Caixa de narração: só o corpo — gancho, frase final e pergunta entram separadamente
+  // Caixa de narração: só o corpo
   var narracao = []
     .concat(d.narracao_caso1 || [])
     .concat(d.narracao_caso2 || [])
@@ -441,6 +447,9 @@ function renderRoteiro(d) {
     .concat(d.narracao_final || [])
     .filter(Boolean).join(' ');
   document.getElementById('narracao-edit').value = narracao;
+
+  // Script Final = gancho + corpo + frase final + pergunta divisora
+  atualizarScriptFinal();
 
   var html = '';
   state.prompts.forEach(function(p, i) {
@@ -462,6 +471,57 @@ function renderRoteiro(d) {
 function selOpt(el, grp) {
   el.closest('.gancho-opts').querySelectorAll('.gancho-opt').forEach(function(e){ e.classList.remove('sel'); });
   el.classList.add('sel');
+  atualizarScriptFinal();
+}
+
+function atualizarScriptFinal() {
+  var ganchoEl = document.querySelector('#gancho-opts .gancho-opt.sel');
+  var fraseEl = document.querySelector('#frase-opts .gancho-opt.sel');
+  var perguntaEl = document.querySelector('#pergunta-opts .gancho-opt.sel');
+  var corpo = (document.getElementById('narracao-edit') || {}).value || '';
+  var gancho = ganchoEl ? ganchoEl.textContent.trim() : '';
+  var frase = fraseEl ? fraseEl.textContent.trim() : '';
+  var pergunta = perguntaEl ? perguntaEl.textContent.trim() : '';
+  var script = [gancho, corpo.trim(), frase, pergunta].filter(function(p){ return p; }).join(' ');
+  var sf = document.getElementById('script-final');
+  if(sf) sf.value = script;
+}
+
+async function gerarPrompts() {
+  if(!state.roteiro) { alert('Gere o roteiro primeiro'); return; }
+  var script = (document.getElementById('script-final') || {}).value || '';
+  if(!script) { alert('Script final vazio'); return; }
+  var btn = document.getElementById('btn-prompts');
+  btn.disabled = true;
+  btn.textContent = 'Gerando prompts...';
+  try {
+    var resp = await fetch('/gerar-prompts', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ script: script, roteiro: state.roteiro })
+    });
+    var d = await resp.json();
+    if(d.erro) throw new Error(d.erro);
+    state.prompts = d.prompts;
+    var container = document.getElementById('prompts-list');
+    if(container) {
+      var html = '';
+      d.prompts.forEach(function(p, i) {
+        html += '<div style="display:flex;gap:8px;margin-bottom:8px">'
+          + '<span style="background:#1a5c3a;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;flex-shrink:0">' + (i+1) + '</span>'
+          + '<div style="flex:1">'
+          + '<textarea id="pt'+i+'" style="width:100%;background:#111;border:1px solid #333;border-radius:6px;padding:8px;font-size:12px;color:#ccc;font-family:inherit;resize:none;height:60px">' + esc(p) + '</textarea>'
+          + '<button onclick="traduzirPrompt(' + i + ')" style="background:transparent;border:1px solid #333;border-radius:4px;padding:2px 8px;font-size:11px;color:#555;cursor:pointer;font-family:inherit;margin-top:3px">Traduzir</button>'
+          + '<div id="trad'+i+'" style="font-size:11px;color:#555;margin-top:3px;font-style:italic"></div>'
+          + '</div></div>';
+      });
+      container.innerHTML = html;
+    }
+    document.getElementById('btn-imagens').disabled = false;
+    document.getElementById('btn-imagens').style.opacity = '1';
+  } catch(e) { alert('Erro: ' + e.message); }
+  btn.disabled = false;
+  btn.textContent = '3. Gerar Prompts de Imagem';
 }
 
 async function traduzirPrompt(idx) {
