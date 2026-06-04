@@ -213,7 +213,9 @@ def build_system(modelo, nh, dist, total_palavras):
         "8. COESAO TOTAL: cada frase deve fluir da anterior como se fossem uma unica conversa. Zero saltos logicos.\n"
         "9. SEM REPETICAO: nunca repita a mesma ideia em frases diferentes. Cada frase avanca a historia.\n"
         "10. PONTUACAO CORRETA: ponto final, exclamacao ou interrogacao. NUNCA termine com virgula.\n"
-        "11. TOTAL: aproximadamente " + str(total_palavras) + " palavras para TODA a narracao — respeite esse limite.\n\n"
+        "11. TOTAL: aproximadamente " + str(total_palavras) + " palavras para TODA a narracao — respeite esse limite.\n"
+        "12. CONGRUENCIA COM DURACAO: o roteiro e a narracao devem ser dimensionados EXATAMENTE para " + str(total_palavras) + " palavras — nem mais, nem menos. Um video de 40s nao pode ter narracao de 2 minutos.\n"
+        "13. FIDELIDADE AO SCRIPT FINAL: a narracao gravada sera EXATAMENTE o texto gerado — gancho + corpo + frase final + pergunta divisora. Escreva cada frase como se ja estivesse sendo narrada. Nada sera editado antes de gravar.\n\n"
 
         "=== REGRAS DOS PROMPTS DE IMAGEM — CONGRUENCIA TOTAL ===\n\n"
         "PRINCIPIO FUNDAMENTAL: cada prompt e a traducao visual LITERAL da frase de narracao correspondente.\n"
@@ -359,10 +361,10 @@ def roteiro():
     contexto = data.get('contexto', '').strip()
     modelo = data.get('modelo', 'animais')
     nh = int(data.get('historias', 3))
-    duracao = str(data.get('duracao', '50'))
+    duracao = str(data.get('duracao', '40'))
     dist = calc_frases(duracao, nh)
     total_palavras = PALAVRAS.get(duracao, 130)
-    duracao_s = {"30":30,"50":50,"60":60,"90":90,"90m":90}.get(duracao, 60)
+    duracao_s = {"40":40,"60":60,"90":90,"120":120,"180":180,"240":240,"300":300}.get(duracao, 60)
     system = build_system(modelo, nh, dist, total_palavras)
     chars_limite = duracao_s * 13
     user_msg = f"Titulo: {titulo}\n\nLIMITE ABSOLUTO: a narracao completa deve ter NO MAXIMO {chars_limite} caracteres totais (equivale a {duracao_s} segundos de audio a 13 chars/segundo). Respeite rigorosamente."
@@ -374,7 +376,7 @@ def roteiro():
         # Valida tamanho da narracao — margem de 30s
         print(f'NARRACAO GERADA: {sum(len(f) for campo in ["narracao_caso1","narracao_caso2","narracao_caso3","narracao_final"] for f in d.get(campo, []))} chars, limite={(duracao_s+30)*13} chars')
         chars_por_segundo = 13
-        duracao_s = {"30":30,"50":50,"60":60,"90":90,"90m":90}.get(duracao, 60)
+        duracao_s = {"40":40,"60":60,"90":90,"120":120,"180":180,"240":240,"300":300}.get(duracao, 60)
         limite_chars = (duracao_s + 30) * chars_por_segundo
         campos = ['narracao_caso1','narracao_caso2','narracao_caso3','narracao_final']
         total_chars = sum(len(f) for campo in campos for f in d.get(campo, []))
