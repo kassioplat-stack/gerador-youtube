@@ -684,6 +684,28 @@ def gerar_prompts():
         return jsonify({'erro': str(e)}), 500
 
 
+@app.route('/sugerir-titulos', methods=['POST'])
+def sugerir_titulos():
+    data = request.json
+    titulo = data.get('titulo', '').strip()
+    modelo = data.get('modelo', 'animais')
+    system = (
+        "Voce e especialista em titulos virais para YouTube. "
+        "Gere exatamente 2 titulos alternativos ao titulo fornecido. "
+        "Os titulos devem ter o mesmo tema e angulo emocional mas com abordagem diferente. "
+        "Devem ser igualmente virais e provocativos. "
+        'Retorne JSON: {"titulos": ["titulo1", "titulo2"]}'
+    )
+    user_msg = "Titulo original: " + titulo + "\nModelo: " + modelo
+    try:
+        text = chamar_claude(system, user_msg, max_tokens=300, modelo="claude-haiku-4-5-20251001")
+        text = re.sub(r"```json|```", "", text).strip()
+        d = json.loads(text)
+        return jsonify({'titulos': d.get('titulos', [])})
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
