@@ -117,7 +117,9 @@ textarea{height:60px;resize:none}
 
     <div class="card">
       <span class="slbl">Titulo do video</span>
-      <input type="text" id="titulo" placeholder="Ex: Narcisistas da Floresta" />
+      <input type="text" id="titulo" placeholder="Ex: Narcisistas da Floresta" oninput="clearSugestoes()" />
+      <button onclick="sugerirTitulos()" style="background:transparent;border:1px solid #333;border-radius:6px;padding:5px 12px;font-size:12px;color:#555;cursor:pointer;font-family:inherit;margin-bottom:8px;transition:all .15s" id="btn-sugerir">💡 Sugerir títulos similares</button>
+      <div id="sugestoes-titulos" style="display:none;flex-direction:column;gap:6px;margin-bottom:8px"></div>
       <span class="slbl">Contexto (opcional)</span>
       <textarea id="contexto" placeholder="Descreva o angulo, animais especificos, tom da historia..."></textarea>
     </div>
@@ -159,11 +161,13 @@ textarea{height:60px;resize:none}
       <div class="config-block">
         <span class="slbl">Duracao do video</span>
         <div class="chips-row">
-          <button class="chip" id="d30" onclick="selChip('duracao','30','d30','d50','d60','d90','d90m')">30s</button>
-          <button class="chip sel" id="d50" onclick="selChip('duracao','50','d30','d50','d60','d90','d90m')">50s</button>
-          <button class="chip" id="d60" onclick="selChip('duracao','60','d30','d50','d60','d90','d90m')">60s</button>
-          <button class="chip" id="d90" onclick="selChip('duracao','90','d30','d50','d60','d90','d90m')">90s</button>
-          <button class="chip" id="d90m" onclick="selChip('duracao','90m','d30','d50','d60','d90','d90m')">1:30</button>
+          <button class="chip sel" id="d40" onclick="selChip('duracao','40','d40','d60','d90','d120','d180','d240','d300')">40s</button>
+          <button class="chip" id="d60" onclick="selChip('duracao','60','d40','d60','d90','d120','d180','d240','d300')">1min</button>
+          <button class="chip" id="d90" onclick="selChip('duracao','90','d40','d60','d90','d120','d180','d240','d300')">1min30s</button>
+          <button class="chip" id="d120" onclick="selChip('duracao','120','d40','d60','d90','d120','d180','d240','d300')">2min</button>
+          <button class="chip" id="d180" onclick="selChip('duracao','180','d40','d60','d90','d120','d180','d240','d300')">3min</button>
+          <button class="chip" id="d240" onclick="selChip('duracao','240','d40','d60','d90','d120','d180','d240','d300')">4min</button>
+          <button class="chip" id="d300" onclick="selChip('duracao','300','d40','d60','d90','d120','d180','d240','d300')">5min</button>
         </div>
       </div>
 
@@ -303,9 +307,44 @@ function selChip(key, val) {
 }
 
 function updatePreviewInfo() {
-  var durMap = {30:30,50:50,60:60,90:90,'90m':90};
-  var dur = durMap[state.duracao] || 60;
+  var durMap = {'40':40,'60':60,'90':90,'120':120,'180':180,'240':240,'300':300};
+  var dur = durMap[String(state.duracao)] || 60;
   document.getElementById('preview-info').textContent = 'Narracao de ~' + dur + 's — imagens definidas pelo roteiro';
+}
+
+function clearSugestoes() {
+  document.getElementById('sugestoes-titulos').style.display = 'none';
+}
+
+async function sugerirTitulos() {
+  var titulo = document.getElementById('titulo').value.trim();
+  if(!titulo) { alert('Digite um titulo primeiro'); return; }
+  var btn = document.getElementById('btn-sugerir');
+  btn.textContent = 'Gerando...';
+  btn.disabled = true;
+  try {
+    var resp = await fetch('/sugerir-titulos', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({titulo: titulo, modelo: state.modelo})
+    });
+    var d = await resp.json();
+    if(d.erro) throw new Error(d.erro);
+    var container = document.getElementById('sugestoes-titulos');
+    container.innerHTML = '';
+    (d.titulos || []).forEach(function(t) {
+      var el = document.createElement('div');
+      el.style.cssText = 'background:#111;border:1px solid #2a2a2a;border-radius:8px;padding:8px 12px;font-size:13px;color:#aaa;cursor:pointer;transition:all .15s';
+      el.textContent = t;
+      el.onmouseover = function(){ this.style.borderColor='#E8593C';this.style.color='#fff'; };
+      el.onmouseout = function(){ this.style.borderColor='#2a2a2a';this.style.color='#aaa'; };
+      el.onclick = function(){ document.getElementById('titulo').value = t; clearSugestoes(); };
+      container.appendChild(el);
+    });
+    container.style.display = 'flex';
+  } catch(e) { alert('Erro: ' + e.message); }
+  btn.textContent = '💡 Sugerir títulos similares';
+  btn.disabled = false;
 }
 
 
