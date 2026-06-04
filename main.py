@@ -331,7 +331,7 @@ def gerar_audio(narracao_txt, session_id):
             r = requests.post(
                 f'https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE}',
                 headers={'xi-api-key': ELEVENLABS_KEY, 'content-type': 'application/json'},
-                json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.5, 'similarity_boost': 0.8}},
+                json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.71, 'similarity_boost': 0.5, 'style': 0.0, 'use_speaker_boost': True}},
                 timeout=60
             )
             if r.status_code == 200 and len(r.content) > 100:
