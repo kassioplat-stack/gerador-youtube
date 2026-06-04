@@ -236,34 +236,6 @@ def build_system(modelo, nh, dist, total_palavras):
         "12. CONGRUENCIA COM DURACAO: o roteiro e a narracao devem ser dimensionados EXATAMENTE para " + str(total_palavras) + " palavras — nem mais, nem menos. Um video de 40s nao pode ter narracao de 2 minutos.\n"
         "13. FIDELIDADE AO SCRIPT FINAL: a narracao gravada sera EXATAMENTE o texto gerado — gancho + corpo + frase final + pergunta divisora. Escreva cada frase como se ja estivesse sendo narrada. Nada sera editado antes de gravar.\n\n"
 
-        "=== REGRAS DOS PROMPTS DE IMAGEM — CONGRUENCIA TOTAL ===\n\n"
-        "PRINCIPIO FUNDAMENTAL: cada prompt e a traducao visual LITERAL da frase de narracao correspondente.\n"
-        "Se a narracao diz 'ela quebrou a cerca', o prompt mostra o animal quebrando a cerca — nao olhando para o horizonte.\n"
-        "Se a narracao diz '47 dias esperando', o prompt mostra o animal em postura de espera tensa — nao correndo.\n"
-        "NUNCA crie uma cena generica. A cena visual deve ser impossivel de trocar com qualquer outra frase.\n\n"
-        "FORMATO OBRIGATORIO de cada prompt:\n"
-        "[descricao fisica unica e especifica do animal] + [ACAO EXATA descrita na narracao] + [angulo que melhor captura a emocao] + [iluminacao que reforça o tom] + [estado de movimento]\n\n"
-        "CARACTERISTICAS FISICAS: defina no primeiro prompt de cada historia e repita IDENTICAMENTE em todos os outros da mesma historia.\n"
-        "Ex: 'large African elephant with torn left ear, deep-set amber eyes, dusty gray skin'\n"
-        "Nao mude a descricao fisica dentro da mesma historia — e o mesmo personagem em cenas diferentes.\n\n"
-        "ANGULOS por emocao:\n"
-        "- Apresentacao: wide shot ou over the shoulder — apresenta o ambiente e o personagem\n"
-        "- Tensao: close-up no rosto ou macro em detalhe corporal — cria intimidade e desconforto\n"
-        "- Escalada: angulo medio dinamico — mostra o comportamento em acao\n"
-        "- Twist: extreme close-up ou angulo inusitado — destabiliza o espectador\n\n"
-        "ILUMINACAO por momento:\n"
-        "- Apresentacao e tensao inicial: soft natural light ou golden hour — conforto falso\n"
-        "- Escalada: dramatic shadows ou single spotlight — algo escuro esta acontecendo\n"
-        "- Twist e final: blue hour ou high contrast — revelacao perturbadora\n\n"
-        "MOVIMENTO:\n"
-        "- mid-motion: quando a acao esta acontecendo agora\n"
-        "- frozen in the moment: para revelaçoes, twists, momentos de choque\n"
-        "- slow motion blur: para emocao intensa, fim de historia\n\n"
-        "PROIBIDO em qualquer prompt:\n"
-        "- cinematic, realistic, documentary, photographic (o estilo e adicionado automaticamente)\n"
-        "- 'an animal' ou pronomes sem referencia — sempre o nome especifico\n"
-        "- cenas genericas que poderiam ser de qualquer historia\n"
-        "- acoes que contradizem o que a narracao descreve\n\n"
 
         "PERGUNTA DIVISORA — DIVIDE OPINIOES E GERA COMENTARIOS:\n"
         "Pessoal, direta, sem resposta obvia. Divide o publico em dois lados.\n"
@@ -274,7 +246,7 @@ def build_system(modelo, nh, dist, total_palavras):
         + json_template
     )
 
-def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-5-20250929"):
+def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-6"):
     for tentativa in range(3):
         try:
             r = requests.post(
@@ -675,7 +647,7 @@ def gerar_prompts():
     user_msg = "Script:\n\n" + script + "\n\nGere um prompt em ingles por momento narrativo."
 
     try:
-        text = chamar_claude(system, user_msg, max_tokens=4000, modelo="claude-sonnet-4-5-20250929")
+        text = chamar_claude(system, user_msg, max_tokens=4000, modelo="claude-sonnet-4-6")
         print("GERAR-PROMPTS resposta chars=" + str(len(text)))
         text = re.sub(r"```json|```", "", text).strip()
         text = re.sub(r',[ \t\n]*([}\]])', r'\1', text)
