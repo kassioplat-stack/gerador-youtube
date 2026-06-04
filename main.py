@@ -408,11 +408,9 @@ def gerar_narracao():
     limpar_sessions_antigas()
     data = request.json
     print(f"NARRACAO REQUEST keys={list(data.keys())}")
-    # Aceita narracao_completa (novo fluxo) ou monta das partes (legado)
     narracao_txt = data.get('narracao_completa', '').strip()
     if not narracao_txt:
-        partes = [data.get('gancho',''), data.get('narracao_custom',''), data.get('frase_final',''), data.get('pergunta_divisora','')]
-        narracao_txt = ' '.join(p for p in partes if p)
+        return jsonify({'erro': 'Script vazio'}), 400
     print(f"NARRACAO TXT chars={len(narracao_txt)} preview={narracao_txt[:80]}")
 
     session_id = str(int(time.time()))
