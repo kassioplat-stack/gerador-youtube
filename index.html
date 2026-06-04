@@ -90,7 +90,7 @@ textarea{height:60px;resize:none}
   <div class="tabs">
     <button class="tab active" id="tab-btn-gerar" onclick="showTab('gerar',this)">Gerar</button>
 
-    <button class="tab" id="tab-btn-calendario" onclick="showTab('calendario',this)">Calendario</button>
+
   </div>
 
   <div class="tab-content active" id="tab-gerar">
@@ -250,7 +250,7 @@ textarea{height:60px;resize:none}
 
       <div id="section-download" style="display:none">
         <button class="download-btn" id="dl-btn" style="margin-top:8px">⬇ Baixar Projeto</button>
-        <div class="info-box">ZIP contem: imagens numeradas + thumbnails + narracao.mp3 + roteiro.txt</div>
+        <div class="info-box">ZIP contem: imagens numeradas + THUMB_01/02/03 + narracao.mp3 + roteiro.txt + prompts.txt</div>
       </div>
 
     </div>
@@ -259,17 +259,7 @@ textarea{height:60px;resize:none}
   
   </div>
 
-  <div class="tab-content" id="tab-calendario">
-    <div class="card">
-      <span class="slbl">Adicionar titulo a fila</span>
-      <div class="add-row">
-        <input type="text" id="cal-titulo" placeholder="Titulo do video..."/>
-        <input type="date" id="cal-data" style="width:150px;margin:0"/>
-        <button class="btn btn-primary" style="width:auto;padding:8px 16px;margin:0" onclick="addCalendario()">+</button>
-      </div>
-      <div class="calendar-list" id="cal-list"></div>
-    </div>
-  </div>
+  
 
 </div>
 
