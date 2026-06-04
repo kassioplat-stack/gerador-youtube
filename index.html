@@ -79,6 +79,18 @@ textarea{height:60px;resize:none}
 .cal-btn{background:#E8593C;color:#fff;border:none;border-radius:6px;padding:4px 12px;font-size:11px;cursor:pointer;font-family:inherit}
 .add-row{display:flex;gap:8px;margin-bottom:1rem}
 .add-row input{flex:1;margin:0}
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+.spinner {
+  display:inline-block;
+  width:12px;height:12px;
+  border:2px solid rgba(255,255,255,0.3);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+  margin-right:6px;vertical-align:middle;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
 </style>
 </head>
 <body>
@@ -195,16 +207,21 @@ textarea{height:60px;resize:none}
     <!-- SCORE VIRAL -->
     <div id="score-panel" style="display:none;margin-bottom:16px">
       <div class="card" style="border-color:#E8593C">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleScore()">
           <span class="slbl" style="margin:0">Score de Potencial Viral</span>
-          <div id="score-total" style="font-size:28px;font-weight:900;color:#E8593C">--</div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div id="score-total" style="font-size:28px;font-weight:900;color:#E8593C">--</div>
+            <span id="score-toggle-icon" style="font-size:14px;color:#555">▼</span>
+          </div>
         </div>
-        <div style="height:6px;background:#1a1a1a;border-radius:4px;margin-bottom:16px">
-          <div id="score-bar" style="height:100%;border-radius:4px;transition:width .8s ease;width:0%"></div>
+        <div id="score-detalhe" style="display:none;margin-top:12px">
+          <div style="height:6px;background:#1a1a1a;border-radius:4px;margin-bottom:16px">
+            <div id="score-bar" style="height:100%;border-radius:4px;transition:width .8s ease;width:0%"></div>
+          </div>
+          <div id="score-dims" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+          <div id="score-fraco" style="display:none;background:#1a0a0a;border:1px solid #5a1a1a;border-radius:8px;padding:10px;font-size:12px;color:#ff6b6b"></div>
+          <div id="score-sugestao" style="display:none;background:#0a1a0a;border:1px solid #1a5a1a;border-radius:8px;padding:10px;font-size:12px;color:#6bff6b;margin-top:6px"></div>
         </div>
-        <div id="score-dims" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
-        <div id="score-fraco" style="display:none;background:#1a0a0a;border:1px solid #5a1a1a;border-radius:8px;padding:10px;font-size:12px;color:#ff6b6b"></div>
-        <div id="score-sugestao" style="display:none;background:#0a1a0a;border:1px solid #1a5a1a;border-radius:8px;padding:10px;font-size:12px;color:#6bff6b;margin-top:6px"></div>
       </div>
     </div>
 
@@ -234,8 +251,14 @@ textarea{height:60px;resize:none}
       </div>
       <div class="card">
         <span class="slbl">Script Final — texto que sera narrado</span>
-        <textarea id="script-final" style="height:220px;background:#0a0a0a;border-color:#E8593C;color:#fff;font-size:13px;line-height:1.7"></textarea>
-        <div style="font-size:11px;color:#444;margin-top:4px">Resultado de: Gancho + Texto principal + Frase final + Pergunta divisora. Edite se precisar de ajuste fino.</div>
+        <textarea id="script-final" style="height:220px;background:#0a0a0a;border-color:#E8593C;color:#fff;font-size:13px;line-height:1.7" oninput="atualizarContador()"></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+          <div style="font-size:11px;color:#444">Resultado de: Gancho + Texto principal + Frase final + Pergunta divisora. Edite se precisar de ajuste fino.</div>
+          <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;margin-left:8px">
+            <span id="script-contador" style="font-size:11px;color:#555">0 chars ≈ 0s</span>
+            <button onclick="copiarScript()" style="background:transparent;border:1px solid #333;border-radius:4px;padding:2px 8px;font-size:11px;color:#555;cursor:pointer;font-family:inherit" id="btn-copiar">📋 Copiar</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -390,8 +413,7 @@ async function gerarRoteiro() {
   var titulo = document.getElementById('titulo').value.trim();
   if(!titulo) { alert('Digite um titulo'); return; }
   var btn = document.getElementById('btn-roteiro');
-  btn.disabled = true;
-  btn.textContent = 'Gerando roteiro...';
+  setBtnLoading('btn-roteiro', true, '1. Gerar Roteiro', 'Gerando roteiro...');
   document.getElementById('roteiro-preview').style.display = 'none';
   document.getElementById('btn-imagens').disabled = true;
   document.getElementById('btn-imagens').style.opacity = '.4';
@@ -416,15 +438,13 @@ async function gerarRoteiro() {
     btnNarr.disabled = false;
     btnNarr.style.opacity = '1';
   } catch(e) { alert('Erro ao gerar roteiro: ' + e.message); }
-  btn.disabled = false;
-  btn.textContent = '1. Gerar Roteiro';
+  setBtnLoading('btn-roteiro', false, '1. Gerar Roteiro');
 }
 
 async function gerarNarracao() {
   if(!state.roteiro) { alert('Gere o roteiro primeiro'); return; }
   var btn = document.getElementById('btn-narracao');
-  btn.disabled = true;
-  btn.textContent = 'Gerando narracao...';
+  setBtnLoading('btn-narracao', true, '2. Gerar Narracao', 'Gerando narracao...');
 
   // Concatena automaticamente: gancho + narracao + frase final + pergunta divisora
   // Usa sempre o script-final — que já contém gancho+corpo+frase+pergunta editados
@@ -460,8 +480,7 @@ async function gerarNarracao() {
     document.getElementById('btn-prompts').disabled = false;
     document.getElementById('btn-prompts').style.opacity = '1';
   } catch(e) { alert('Erro: ' + e.message); }
-  btn.disabled = false;
-  btn.textContent = '2. Gerar Narracao';
+  setBtnLoading('btn-narracao', false, '2. Gerar Narracao');
 }
 
 function renderRoteiro(d) {
@@ -538,6 +557,10 @@ async function calcularScore(roteiro) {
 
   panel.style.display = 'block';
   totalEl.textContent = '...';
+  var _detalhe = document.getElementById('score-detalhe');
+  if(_detalhe) _detalhe.style.display = 'none';
+  var _icon = document.getElementById('score-toggle-icon');
+  if(_icon) _icon.textContent = '▼';
   dims.innerHTML = '<div style="color:#444;font-size:12px">Analisando roteiro...</div>';
 
   try {
@@ -555,6 +578,11 @@ async function calcularScore(roteiro) {
     totalEl.style.color = cor;
     barEl.style.width = total + '%';
     barEl.style.background = cor;
+    // Abre detalhe automaticamente
+    var detalheEl = document.getElementById('score-detalhe');
+    if(detalheEl) detalheEl.style.display = 'block';
+    var iconEl = document.getElementById('score-toggle-icon');
+    if(iconEl) iconEl.textContent = '▲';
 
     dims.innerHTML = '';
     state.scoreData = d;
@@ -645,6 +673,57 @@ async function corrigirDimensao(idx) {
   }
 }
 
+function atualizarContador() {
+  var sf = document.getElementById('script-final');
+  var contador = document.getElementById('script-contador');
+  if(!sf || !contador) return;
+  var chars = sf.value.length;
+  var segundos = Math.round(chars / 13);
+  var durMap = {'40':40,'60':60,'90':90,'120':120,'180':180,'240':240,'300':300};
+  var durEsperada = durMap[String(state.duracao)] || 60;
+  var cor = Math.abs(segundos - durEsperada) <= 10 ? '#4caf50' : Math.abs(segundos - durEsperada) <= 20 ? '#ff9800' : '#f44336';
+  contador.style.color = cor;
+  contador.textContent = chars + ' chars ≈ ' + segundos + 's';
+}
+
+function copiarScript() {
+  var sf = document.getElementById('script-final');
+  if(!sf || !sf.value) return;
+  navigator.clipboard.writeText(sf.value).then(function() {
+    var btn = document.getElementById('btn-copiar');
+    btn.textContent = '✅ Copiado';
+    setTimeout(function(){ btn.textContent = '📋 Copiar'; }, 2000);
+  }).catch(function() {
+    sf.select();
+    document.execCommand('copy');
+    var btn = document.getElementById('btn-copiar');
+    btn.textContent = '✅ Copiado';
+    setTimeout(function(){ btn.textContent = '📋 Copiar'; }, 2000);
+  });
+}
+
+function toggleScore() {
+  var detalhe = document.getElementById('score-detalhe');
+  var icon = document.getElementById('score-toggle-icon');
+  if(!detalhe) return;
+  var aberto = detalhe.style.display !== 'none';
+  detalhe.style.display = aberto ? 'none' : 'block';
+  icon.textContent = aberto ? '▼' : '▲';
+}
+
+function setBtnLoading(id, loading, textoOriginal, textoLoading) {
+  var btn = document.getElementById(id);
+  if(!btn) return;
+  btn.disabled = loading;
+  btn.style.opacity = loading ? '0.7' : '1';
+  if(loading) {
+    btn.setAttribute('data-original', btn.textContent);
+    btn.innerHTML = '<span style="display:inline-block;animation:spin 1s linear infinite">⟳</span> ' + (textoLoading || 'Aguarde...');
+  } else {
+    btn.textContent = textoOriginal || btn.getAttribute('data-original') || btn.textContent;
+  }
+}
+
 function atualizarScriptFinal() {
   var ganchoEl = document.querySelector('#gancho-opts .gancho-opt.sel');
   var fraseEl = document.querySelector('#frase-opts .gancho-opt.sel');
@@ -655,7 +734,7 @@ function atualizarScriptFinal() {
   var pergunta = (document.getElementById('pergunta-edit') || {}).value || (perguntaEl ? perguntaEl.textContent.trim() : '');
   var script = [gancho, corpo.trim(), frase, pergunta].filter(function(p){ return p; }).join(' ');
   var sf = document.getElementById('script-final');
-  if(sf) sf.value = script;
+  if(sf) { sf.value = script; atualizarContador(); }
 }
 
 async function gerarPrompts() {
@@ -663,8 +742,7 @@ async function gerarPrompts() {
   var script = (document.getElementById('script-final') || {}).value || '';
   if(!script) { alert('Script final vazio'); return; }
   var btn = document.getElementById('btn-prompts');
-  btn.disabled = true;
-  btn.textContent = 'Gerando prompts...';
+  setBtnLoading('btn-prompts', true, '3. Gerar Prompts de Imagem', 'Gerando prompts...');
   try {
     var resp = await fetch('/gerar-prompts', {
       method: 'POST',
@@ -680,8 +758,7 @@ async function gerarPrompts() {
     document.getElementById('btn-imagens').disabled = false;
     document.getElementById('btn-imagens').style.opacity = '1';
   } catch(e) { alert('Erro: ' + e.message); }
-  btn.disabled = false;
-  btn.textContent = '3. Gerar Prompts de Imagem';
+  setBtnLoading('btn-prompts', false, '3. Gerar Prompts de Imagem');
 }
 
 async function traduzirPrompt(idx) {
