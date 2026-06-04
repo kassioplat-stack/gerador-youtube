@@ -682,6 +682,29 @@ def sugerir_titulos():
         return jsonify({'erro': str(e)}), 500
 
 
+@app.route('/regenerar-prompt', methods=['POST'])
+def regenerar_prompt():
+    data = request.json
+    prompt_atual = data.get('prompt_atual', '').strip()
+    idx = data.get('idx', 0)
+    system = (
+        "Voce e um diretor de arte especialista em videos curtos virais do YouTube."
+        " Recebera um prompt de imagem e deve gerar uma variacao melhorada do mesmo."
+        " A variacao deve manter o mesmo momento narrativo e o mesmo animal,"
+        " mas com angulo, iluminacao ou composicao diferente."
+        " Mantenha as caracteristicas fisicas do animal identicas."
+        " PROIBIDO: cinematic, realistic, documentary, photographic, an animal."
+        " Retorne apenas o novo prompt em ingles, sem explicacoes."
+    )
+    user_msg = "Prompt atual:\n" + prompt_atual + "\n\nGere uma variacao melhorada."
+    try:
+        text = chamar_claude(system, user_msg, max_tokens=300, modelo="claude-haiku-4-5-20251001")
+        text = text.strip().strip('"')
+        return jsonify({'prompt': text})
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
