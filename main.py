@@ -10,19 +10,38 @@ ELEVENLABS_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
 ELEVENLABS_VOICE = os.environ.get("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
 
 sessions = {}
+
+def limpar_sessions_antigas():
+    agora = time.time()
+    para_remover = [k for k in sessions if agora - float(k) > 7200]
+    for k in para_remover:
+        sessions.pop(k, None)
+
 HISTORICO_FILE = "historico.json"
 
+_historico_cache = None
+
 def carregar_historico():
-    if os.path.exists(HISTORICO_FILE):
-        with open(HISTORICO_FILE, "r") as f:
-            return json.load(f)
-    return {"videos": []}
+    global _historico_cache
+    if _historico_cache is None:
+        if os.path.exists(HISTORICO_FILE):
+            try:
+                with open(HISTORICO_FILE, "r") as f:
+                    _historico_cache = json.load(f)
+            except:
+                _historico_cache = {"videos": []}
+        else:
+            _historico_cache = {"videos": []}
+    return _historico_cache
 
 def salvar_historico(titulo, animais):
     h = carregar_historico()
     h["videos"].append({"titulo": titulo, "data": datetime.now().isoformat(), "animais": animais})
-    with open(HISTORICO_FILE, "w") as f:
-        json.dump(h, f, ensure_ascii=False, indent=2)
+    try:
+        with open(HISTORICO_FILE, "w") as f:
+            json.dump(h, f, ensure_ascii=False, indent=2)
+    except:
+        pass
 
 def animais_recentes():
     h = carregar_historico()
@@ -53,8 +72,8 @@ FORMATOS = {
     "1:1":  {"width": 1024, "height": 1024}
 }
 
-DURACOES = {"30": 30, "50": 50, "60": 60, "90": 90, "90m": 90}
-PALAVRAS  = {"30": 65, "50": 108, "60": 130, "90": 195, "90m": 325}
+DURACOES = {"40": 40, "60": 60, "90": 90, "120": 120, "180": 180, "240": 240, "300": 300}
+PALAVRAS  = {"40": 88, "60": 130, "90": 195, "120": 260, "180": 390, "240": 520, "300": 650}
 
 def calc_frases(dur, nh):
     # Numero de frases por historia baseado na duracao
@@ -267,7 +286,7 @@ def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-5-2
             text = r.json()["content"][0]["text"]
             text = re.sub(r"```json|```", "", text).strip()
             # Remove trailing commas antes de fechar arrays/objetos
-            text = re.sub(r',(\s*[}\]])', r'', text)
+            text = re.sub(r',\s*([}\]])', r'\1', text)
             return text
         except Exception as e:
             if tentativa == 2:
@@ -414,6 +433,7 @@ def roteiro():
 
 @app.route('/narracao', methods=['POST'])
 def gerar_narracao():
+    limpar_sessions_antigas()
     data = request.json
     print(f"NARRACAO REQUEST keys={list(data.keys())}")
     # Aceita narracao_completa (novo fluxo) ou monta das partes (legado)
@@ -435,6 +455,7 @@ def gerar_narracao():
 
 @app.route('/gerar', methods=['POST'])
 def gerar():
+    limpar_sessions_antigas()
     data = request.json
     estilo = data.get('estilo', 'stylized_game')
     formato = data.get('formato', '9:16')
@@ -509,8 +530,8 @@ def gerar():
                         audio_data = fa.read()
                     audio_service = 'disco'
 
-        # Se não tem narração, gera nova
-        if not audio_data:
+        # Gera nova narracao APENAS se nao foi gerada no passo 2
+        if not audio_data and narracao_session_id is None:
             audio_data, audio_service = gerar_audio(narracao_txt, session_id)
 
         sessions[session_id]['audio'] = audio_data
@@ -625,39 +646,45 @@ def clonar():
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
 
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8080))
-    app.run(host='0.0.0.0', port=port, debug=False)
-
-
 @app.route('/gerar-prompts', methods=['POST'])
 def gerar_prompts():
+    limpar_sessions_antigas()
     data = request.json
-    script = data.get('script', '')
+    script = data.get('script', '').strip()
+    if not script:
+        return jsonify({'erro': 'Script vazio'}), 400
+
     system = (
         "Voce e um diretor de arte especialista em videos curtos virais do YouTube."
         " Recebera um script de narracao e deve identificar os MOMENTOS NARRATIVOS."
-        " Um momento nao e uma frase gramatical. E um bloco de significado narrativo."
-        " Frases curtissimas em sequencia como Ela nao foi embora. Ficou. Por tres dias."
-        " formam UM unico momento — cena do animal esperando."
-        " Para cada momento gere um prompt de imagem que traduz LITERALMENTE aquele momento visual."
+        " Um momento NAO e uma frase gramatical — e um bloco de significado narrativo."
+        " Frases curtissimas em sequencia formam UM momento, nao varios."
+        " Para cada momento gere um prompt que traduz LITERALMENTE aquele momento visual."
         " O numero de prompts deve ser o numero natural de momentos no script."
-        " Para 60s espera-se entre 15 e 30 momentos."
-        " FORMATO: descricao fisica unica do animal mais acao exata do momento mais angulo mais iluminacao mais movimento."
-        " Defina as caracteristicas fisicas do animal no primeiro prompt e repita em todos os outros desse animal."
+        " Para 40s espera-se 10-15 momentos. Para 60s, 15-20. Para 90s, 20-30."
+        " FORMATO: [descricao fisica unica do animal] + [acao exata do momento] + [angulo] + [iluminacao] + [movimento]."
+        " Defina as caracteristicas fisicas do animal no primeiro prompt e repita em TODOS os outros desse animal."
         " Angulos: wide shot para apresentacao, close-up para tensao, extreme close-up para twist."
         " Iluminacao: golden hour no inicio, dramatic shadows na escalada, blue hour na revelacao."
         " Movimento: mid-motion para acao, frozen in the moment para choque, slow motion blur para emocao."
         " PROIBIDO: cinematic, realistic, documentary, photographic, an animal."
-        " Sempre use o nome especifico do animal."
-        " Retorne JSON sem markdown: {\"prompts\": [\"prompt1\", \"prompt2\"]}"
+        " Use sempre o nome especifico do animal."
+        ' Retorne JSON valido sem markdown: {"prompts": ["prompt1", "prompt2"]}'
     )
-    user_msg = "Script:\n\n" + script + "\n\nGere os prompts identificando os momentos narrativos."
+    user_msg = "Script completo:\n\n" + script + "\n\nIdentifique os momentos narrativos e gere um prompt por momento."
+
     try:
         text = chamar_claude(system, user_msg, max_tokens=4000, modelo="claude-sonnet-4-5-20250929")
         text = re.sub(r"```json|```", "", text).strip()
+        text = re.sub(r',\s*([}\]])', r'\1', text)
         d = json.loads(text)
         prompts = d.get('prompts', [])
         return jsonify({'prompts': prompts, 'total': len(prompts)})
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
+
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port, debug=False)
+
