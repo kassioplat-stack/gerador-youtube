@@ -505,6 +505,9 @@ def gerar():
             with zipfile.ZipFile(zip_path, 'w') as zf:
                 for idx, img in sessions[session_id]['imagens'].items():
                     zf.writestr(f'IMG_{str(idx + 1).zfill(2)}.jpg', img)
+                # Inclui thumbnails se existirem
+                for idx, img in sessions[session_id].get('thumbnails', {}).items():
+                    zf.writestr(f'THUMB_{str(idx + 1).zfill(2)}.jpg', img)
                 if audio_data:
                     zf.writestr('narracao.mp3', audio_data)
                 rot = f"TITULO: {data.get('titulo', '')}\n\n"
