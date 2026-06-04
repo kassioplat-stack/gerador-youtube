@@ -54,19 +54,19 @@ FORMATOS = {
 }
 
 DURACOES = {"30": 30, "50": 50, "60": 60, "90": 90, "90m": 90}
-RITMOS   = {"lento": 3.0, "medio": 2.0, "rapido": 1.5}
 PALAVRAS  = {"30": 65, "50": 108, "60": 130, "90": 195, "90m": 325}
 
-def calc_imagens(dur, rit, nh):
+def calc_frases(dur, nh):
+    # Numero de frases por historia baseado na duracao
+    # ~2.5 palavras/segundo, ~8 palavras por frase = ~3s por frase em media
     d = DURACOES.get(str(dur), 60)
-    r = RITMOS.get(rit, 2.0)
-    t = max(round(d / r), nh * 3 + 3)
+    total = max(round(d / 3), nh * 4 + 4)
     if nh == 1:
-        return {"caso1": round(t*0.70), "caso2": 0, "caso3": 0, "final": round(t*0.30)}
+        return {"caso1": round(total*0.70), "caso2": 0, "caso3": 0, "final": round(total*0.30)}
     elif nh == 2:
-        return {"caso1": round(t*0.40), "caso2": round(t*0.40), "caso3": 0, "final": round(t*0.20)}
+        return {"caso1": round(total*0.40), "caso2": round(total*0.40), "caso3": 0, "final": round(total*0.20)}
     else:
-        return {"caso1": round(t*0.25), "caso2": round(t*0.20), "caso3": round(t*0.25), "final": round(t*0.30)}
+        return {"caso1": round(total*0.25), "caso2": round(total*0.20), "caso3": round(total*0.25), "final": round(total*0.30)}
 
 def build_system(modelo, nh, dist, total_palavras):
     restricao = animais_recentes()
@@ -99,24 +99,26 @@ def build_system(modelo, nh, dist, total_palavras):
     if nh == 1:
         struct = (
             "ESTRUTURA 1 historia profunda com 6 sub-arcos: apresentacao, desenvolvimento, crise, escalada, twist, resolucao.\n"
-            "caso1: " + str(dist["caso1"]) + " prompts e " + str(dist["caso1"]) + " frases de narracao.\n"
-            "prompts_final: " + str(dist["final"]) + " prompts. narracao_final: " + str(dist["final"]) + " frases."
+            "caso1: aproximadamente " + str(dist["caso1"]) + " frases de narracao.\n"
+            "narracao_final: aproximadamente " + str(dist["final"]) + " frases.\n"
+            "IMPORTANTE: NAO gere prompts de imagem nessa etapa. Os prompts serao gerados separadamente."
         )
     elif nh == 2:
         struct = (
             "ESTRUTURA 2 historias em contraste: familiar vs surpreendente.\n"
-            "caso1: " + str(dist["caso1"]) + " prompts e " + str(dist["caso1"]) + " frases.\n"
-            "caso2: " + str(dist["caso2"]) + " prompts e " + str(dist["caso2"]) + " frases.\n"
-            "prompts_final: " + str(dist["final"]) + " prompts. narracao_final: " + str(dist["final"]) + " frases."
+            "caso1: aproximadamente " + str(dist["caso1"]) + " frases de narracao.\n"
+            "caso2: aproximadamente " + str(dist["caso2"]) + " frases de narracao.\n"
+            "narracao_final: aproximadamente " + str(dist["final"]) + " frases.\n"
+            "IMPORTANTE: NAO gere prompts de imagem nessa etapa. Os prompts serao gerados separadamente."
         )
     else:
         struct = (
             "ESTRUTURA 3 historias em ESCALADA OBRIGATORIA de emocao e intensidade:\n"
-            "caso1 INTERESSANTE: " + str(dist["caso1"]) + " prompts e " + str(dist["caso1"]) + " frases — animal familiar, historia que cria vinculo emocional.\n"
-            "caso2 SURPREENDENTE: " + str(dist["caso2"]) + " prompts e " + str(dist["caso2"]) + " frases — animal medio, historia mais intensa e inesperada.\n"
-            "caso3 CHOCANTE: " + str(dist["caso3"]) + " prompts e " + str(dist["caso3"]) + " frases — animal inesperado, historia que perturba e choca.\n"
-            "prompts_final: " + str(dist["final"]) + " prompts — ULTIMO prompt deve ser espelho humano.\n"
-            "narracao_final: " + str(dist["final"]) + " frases — ultima frase deve ser filosofica e lenta."
+            "caso1 INTERESSANTE: aproximadamente " + str(dist["caso1"]) + " frases de narracao — animal familiar, historia que cria vinculo emocional.\n"
+            "caso2 SURPREENDENTE: aproximadamente " + str(dist["caso2"]) + " frases de narracao — animal medio, historia mais intensa e inesperada.\n"
+            "caso3 CHOCANTE: aproximadamente " + str(dist["caso3"]) + " frases de narracao — animal inesperado, historia que perturba e choca.\n"
+            "narracao_final: aproximadamente " + str(dist["final"]) + " frases — ultima frase deve ser filosofica e lenta.\n"
+            "IMPORTANTE: NAO gere prompts de imagem nessa etapa. Os prompts serao gerados separadamente com base na narracao aprovada."
         )
 
     json_template = (
@@ -126,11 +128,10 @@ def build_system(modelo, nh, dist, total_palavras):
         "  \"tipo_gancho\": \"PROVOCACAO | CONTRADICAO | ESPELHO HUMANO | NUMERO CURIOSO\",\n"
         "  \"gancho_principal\": \"string — primeira frase do video, vai direto sem apresentacao\",\n"
         "  \"gancho_opcoes\": [\"variacao2\",\"variacao3\",\"variacao4\"],\n"
-        "  \"caso1\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Interessante\",\"apresentacao\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\",\"prompts\":[\"" + str(dist["caso1"]) + " prompts em ingles\"]},\n"
-        "  \"caso2\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Surpreendente\",\"apresentacao\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\",\"prompts\":[\"" + str(dist["caso2"]) + " prompts em ingles\"]},\n"
-        "  \"caso3\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Chocante\",\"apresentacao\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\",\"prompts\":[\"" + str(dist["caso3"]) + " prompts em ingles\"]},\n"
+        "  \"caso1\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Interessante\",\"apresentacao\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\"},\n"
+        "  \"caso2\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Surpreendente\",\"apresentacao\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\"},\n"
+        "  \"caso3\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Chocante\",\"apresentacao\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\"},\n"
         "  \"micro_promessa\": \"string — frase entre caso 2 e 3 que promete algo maior, NUNCA transicao mecanica\",\n"
-        "  \"prompts_final\": [\"" + str(dist["final"]) + " prompts em ingles — ultimo e espelho humano\"],\n"
         "  \"narracao_caso1\": [\"" + str(dist["caso1"]) + " frases em portugues\"],\n"
         "  \"narracao_caso2\": [\"" + str(dist["caso2"]) + " frases em portugues\"],\n"
         "  \"narracao_caso3\": [\"" + str(dist["caso3"]) + " frases em portugues\"],\n"
@@ -359,8 +360,7 @@ def roteiro():
     modelo = data.get('modelo', 'animais')
     nh = int(data.get('historias', 3))
     duracao = str(data.get('duracao', '50'))
-    ritmo = data.get('ritmo', 'medio')
-    dist = calc_imagens(duracao, ritmo, nh)
+    dist = calc_frases(duracao, nh)
     total_palavras = PALAVRAS.get(duracao, 130)
     duracao_s = {"30":30,"50":50,"60":60,"90":90,"90m":90}.get(duracao, 60)
     system = build_system(modelo, nh, dist, total_palavras)
@@ -626,3 +626,36 @@ def clonar():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
+
+
+@app.route('/gerar-prompts', methods=['POST'])
+def gerar_prompts():
+    data = request.json
+    script = data.get('script', '')
+    system = (
+        "Voce e um diretor de arte especialista em videos curtos virais do YouTube."
+        " Recebera um script de narracao e deve identificar os MOMENTOS NARRATIVOS."
+        " Um momento nao e uma frase gramatical. E um bloco de significado narrativo."
+        " Frases curtissimas em sequencia como Ela nao foi embora. Ficou. Por tres dias."
+        " formam UM unico momento — cena do animal esperando."
+        " Para cada momento gere um prompt de imagem que traduz LITERALMENTE aquele momento visual."
+        " O numero de prompts deve ser o numero natural de momentos no script."
+        " Para 60s espera-se entre 15 e 30 momentos."
+        " FORMATO: descricao fisica unica do animal mais acao exata do momento mais angulo mais iluminacao mais movimento."
+        " Defina as caracteristicas fisicas do animal no primeiro prompt e repita em todos os outros desse animal."
+        " Angulos: wide shot para apresentacao, close-up para tensao, extreme close-up para twist."
+        " Iluminacao: golden hour no inicio, dramatic shadows na escalada, blue hour na revelacao."
+        " Movimento: mid-motion para acao, frozen in the moment para choque, slow motion blur para emocao."
+        " PROIBIDO: cinematic, realistic, documentary, photographic, an animal."
+        " Sempre use o nome especifico do animal."
+        " Retorne JSON sem markdown: {\"prompts\": [\"prompt1\", \"prompt2\"]}"
+    )
+    user_msg = "Script:\n\n" + script + "\n\nGere os prompts identificando os momentos narrativos."
+    try:
+        text = chamar_claude(system, user_msg, max_tokens=4000, modelo="claude-sonnet-4-5-20250929")
+        text = re.sub(r"```json|```", "", text).strip()
+        d = json.loads(text)
+        prompts = d.get('prompts', [])
+        return jsonify({'prompts': prompts, 'total': len(prompts)})
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
