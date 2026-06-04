@@ -830,6 +830,55 @@ def score_viral():
         return jsonify({'erro': str(e)}), 500
 
 
+@app.route('/corrigir-dimensao', methods=['POST'])
+def corrigir_dimensao():
+    data = request.json
+    roteiro = data.get('roteiro', {})
+    dimensao = data.get('dimensao', '')
+    justificativa = data.get('justificativa', '')
+    sugestao = data.get('sugestao', '')
+
+    # Mapa de dimensao para campos do roteiro
+    campos_por_dimensao = {
+        'FORCA DO GANCHO': 'gancho_principal, gancho_opcoes',
+        'ESCALADA EMOCIONAL': 'caso3 (twist), micro_promessa',
+        'QUALIDADE DO TWIST': 'caso3 (twist), narracao_caso3',
+        'PERGUNTA DIVISORA': 'pergunta_divisora_principal, pergunta_divisora_opcoes',
+        'CONGRUENCIA NARRATIVA': 'narracao_caso3, narracao_final, frase_final_principal',
+    }
+    campos = campos_por_dimensao.get(dimensao.upper(), 'campos relevantes')
+
+    system = (
+        "Voce e um especialista em roteiros virais para YouTube."
+        " Recebera um roteiro completo com um problema especifico identificado."
+        " Sua tarefa: corrigir APENAS os campos necessarios para resolver o problema."
+        " NAO altere o que nao foi solicitado. Preserve o estilo, tom e estrutura geral."
+        " Retorne JSON apenas com os campos corrigidos — nao inclua campos que nao mudaram."
+        " Campos possiveis: gancho_principal, gancho_opcoes, caso3, micro_promessa,"
+        " narracao_caso3, frase_final_principal, frase_final_opcoes,"
+        " pergunta_divisora_principal, pergunta_divisora_opcoes, narracao_final."
+        " Para caso3, retorne apenas os subcampos alterados (twist, escalada, etc)."
+        " Retorne JSON valido sem markdown."
+    )
+
+    user_msg = (
+        "ROTEIRO ATUAL:\n" + json.dumps(roteiro, ensure_ascii=False)[:2000] + "\n\n"
+        "DIMENSAO COM PROBLEMA: " + dimensao + "\n"
+        "PROBLEMA IDENTIFICADO: " + justificativa + "\n"
+        "SUGESTAO DE MELHORIA: " + sugestao + "\n"
+        "CAMPOS A CORRIGIR: " + campos + "\n\n"
+        "Corrija apenas o necessario para resolver o problema mantendo tudo mais intacto."
+    )
+
+    try:
+        text = chamar_claude(system, user_msg, max_tokens=2000, modelo="claude-sonnet-4-6")
+        text = re.sub(r"```json|```", "", text).strip()
+        d = json.loads(text)
+        return jsonify(d)
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
