@@ -388,20 +388,13 @@ async function gerarRoteiro() {
         titulo: titulo,
         contexto: document.getElementById('contexto').value,
         modelo: state.modelo,
-        historias: state.historias,
-        duracao: state.duracao,
-        ritmo: state.ritmo
+        duracao: state.duracao
       })
     });
     var data = await resp.json();
     if(data.erro) throw new Error(data.erro);
     state.roteiro = data;
-    state.prompts = [].concat(
-      data.caso1 && data.caso1.prompts || [],
-      data.caso2 && data.caso2.prompts || [],
-      data.caso3 && data.caso3.prompts || [],
-      data.prompts_final || []
-    );
+    state.prompts = [];
     renderRoteiro(data);
     var btnNarr = document.getElementById('btn-narracao');
     btnNarr.disabled = false;
