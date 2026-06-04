@@ -194,10 +194,7 @@ textarea{height:60px;resize:none}
         <span class="slbl">Narracao completa</span>
         <textarea id="narracao-edit" style="height:200px" oninput="atualizarScriptFinal()"></textarea>
       </div>
-      <div class="card">
-        <span class="slbl">Prompts de imagem</span>
-        <div id="prompts-list"></div>
-      </div>
+
       <div class="card">
         <span class="slbl">Frase final - escolha uma opcao ou edite</span>
         <div class="gancho-opts" id="frase-opts"></div>
@@ -218,10 +215,27 @@ textarea{height:60px;resize:none}
     </div>
 
     <div class="result-card" id="result-card">
-      <audio id="audio-player" controls style="display:none;width:100%;margin-bottom:10px"></audio>
-      <button class="download-btn" id="dl-btn">Baixar ZIP - imagens + audio</button>
-      <div class="info-box">ZIP contem: imagens numeradas + narracao.mp3 + roteiro.txt</div>
-      <div id="img-grid" class="img-grid"></div>
+
+      <!-- SEÇÃO 2: NARRAÇÃO -->
+      <div id="section-narracao" style="display:none;margin-bottom:20px">
+        <div style="font-size:11px;font-weight:700;color:#E8593C;letter-spacing:1px;margin-bottom:8px">2. NARRAÇÃO</div>
+        <audio id="audio-player" controls style="width:100%"></audio>
+      </div>
+
+      <!-- SEÇÃO 3: PROMPTS DE IMAGEM -->
+      <div id="section-prompts" style="display:none;margin-bottom:20px">
+        <div style="font-size:11px;font-weight:700;color:#1a5c3a;letter-spacing:1px;margin-bottom:8px">3. PROMPTS DE IMAGEM</div>
+        <div id="prompts-list"></div>
+      </div>
+
+      <!-- SEÇÃO 4: IMAGENS + DOWNLOAD -->
+      <div id="section-imagens" style="display:none">
+        <div style="font-size:11px;font-weight:700;color:#E8593C;letter-spacing:1px;margin-bottom:8px">4. IMAGENS GERADAS</div>
+        <div id="img-grid" class="img-grid"></div>
+        <button class="download-btn" id="dl-btn" style="display:none;margin-top:16px">⬇ Baixar Projeto</button>
+        <div class="info-box" id="info-box-zip" style="display:none">ZIP contem: imagens numeradas + narracao.mp3 + roteiro.txt</div>
+      </div>
+
     </div>
   </div>
 
@@ -431,8 +445,8 @@ async function gerarNarracao() {
       state.narracao_session_id = d.session_id;
       var ap = document.getElementById('audio-player');
       ap.src = d.audio_url;
-      ap.style.display = 'block';
       document.getElementById('result-card').style.display = 'block';
+      document.getElementById('section-narracao').style.display = 'block';
     }
     document.getElementById('btn-prompts').disabled = false;
     document.getElementById('btn-prompts').style.opacity = '1';
@@ -534,20 +548,9 @@ async function gerarPrompts() {
     var d = await resp.json();
     if(d.erro) throw new Error(d.erro);
     state.prompts = d.prompts;
-    var container = document.getElementById('prompts-list');
-    if(container) {
-      var html = '';
-      d.prompts.forEach(function(p, i) {
-        html += '<div style="display:flex;gap:8px;margin-bottom:8px">'
-          + '<span style="background:#1a5c3a;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;flex-shrink:0">' + (i+1) + '</span>'
-          + '<div style="flex:1">'
-          + '<textarea id="pt'+i+'" style="width:100%;background:#111;border:1px solid #333;border-radius:6px;padding:8px;font-size:12px;color:#ccc;font-family:inherit;resize:none;height:60px">' + esc(p) + '</textarea>'
-          + '<button onclick="traduzirPrompt(' + i + ')" style="background:transparent;border:1px solid #333;border-radius:4px;padding:2px 8px;font-size:11px;color:#555;cursor:pointer;font-family:inherit;margin-top:3px">Traduzir</button>'
-          + '<div id="trad'+i+'" style="font-size:11px;color:#555;margin-top:3px;font-style:italic"></div>'
-          + '</div></div>';
-      });
-      container.innerHTML = html;
-    }
+    renderPrompts(d.prompts);
+    document.getElementById('result-card').style.display = 'block';
+    document.getElementById('section-prompts').style.display = 'block';
     document.getElementById('btn-imagens').disabled = false;
     document.getElementById('btn-imagens').style.opacity = '1';
   } catch(e) { alert('Erro: ' + e.message); }
@@ -660,16 +663,15 @@ async function gerarImagens() {
           if(d.progress) setP(d.progress);
           if(d.session_id) state.sessionId = d.session_id;
           if(d.zip) {
-            var dlBtn = document.getElementById('dl-btn');
             var zipPath = d.zip;
+            var dlBtn = document.getElementById('dl-btn');
             dlBtn.onclick = function(){ window.location = '/download?file=' + zipPath; };
+            dlBtn.style.display = 'block';
+            document.getElementById('info-box-zip').style.display = 'block';
+            document.getElementById('section-imagens').style.display = 'block';
             document.getElementById('result-card').style.display = 'block';
           }
-          if(d.audio_url) {
-            var ap = document.getElementById('audio-player');
-            ap.src = d.audio_url;
-            ap.style.display = 'block';
-          }
+          // Audio nao recarrega — ja foi gerado no passo 2
           if(d.imgs_total) renderGrid(d.imgs_total);
         } catch(e) {}
       });
@@ -678,12 +680,68 @@ async function gerarImagens() {
   document.getElementById('btn-imagens').disabled = false;
 }
 
+function renderPrompts(prompts) {
+  var container = document.getElementById('prompts-list');
+  if(!container) return;
+  var html = '';
+  prompts.forEach(function(p, i) {
+    html += '<div style="display:flex;gap:8px;margin-bottom:12px;align-items:flex-start">'
+      + '<span style="background:#1a5c3a;color:#fff;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;flex-shrink:0;margin-top:4px">' + (i+1) + '</span>'
+      + '<div style="flex:1">'
+      + '<textarea id="pt' + i + '" style="width:100%;background:#111;border:1px solid #333;border-radius:6px;padding:8px;font-size:12px;color:#ccc;font-family:inherit;resize:vertical;height:64px">' + esc(p) + '</textarea>'
+      + '<div style="display:flex;gap:6px;margin-top:4px">'
+      + '<button onclick="traduzirPrompt(' + i + ')" style="background:transparent;border:1px solid #333;border-radius:4px;padding:3px 10px;font-size:11px;color:#666;cursor:pointer;font-family:inherit">Traduzir</button>'
+      + '<button onclick="regenerarPrompt(' + i + ')" style="background:#1a1a1a;border:1px solid #E8593C;border-radius:4px;padding:3px 10px;font-size:11px;color:#E8593C;cursor:pointer;font-family:inherit">🔄 Regenerar prompt</button>'
+      + '</div>'
+      + '<div id="trad' + i + '" style="font-size:11px;color:#555;margin-top:3px;font-style:italic"></div>'
+      + '</div></div>';
+  });
+  container.innerHTML = html;
+}
+
+async function regenerarPrompt(idx) {
+  var promptEl = document.getElementById('pt' + idx);
+  if(!promptEl) return;
+  var promptAtual = promptEl.value.trim();
+  var btns = promptEl.parentElement.querySelectorAll('button');
+  var btn = btns[btns.length - 1];
+  btn.textContent = '⏳ Gerando...';
+  btn.disabled = true;
+  try {
+    // Passo 1: Claude gera novo prompt relacionado ao anterior
+    var r = await fetch('/regenerar-prompt', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({prompt_atual: promptAtual, idx: idx})
+    });
+    var d = await r.json();
+    if(d.erro) throw new Error(d.erro);
+    var novoPrompt = d.prompt;
+    promptEl.value = novoPrompt;
+    state.prompts[idx] = novoPrompt;
+    // Passo 2: Gera imagem automaticamente com novo prompt
+    btn.textContent = '🖼 Gerando imagem...';
+    var r2 = await fetch('/regenerar-imagem', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({session_id: state.sessionId, idx: idx, prompt: novoPrompt, estilo: state.estilo, formato: state.formato})
+    });
+    var d2 = await r2.json();
+    if(d2.ok) {
+      var imgEl = document.getElementById('img-' + idx);
+      if(imgEl) imgEl.src = '/imagem/' + state.sessionId + '/' + idx + '?t=' + Date.now();
+    } else { alert('Erro na imagem: ' + (d2.erro || 'Falhou')); }
+  } catch(e) { alert('Erro: ' + e.message); }
+  btn.textContent = '🔄 Regenerar prompt';
+  btn.disabled = false;
+}
+
 function renderGrid(total) {
   var html = '';
   for(var i = 0; i < total; i++) {
     var num = String(i+1).padStart(2,'0');
     html += '<div class="img-cell" id="cell'+i+'">'
-      + '<img src="/imagem/'+state.sessionId+'/'+i+'?t='+Date.now()+'" alt="'+num+'" loading="lazy">'
+      + '<img id="img-'+i+'" src="/imagem/'+state.sessionId+'/'+i+'?t='+Date.now()+'" alt="'+num+'" loading="lazy">'
       + '<span class="img-num">'+num+'</span>'
       + '</div>';
   }
