@@ -89,7 +89,7 @@ textarea{height:60px;resize:none}
 
   <div class="tabs">
     <button class="tab active" id="tab-btn-gerar" onclick="showTab('gerar',this)">Gerar</button>
-    <button class="tab" id="tab-btn-clonar" onclick="showTab('clonar',this)">Clonar Roteiro</button>
+
     <button class="tab" id="tab-btn-calendario" onclick="showTab('calendario',this)">Calendario</button>
   </div>
 
@@ -151,6 +151,14 @@ textarea{height:60px;resize:none}
     </div>
 
     <div class="config-row">
+      <div class="config-block">
+        <span class="slbl">Modelo de conteudo</span>
+        <div class="chips-row">
+          <button class="chip sel" id="m-animais" onclick="selChip('modelo','animais','m-animais','m-psicologia','m-fatos')">Animais</button>
+          <button class="chip" id="m-psicologia" onclick="selChip('modelo','psicologia','m-animais','m-psicologia','m-fatos')">Psicologia</button>
+          <button class="chip" id="m-fatos" onclick="selChip('modelo','fatos','m-animais','m-psicologia','m-fatos')">Fatos</button>
+        </div>
+      </div>
       <div class="config-block">
         <span class="slbl">Duracao do video</span>
         <div class="chips-row">
@@ -248,17 +256,7 @@ textarea{height:60px;resize:none}
     </div>
   </div>
 
-  <div class="tab-content" id="tab-clonar">
-    <div class="card">
-      <span class="slbl">Transcricao do video original</span>
-      <textarea id="transcricao" style="height:150px" placeholder="Cole o texto da narracao do video que quer clonar..."></textarea>
-      <span class="slbl">Seu titulo</span>
-      <input type="text" id="titulo-clone" placeholder="Qual tema voce quer usar?"/>
-      <span class="slbl">Observacoes (opcional)</span>
-      <textarea id="obs-clone" style="height:50px" placeholder="Ex: ritmo rapido, historias curtas..."></textarea>
-      <button class="btn btn-secondary" style="margin-top:8px" onclick="clonarRoteiro()">Analisar e Clonar</button>
-      <div id="clone-result" style="margin-top:1rem;font-size:13px;color:#777"></div>
-    </div>
+  
   </div>
 
   <div class="tab-content" id="tab-calendario">
