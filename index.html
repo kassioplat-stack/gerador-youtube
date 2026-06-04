@@ -173,6 +173,7 @@ textarea{height:60px;resize:none}
       <button class="btn" id="btn-narracao" onclick="gerarNarracao()" disabled style="margin-top:8px;opacity:.4;background:#7a4a9a;color:#fff">2. Gerar Narracao</button>
       <button class="btn" id="btn-prompts" onclick="gerarPrompts()" disabled style="margin-top:8px;opacity:.4;background:#1a5c3a;color:#fff">3. Gerar Prompts de Imagem</button>
       <button class="btn btn-primary" id="btn-imagens" onclick="gerarImagens()" disabled style="margin-top:8px;opacity:.4">4. Gerar Imagens</button>
+      <button class="btn" id="btn-thumbnails" onclick="gerarThumbnails()" disabled style="margin-top:8px;opacity:.4;background:#7a4a9a;color:#fff">5. Gerar Thumbnails</button>
       <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
     </div>
 
@@ -232,8 +233,16 @@ textarea{height:60px;resize:none}
       <div id="section-imagens" style="display:none">
         <div style="font-size:11px;font-weight:700;color:#E8593C;letter-spacing:1px;margin-bottom:8px">4. IMAGENS GERADAS</div>
         <div id="img-grid" class="img-grid"></div>
-        <button class="download-btn" id="dl-btn" style="display:none;margin-top:16px">⬇ Baixar Projeto</button>
-        <div class="info-box" id="info-box-zip" style="display:none">ZIP contem: imagens numeradas + narracao.mp3 + roteiro.txt</div>
+      </div>
+
+      <div id="section-thumbnails" style="display:none;margin-bottom:20px">
+        <div style="font-size:11px;font-weight:700;color:#7a4a9a;letter-spacing:1px;margin-bottom:8px">5. THUMBNAILS</div>
+        <div id="thumbnails-grid" style="display:flex;flex-direction:column;gap:16px"></div>
+      </div>
+
+      <div id="section-download" style="display:none">
+        <button class="download-btn" id="dl-btn" style="margin-top:8px">⬇ Baixar Projeto</button>
+        <div class="info-box">ZIP contem: imagens numeradas + thumbnails + narracao.mp3 + roteiro.txt</div>
       </div>
 
     </div>
@@ -277,6 +286,7 @@ var state = {
   sessionId: null,
   narracao_session_id: null,
   narracao_gerada: '',
+  zipPath: null,
   calendarioItems: []
 };
 
@@ -656,13 +666,12 @@ async function gerarImagens() {
           if(d.progress) setP(d.progress);
           if(d.session_id) state.sessionId = d.session_id;
           if(d.zip) {
-            var zipPath = d.zip;
-            var dlBtn = document.getElementById('dl-btn');
-            dlBtn.onclick = function(){ window.location = '/download?file=' + zipPath; };
-            dlBtn.style.display = 'block';
-            document.getElementById('info-box-zip').style.display = 'block';
+            state.zipPath = d.zip;
             document.getElementById('section-imagens').style.display = 'block';
             document.getElementById('result-card').style.display = 'block';
+            var btnThumb = document.getElementById('btn-thumbnails');
+            btnThumb.disabled = false;
+            btnThumb.style.opacity = '1';
           }
           // Audio nao recarrega — ja foi gerado no passo 2
           if(d.imgs_total) renderGrid(d.imgs_total);
@@ -671,6 +680,85 @@ async function gerarImagens() {
     }
   } catch(e) { alert('Erro: ' + e.message); }
   document.getElementById('btn-imagens').disabled = false;
+}
+
+async function gerarThumbnails() {
+  if(!state.roteiro) { alert('Gere o roteiro primeiro'); return; }
+  var btn = document.getElementById('btn-thumbnails');
+  btn.disabled = true;
+  btn.textContent = '⏳ Gerando thumbnails...';
+  var script = (document.getElementById('script-final') || {}).value || '';
+  try {
+    var r = await fetch('/gerar-thumbnails', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        roteiro: state.roteiro,
+        script: script,
+        formato: state.formato,
+        estilo: state.estilo
+      })
+    });
+    var d = await r.json();
+    if(d.erro) throw new Error(d.erro);
+    // Renderiza os conceitos e inicia geração das imagens
+    var grid = document.getElementById('thumbnails-grid');
+    grid.innerHTML = '';
+    state.thumbnails = d.conceitos;
+    document.getElementById('section-thumbnails').style.display = 'block';
+    document.getElementById('result-card').style.display = 'block';
+
+    d.conceitos.forEach(function(c, i) {
+      var card = document.createElement('div');
+      card.style.cssText = 'background:#111;border:1px solid #2a2a2a;border-radius:10px;padding:12px;';
+      card.innerHTML = '<div style="display:flex;gap:10px;align-items:flex-start">'
+        + '<div style="flex:1">'
+        + '<div style="font-size:11px;font-weight:700;color:#7a4a9a;margin-bottom:4px">THUMBNAIL ' + (i+1) + ' — ' + esc(c.emocao) + '</div>'
+        + '<div style="font-size:12px;color:#888;margin-bottom:8px">' + esc(c.conceito) + '</div>'
+        + '<textarea id="thumb-prompt-'+i+'" style="width:100%;background:#0a0a0a;border:1px solid #333;border-radius:6px;padding:8px;font-size:11px;color:#aaa;font-family:inherit;resize:vertical;height:54px">' + esc(c.prompt) + '</textarea>'
+        + '<button onclick="regenerarThumbnail('+i+')" style="margin-top:6px;background:transparent;border:1px solid #7a4a9a;border-radius:4px;padding:3px 10px;font-size:11px;color:#7a4a9a;cursor:pointer;font-family:inherit">🔄 Regenerar</button>'
+        + '</div>'
+        + '<div id="thumb-img-'+i+'" style="width:120px;flex-shrink:0;background:#0a0a0a;border-radius:8px;min-height:80px;display:flex;align-items:center;justify-content:center;color:#333;font-size:11px">Gerando...</div>'
+        + '</div>';
+      grid.appendChild(card);
+      // Gera imagem automaticamente
+      gerarImagemThumbnail(i, c.prompt);
+    });
+
+    // Mostra botão download após gerar thumbnails
+    document.getElementById('section-download').style.display = 'block';
+    var dlBtn = document.getElementById('dl-btn');
+    dlBtn.onclick = function(){ window.location = '/download?file=' + encodeURIComponent(state.zipPath); };
+
+  } catch(e) { alert('Erro: ' + e.message); }
+  btn.disabled = false;
+  btn.textContent = '5. Gerar Thumbnails';
+}
+
+async function gerarImagemThumbnail(idx, prompt) {
+  try {
+    var r = await fetch('/gerar-thumbnail-imagem', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({idx: idx, prompt: prompt, formato: state.formato, estilo: state.estilo, session_id: state.sessionId})
+    });
+    var d = await r.json();
+    if(d.ok) {
+      var el = document.getElementById('thumb-img-' + idx);
+      if(el) el.innerHTML = '<img src="/thumbnail/' + state.sessionId + '/' + idx + '?t=' + Date.now() + '" style="width:100%;border-radius:8px">';
+    }
+  } catch(e) {
+    var el = document.getElementById('thumb-img-' + idx);
+    if(el) el.textContent = 'Erro';
+  }
+}
+
+async function regenerarThumbnail(idx) {
+  var promptEl = document.getElementById('thumb-prompt-' + idx);
+  if(!promptEl) return;
+  var el = document.getElementById('thumb-img-' + idx);
+  if(el) el.innerHTML = '<span style="color:#555;font-size:11px">Gerando...</span>';
+  await gerarImagemThumbnail(idx, promptEl.value.trim());
 }
 
 function renderPrompts(prompts) {
