@@ -767,6 +767,69 @@ def thumbnail(session_id, idx):
     return 'Nao encontrado', 404
 
 
+@app.route('/score-viral', methods=['POST'])
+def score_viral():
+    data = request.json
+    roteiro = data.get('roteiro', {})
+
+    gancho = roteiro.get('gancho_principal', '')
+    tipo_gancho = roteiro.get('tipo_gancho', '')
+    emocao = roteiro.get('emocao_ancora', '')
+    pergunta_inv = roteiro.get('pergunta_invisivel', '')
+    micro = roteiro.get('micro_promessa', '')
+    caso1 = roteiro.get('caso1', {})
+    caso2 = roteiro.get('caso2', {})
+    caso3 = roteiro.get('caso3', {})
+    frase_final = roteiro.get('frase_final_principal', '')
+    pergunta_div = roteiro.get('pergunta_divisora_principal', '')
+    narracao = ' '.join(
+        roteiro.get('narracao_caso1', []) +
+        roteiro.get('narracao_caso2', []) +
+        roteiro.get('narracao_caso3', []) +
+        roteiro.get('narracao_final', [])
+    )
+
+    system = (
+        "Voce e o maior especialista em crescimento de canais faceless no YouTube em 2026."
+        " Avalie o roteiro fornecido em 5 dimensoes de 0 a 20 pontos cada."
+        " Seja RIGOROSO — um score acima de 80 e raro e merece. Abaixo de 50 e comum."
+        " DIMENSOES:"
+        " 1. FORCA DO GANCHO (0-20): vai direto sem apresentacao? gera pergunta imediata? e do tipo certo para o tema?"
+        " 2. ESCALADA EMOCIONAL (0-20): caso1 menor que caso2 menor que caso3 em intensidade real? micro-promessa funciona?"
+        " 3. QUALIDADE DO TWIST (0-20): e impossivel de prever? chega em rafagas curtas? muda a percepcao de tudo?"
+        " 4. PERGUNTA DIVISORA (0-20): divide em dois lados reais? e pessoal o suficiente? vai gerar comentarios polarizados?"
+        " 5. CONGRUENCIA NARRATIVA (0-20): pergunta invisivel esta plantada e respondida? emocao-ancora aparece nos 3 casos? fio condutor sentido sem ser dito?"
+        " Para cada dimensao retorne: score (0-20) e justificativa de 1 frase."
+        " Identifique o PONTO MAIS FRACO e uma SUGESTAO ESPECIFICA de melhoria."
+        ' Retorne JSON: {"total": 0-100, "dimensoes": [{"nome": "string", "score": 0-20, "justificativa": "string"}], "ponto_fraco": "string", "sugestao": "string"}'
+    )
+
+    user_msg = (
+        "GANCHO: " + gancho + "\n"
+        "TIPO: " + tipo_gancho + "\n"
+        "EMOCAO-ANCORA: " + emocao + "\n"
+        "PERGUNTA INVISIVEL: " + pergunta_inv + "\n"
+        "CASO1 (" + caso1.get('nivel','') + "): " + caso1.get('animal','') + " — twist: " + caso1.get('twist','') + "\n"
+        "CASO2 (" + caso2.get('nivel','') + "): " + caso2.get('animal','') + " — twist: " + caso2.get('twist','') + "\n"
+        "CASO3 (" + caso3.get('nivel','') + "): " + caso3.get('animal','') + " — twist: " + caso3.get('twist','') + "\n"
+        "MICRO-PROMESSA: " + micro + "\n"
+        "FRASE FINAL: " + frase_final + "\n"
+        "PERGUNTA DIVISORA: " + pergunta_div + "\n"
+        "NARRACAO (primeiros 800 chars): " + narracao[:800]
+    )
+
+    try:
+        text = chamar_claude(system, user_msg, max_tokens=1000, modelo="claude-sonnet-4-6")
+        text = re.sub(r"```json|```", "", text).strip()
+        d = json.loads(text)
+        # Garante total correto
+        if 'dimensoes' in d:
+            d['total'] = sum(dim.get('score', 0) for dim in d['dimensoes'])
+        return jsonify(d)
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
