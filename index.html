@@ -166,14 +166,7 @@ textarea{height:60px;resize:none}
           <button class="chip" id="d90m" onclick="selChip('duracao','90m','d30','d50','d60','d90','d90m')">1:30</button>
         </div>
       </div>
-      <div class="config-block">
-        <span class="slbl">Ritmo de corte</span>
-        <div class="chips-row">
-          <button class="chip" id="rlento" onclick="selChip('ritmo','lento','rlento','rmedio','rrapido')">Lento 3s</button>
-          <button class="chip sel" id="rmedio" onclick="selChip('ritmo','medio','rlento','rmedio','rrapido')">Medio 2s</button>
-          <button class="chip" id="rrapido" onclick="selChip('ritmo','rapido','rlento','rmedio','rrapido')">Rapido 1.5s</button>
-        </div>
-      </div>
+
     </div>
 
     <div class="card">
@@ -266,7 +259,6 @@ var state = {
   historias: '3',
   formato: '9:16',
   duracao: '50',
-  ritmo: 'medio',
   modoTeste: false,
   roteiro: null,
   prompts: [],
@@ -312,11 +304,8 @@ function selChip(key, val) {
 
 function updatePreviewInfo() {
   var durMap = {30:30,50:50,60:60,90:90,'90m':90};
-  var ritMap = {lento:3.0,medio:2.0,rapido:1.5};
   var dur = durMap[state.duracao] || 60;
-  var rit = ritMap[state.ritmo] || 2.0;
-  var imgs = Math.round(dur / rit);
-  document.getElementById('preview-info').textContent = '~' + imgs + ' imagens em ' + state.duracao + 's';
+  document.getElementById('preview-info').textContent = 'Narracao de ~' + dur + 's — imagens definidas pelo roteiro';
 }
 
 
