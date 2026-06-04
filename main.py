@@ -77,9 +77,10 @@ PALAVRAS  = {"40": 88, "60": 130, "90": 195, "120": 260, "180": 390, "240": 520,
 
 def calc_frases(dur, nh):
     # Numero de frases por historia baseado na duracao
-    # ~2.5 palavras/segundo, ~8 palavras por frase = ~3s por frase em media
+    # ~2.5 palavras/segundo, ~5 palavras por frase curta = ~2s por frase
+    # Mistura frases curtas de impacto (2s) e medias descritivas (3s)
     d = DURACOES.get(str(dur), 60)
-    total = max(round(d / 3), nh * 4 + 4)
+    total = max(round(d / 2), nh * 6 + 6)
     if nh == 1:
         return {"caso1": round(total*0.70), "caso2": 0, "caso3": 0, "final": round(total*0.30)}
     elif nh == 2:
@@ -606,7 +607,7 @@ def gerar_prompts():
         " Um momento NAO e uma frase gramatical — e um bloco de significado narrativo."
         " Frases curtissimas em sequencia formam UM unico momento — nao divida em varios prompts."
         " Para cada momento gere um prompt que traduz LITERALMENTE aquele momento visual."
-        " Para 40s espera-se 10-15 prompts. Para 60s, 15-25. Para 90s, 25-35."
+        " Para 40s espera-se 15-20 prompts. Para 60s, 20-30. Para 90s, 35-50. Para 120s, 45-60. NUNCA agrupe mais de 2 frases em um unico momento — prefira mais prompts com cenas curtas."
         " FORMATO: [descricao fisica ESPECIFICA do animal] + [acao EXATA descrita no script] + [angulo] + [iluminacao] + [movimento]."
         " Defina as caracteristicas fisicas do animal no primeiro prompt e repita em TODOS os outros desse animal."
         " Angulos: wide shot para apresentacao, close-up para tensao, extreme close-up para twist."
@@ -875,6 +876,43 @@ def corrigir_dimensao():
         text = re.sub(r"```json|```", "", text).strip()
         d = json.loads(text)
         return jsonify(d)
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
+@app.route('/gerar-contexto', methods=['POST'])
+def gerar_contexto():
+    data = request.json
+    titulo = data.get('titulo', '').strip()
+    modelo = data.get('modelo', 'animais')
+    duracao = data.get('duracao', '60')
+    contexto_atual = data.get('contexto_atual', '').strip()
+
+    dur_s = DURACOES.get(str(duracao), 60)
+
+    system = (
+        "Voce e um estrategista de conteudo viral para YouTube."
+        " Dado um titulo de video, gere um contexto criativo e especifico que vai guiar a criacao do roteiro."
+        " O contexto deve incluir:"
+        " - Angulo emocional especifico (qual emocao o video vai explorar)"
+        " - Sugestao de animais ou casos especificos se relevante"
+        " - Tom narrativo (perturbador, filosofico, chocante, etc)"
+        " - Elemento diferenciador que vai tornar esse video unico"
+        " Seja ESPECIFICO e CRIATIVO — nao generalize."
+        " O contexto deve ter entre 2 e 4 frases diretas e objetivas."
+        " Retorne apenas o contexto em texto, sem explicacoes adicionais."
+    )
+
+    user_msg = "Titulo: " + titulo
+    user_msg += "\nModelo: " + modelo
+    user_msg += "\nDuracao: " + str(dur_s) + "s"
+    if contexto_atual:
+        user_msg += "\nContexto atual (gere uma variacao DIFERENTE): " + contexto_atual
+
+    try:
+        text = chamar_claude(system, user_msg, max_tokens=300, modelo="claude-haiku-4-5-20251001")
+        text = text.strip().strip('"')
+        return jsonify({'contexto': text})
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
 
