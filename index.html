@@ -192,6 +192,22 @@ textarea{height:60px;resize:none}
       <div class="step"><div class="dot" id="d4">4</div><div><div class="step-title">ZIP</div><div class="step-desc" id="s4">Aguardando...</div></div></div>
     </div>
 
+    <!-- SCORE VIRAL -->
+    <div id="score-panel" style="display:none;margin-bottom:16px">
+      <div class="card" style="border-color:#E8593C">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <span class="slbl" style="margin:0">Score de Potencial Viral</span>
+          <div id="score-total" style="font-size:28px;font-weight:900;color:#E8593C">--</div>
+        </div>
+        <div style="height:6px;background:#1a1a1a;border-radius:4px;margin-bottom:16px">
+          <div id="score-bar" style="height:100%;border-radius:4px;transition:width .8s ease;width:0%"></div>
+        </div>
+        <div id="score-dims" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+        <div id="score-fraco" style="display:none;background:#1a0a0a;border:1px solid #5a1a1a;border-radius:8px;padding:10px;font-size:12px;color:#ff6b6b"></div>
+        <div id="score-sugestao" style="display:none;background:#0a1a0a;border:1px solid #1a5a1a;border-radius:8px;padding:10px;font-size:12px;color:#6bff6b;margin-top:6px"></div>
+      </div>
+    </div>
+
     <div id="roteiro-preview" style="display:none">
       <div class="card">
         <span class="slbl">Gancho - escolha uma opcao ou edite</span>
@@ -394,6 +410,7 @@ async function gerarRoteiro() {
     state.roteiro = data;
     state.prompts = [];
     renderRoteiro(data);
+    calcularScore(data);
     var btnNarr = document.getElementById('btn-narracao');
     btnNarr.disabled = false;
     btnNarr.style.opacity = '1';
@@ -508,6 +525,63 @@ function selOpt(el, grp) {
   el.closest('.gancho-opts').querySelectorAll('.gancho-opt').forEach(function(e){ e.classList.remove('sel'); });
   el.classList.add('sel');
   atualizarScriptFinal();
+}
+
+async function calcularScore(roteiro) {
+  var panel = document.getElementById('score-panel');
+  var dims = document.getElementById('score-dims');
+  var totalEl = document.getElementById('score-total');
+  var barEl = document.getElementById('score-bar');
+  var fracoEl = document.getElementById('score-fraco');
+  var sugestaoEl = document.getElementById('score-sugestao');
+
+  panel.style.display = 'block';
+  totalEl.textContent = '...';
+  dims.innerHTML = '<div style="color:#444;font-size:12px">Analisando roteiro...</div>';
+
+  try {
+    var r = await fetch('/score-viral', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({roteiro: roteiro})
+    });
+    var d = await r.json();
+    if(d.erro) throw new Error(d.erro);
+
+    var total = d.total;
+    var cor = total >= 75 ? '#4caf50' : total >= 50 ? '#ff9800' : '#f44336';
+    totalEl.textContent = total + '/100';
+    totalEl.style.color = cor;
+    barEl.style.width = total + '%';
+    barEl.style.background = cor;
+
+    dims.innerHTML = '';
+    d.dimensoes.forEach(function(dim) {
+      var pct = (dim.score / 20) * 100;
+      var dcor = dim.score >= 15 ? '#4caf50' : dim.score >= 10 ? '#ff9800' : '#f44336';
+      dims.innerHTML += '<div>'
+        + '<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
+        + '<span style="font-size:12px;color:#888">' + esc(dim.nome) + '</span>'
+        + '<span style="font-size:12px;font-weight:700;color:' + dcor + '">' + dim.score + '/20</span>'
+        + '</div>'
+        + '<div style="height:4px;background:#1a1a1a;border-radius:2px">'
+        + '<div style="height:100%;width:' + pct + '%;background:' + dcor + ';border-radius:2px;transition:width .6s ease"></div>'
+        + '</div>'
+        + '<div style="font-size:11px;color:#555;margin-top:2px">' + esc(dim.justificativa) + '</div>'
+        + '</div>';
+    });
+
+    if(d.ponto_fraco) {
+      fracoEl.style.display = 'block';
+      fracoEl.innerHTML = '⚠ Ponto mais fraco: <strong>' + esc(d.ponto_fraco) + '</strong>';
+    }
+    if(d.sugestao) {
+      sugestaoEl.style.display = 'block';
+      sugestaoEl.innerHTML = '💡 ' + esc(d.sugestao);
+    }
+  } catch(e) {
+    dims.innerHTML = '<div style="color:#555;font-size:12px">Erro ao calcular score: ' + e.message + '</div>';
+  }
 }
 
 function atualizarScriptFinal() {
