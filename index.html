@@ -272,11 +272,11 @@ var state = {
   estilo: 'stylized_game',
   formato: '9:16',
   duracao: '40',
-  modoTeste: false,
   roteiro: null,
   prompts: [],
   sessionId: null,
-  lbIdx: -1,
+  narracao_session_id: null,
+  narracao_gerada: '',
   calendarioItems: []
 };
 
@@ -621,7 +621,7 @@ async function gerarImagens() {
   payload.prompts_custom = state.prompts;
   payload.estilo = state.estilo;
   payload.formato = state.formato;
-  payload.modo_teste = false;
+
 
   document.getElementById('steps-card').style.display = 'block';
   document.getElementById('result-card').style.display = 'none';
