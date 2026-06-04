@@ -435,23 +435,9 @@ def gerar():
     narracao_custom = data.get('narracao_custom', '')
     narracao_session_id = data.get('narracao_session_id')
 
-    narracao_txt = narracao_custom if narracao_custom else ' '.join(filter(None, [
-        data.get('gancho', ''),
-        *data.get('narracao_caso1', []),
-        *data.get('narracao_caso2', []),
-        data.get('micro_promessa', ''),
-        *data.get('narracao_caso3', []),
-        *data.get('narracao_final', []),
-        data.get('frase_final', ''),
-        data.get('pergunta_divisora', '')
-    ]))
+    narracao_txt = narracao_custom
 
-    prompts = prompts_custom if prompts_custom else (
-        data.get('caso1', {}).get('prompts', []) +
-        data.get('caso2', {}).get('prompts', []) +
-        data.get('caso3', {}).get('prompts', []) +
-        data.get('prompts_final', [])
-    )
+    prompts = prompts_custom
 
     session_id = str(int(time.time()))
 
@@ -561,7 +547,7 @@ def download():
     f = request.args.get('file', '')
     if not f or not f.startswith('/tmp/'):
         return 'Nao encontrado', 404
-    return send_file(f, as_attachment=True, download_name='video_youtube.zip')
+    return send_file(f, as_attachment=True, download_name='projeto_youtube.zip')
 
 @app.route('/traduzir', methods=['POST'])
 def traduzir():
@@ -600,20 +586,6 @@ def regenerar_opcoes():
     }
     try:
         text = chamar_claude(tipos_map.get(tipo, ''), f"Titulo: {titulo}", max_tokens=500, modelo="claude-haiku-4-5-20251001")
-        return jsonify(json.loads(text))
-    except Exception as e:
-        return jsonify({'erro': str(e)}), 500
-
-@app.route('/clonar', methods=['POST'])
-def clonar():
-    data = request.json
-    transcricao = data.get('transcricao', '')
-    titulo = data.get('titulo', '')
-    obs = data.get('obs', '')
-    system = "Analise a transcricao e clone a estrutura narrativa com o novo tema. Identifique o modelo (animais/psicologia/fatos). Retorne JSON no formato padrao com campo modelo_identificado."
-    user_msg = f"Transcricao:\n{transcricao}\n\nNovo titulo: {titulo}\nObservacoes: {obs}"
-    try:
-        text = chamar_claude(system, user_msg)
         return jsonify(json.loads(text))
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
