@@ -677,6 +677,95 @@ def regenerar_prompt():
         return jsonify({'erro': str(e)}), 500
 
 
+@app.route('/gerar-thumbnails', methods=['POST'])
+def gerar_thumbnails():
+    data = request.json
+    roteiro = data.get('roteiro', {})
+    script = data.get('script', '')
+    formato = data.get('formato', '9:16')
+    estilo = data.get('estilo', 'stylized_game')
+
+    # Extrai contexto do roteiro
+    caso3 = roteiro.get('caso3', {})
+    caso1 = roteiro.get('caso1', {})
+    animal3 = caso3.get('animal', '')
+    animal1 = caso1.get('animal', '')
+    twist3 = caso3.get('twist', '')
+    emocao = roteiro.get('emocao_ancora', '')
+
+    system = (
+        "Voce e um especialista em thumbnails virais para YouTube."
+        " Gere 3 conceitos de thumbnail para o video descrito."
+        " REGRAS ABSOLUTAS:"
+        " 1. ZERO texto na imagem — nenhuma palavra, letra ou numero."
+        " 2. Cada thumbnail tem um conceito visual e emocao gatilho diferente."
+        " 3. Os prompts devem gerar imagens que param o scroll em 0.3 segundos."
+        " 4. Foco em rosto, olhos ou momento de tensao maxima."
+        " CONCEITOS OBRIGATORIOS:"
+        " Thumbnail 1 TENSAO MAXIMA: close extremo no animal do caso 3 no momento do twist. Olhos, expressao, iluminacao dramatica. O espectador sente que algo esta errado."
+        " Thumbnail 2 ESPELHO HUMANO: o animal em comportamento mais humano do video. O espectador se reconhece. Composicao central, elemento perturbador sutil."
+        " Thumbnail 3 CURIOSIDADE VISUAL: cena ambigua — o espectador nao entende o que esta acontecendo. Provoca a pergunta visual que gera o clique."
+        " FORMATO do prompt: [descricao fisica UNICA do animal] + [cena exata] + [angulo] + [iluminacao] + [movimento]. Em INGLES."
+        " PROIBIDO: cinematic, realistic, documentary, photographic, text, words, letters."
+        ' Retorne JSON: {"conceitos": [{"emocao": "nome da emocao", "conceito": "descricao do conceito visual em portugues", "prompt": "prompt em ingles"}, ...]}'
+    )
+
+    user_msg = (
+        "Roteiro:\n"
+        "Animal caso 1: " + animal1 + "\n"
+        "Animal caso 3 (mais chocante): " + animal3 + "\n"
+        "Twist do caso 3: " + twist3 + "\n"
+        "Emocao ancora: " + emocao + "\n"
+        "Script: " + script[:500]
+    )
+
+    try:
+        text = chamar_claude(system, user_msg, max_tokens=1500, modelo="claude-sonnet-4-6")
+        text = re.sub(r"```json|```", "", text).strip()
+        d = json.loads(text)
+        return jsonify({'conceitos': d.get('conceitos', [])})
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
+@app.route('/gerar-thumbnail-imagem', methods=['POST'])
+def gerar_thumbnail_imagem():
+    data = request.json
+    idx = data.get('idx', 0)
+    prompt = data.get('prompt', '')
+    formato = data.get('formato', '9:16')
+    estilo = data.get('estilo', 'stylized_game')
+    session_id = data.get('session_id', '')
+
+    try:
+        img = leonardo_generate(prompt, formato, estilo)
+        # Salva na session
+        if session_id and session_id in sessions:
+            if 'thumbnails' not in sessions[session_id]:
+                sessions[session_id]['thumbnails'] = {}
+            sessions[session_id]['thumbnails'][idx] = img
+        # Salva em disco como fallback
+        try:
+            with open(f'/tmp/thumb_{session_id}_{idx}.jpg', 'wb') as f:
+                f.write(img)
+        except: pass
+        return jsonify({'ok': True})
+    except Exception as e:
+        return jsonify({'ok': False, 'erro': str(e)}), 500
+
+
+@app.route('/thumbnail/<session_id>/<int:idx>')
+def thumbnail(session_id, idx):
+    import io
+    s = sessions.get(session_id)
+    if s and idx in s.get('thumbnails', {}):
+        return send_file(io.BytesIO(s['thumbnails'][idx]), mimetype='image/jpeg')
+    path = f'/tmp/thumb_{session_id}_{idx}.jpg'
+    if os.path.exists(path):
+        return send_file(path, mimetype='image/jpeg')
+    return 'Nao encontrado', 404
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
