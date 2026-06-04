@@ -132,8 +132,14 @@ textarea{height:60px;resize:none}
       <input type="text" id="titulo" placeholder="Ex: Narcisistas da Floresta" oninput="clearSugestoes()" />
       <button onclick="sugerirTitulos()" style="background:transparent;border:1px solid #333;border-radius:6px;padding:5px 12px;font-size:12px;color:#555;cursor:pointer;font-family:inherit;margin-bottom:8px;transition:all .15s" id="btn-sugerir">💡 Sugerir títulos similares</button>
       <div id="sugestoes-titulos" style="display:none;flex-direction:column;gap:6px;margin-bottom:8px"></div>
-      <span class="slbl">Contexto (opcional)</span>
-      <textarea id="contexto" placeholder="Descreva o angulo, animais especificos, tom da historia..."></textarea>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <span class="slbl" style="margin:0">Contexto</span>
+        <div style="display:flex;gap:6px">
+          <button onclick="gerarContexto()" id="btn-contexto" style="background:transparent;border:1px solid #333;border-radius:4px;padding:2px 8px;font-size:11px;color:#555;cursor:pointer;font-family:inherit">✨ Gerar</button>
+          <button onclick="regenerarContexto()" id="btn-regen-contexto" style="background:transparent;border:1px solid #333;border-radius:4px;padding:2px 8px;font-size:11px;color:#555;cursor:pointer;font-family:inherit">🔄 Regenerar</button>
+        </div>
+      </div>
+      <textarea id="contexto" placeholder="Descreva o angulo, animais especificos, tom da historia... ou clique em Gerar"></textarea>
     </div>
 
     <div class="card">
@@ -671,6 +677,53 @@ async function corrigirDimensao(idx) {
     document.getElementById('btn-corrigir-' + idx).textContent = 'Corrigir';
     document.getElementById('btn-corrigir-' + idx).disabled = false;
   }
+}
+
+async function gerarContexto() {
+  var titulo = document.getElementById('titulo').value.trim();
+  if(!titulo) { alert('Digite um titulo primeiro'); return; }
+  var btn = document.getElementById('btn-contexto');
+  var btnR = document.getElementById('btn-regen-contexto');
+  btn.textContent = '⏳';
+  btn.disabled = true;
+  btnR.disabled = true;
+  try {
+    var r = await fetch('/gerar-contexto', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({titulo: titulo, modelo: state.modelo, duracao: state.duracao})
+    });
+    var d = await r.json();
+    if(d.erro) throw new Error(d.erro);
+    document.getElementById('contexto').value = d.contexto;
+  } catch(e) { alert('Erro: ' + e.message); }
+  btn.textContent = '✨ Gerar';
+  btn.disabled = false;
+  btnR.disabled = false;
+}
+
+async function regenerarContexto() {
+  var titulo = document.getElementById('titulo').value.trim();
+  var contextoAtual = document.getElementById('contexto').value.trim();
+  if(!titulo) { alert('Digite um titulo primeiro'); return; }
+  var btn = document.getElementById('btn-regen-contexto');
+  var btnG = document.getElementById('btn-contexto');
+  btn.textContent = '⏳';
+  btn.disabled = true;
+  btnG.disabled = true;
+  try {
+    var r = await fetch('/gerar-contexto', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({titulo: titulo, modelo: state.modelo, duracao: state.duracao, contexto_atual: contextoAtual})
+    });
+    var d = await r.json();
+    if(d.erro) throw new Error(d.erro);
+    document.getElementById('contexto').value = d.contexto;
+  } catch(e) { alert('Erro: ' + e.message); }
+  btn.textContent = '🔄 Regenerar';
+  btn.disabled = false;
+  btnG.disabled = false;
 }
 
 function atualizarContador() {
