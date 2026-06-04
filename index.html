@@ -192,9 +192,10 @@ textarea{height:60px;resize:none}
 
     <div id="roteiro-preview" style="display:none">
       <div class="card">
-        <span class="slbl">Gancho - escolha uma opcao</span>
+        <span class="slbl">Gancho - escolha uma opcao ou edite</span>
         <div class="gancho-opts" id="gancho-opts"></div>
         <button class="regen-opts-btn" onclick="regenerarOpcoes('gancho')">Regenerar ganchos</button>
+        <textarea id="gancho-edit" style="margin-top:8px;height:50px;background:#0a0a0a;border:1px solid #444;color:#fff;font-size:13px" oninput="atualizarScriptFinal()" placeholder="Edite o gancho aqui..."></textarea>
       </div>
       <div class="card">
         <span class="slbl">Narracao completa</span>
@@ -205,14 +206,16 @@ textarea{height:60px;resize:none}
         <div id="prompts-list"></div>
       </div>
       <div class="card">
-        <span class="slbl">Frase final</span>
+        <span class="slbl">Frase final - escolha uma opcao ou edite</span>
         <div class="gancho-opts" id="frase-opts"></div>
         <button class="regen-opts-btn" onclick="regenerarOpcoes('frase')">Regenerar frases</button>
+        <textarea id="frase-edit" style="margin-top:8px;height:50px;background:#0a0a0a;border:1px solid #444;color:#fff;font-size:13px" oninput="atualizarScriptFinal()" placeholder="Edite a frase final aqui..."></textarea>
       </div>
       <div class="card">
         <span class="slbl">Pergunta divisora</span>
         <div class="gancho-opts" id="pergunta-opts"></div>
         <button class="regen-opts-btn" onclick="regenerarOpcoes('pergunta')">Regenerar perguntas</button>
+        <textarea id="pergunta-edit" style="margin-top:8px;height:50px;background:#0a0a0a;border:1px solid #444;color:#fff;font-size:13px" oninput="atualizarScriptFinal()" placeholder="Edite a pergunta divisora aqui..."></textarea>
       </div>
       <div class="card">
         <span class="slbl">Script Final — texto que sera narrado</span>
@@ -412,11 +415,12 @@ async function gerarNarracao() {
   var ganchoEl = document.querySelector('#gancho-opts .gancho-opt.sel');
   var fraseEl = document.querySelector('#frase-opts .gancho-opt.sel');
   var perguntaEl = document.querySelector('#pergunta-opts .gancho-opt.sel');
+  var perguntaEditEl = document.getElementById('pergunta-edit');
   var narracao = document.getElementById('narracao-edit').value;
 
   var gancho = ganchoEl ? ganchoEl.textContent.trim() : '';
   var frase = fraseEl ? fraseEl.textContent.trim() : '';
-  var pergunta = perguntaEl ? perguntaEl.textContent.trim() : '';
+  var pergunta = (perguntaEditEl && perguntaEditEl.value.trim()) || (perguntaEl ? perguntaEl.textContent.trim() : '');
 
   // Monta narração completa na ordem correta
   var partes = [gancho, narracao, frase, pergunta].filter(function(p){ return p && p.length > 0; });
@@ -454,17 +458,29 @@ function renderRoteiro(d) {
   function renderOpts(containerId, items, grp) {
     var c = document.getElementById(containerId);
     c.innerHTML = '';
+    var editId = grp + '-edit';
     items.forEach(function(text, i) {
       var el = document.createElement('div');
       el.className = 'gancho-opt' + (i === 0 ? ' sel' : '');
       el.textContent = text || '';
-      el.onclick = function() { selOpt(this, grp); };
+      el.onclick = function() {
+        selOpt(this, grp);
+        var editEl = document.getElementById(editId);
+        if(editEl) editEl.value = this.textContent.trim();
+        atualizarScriptFinal();
+      };
       c.appendChild(el);
     });
   }
   renderOpts('gancho-opts', [d.gancho_principal].concat(d.gancho_opcoes || []), 'gancho');
   renderOpts('frase-opts', [d.frase_final_principal].concat(d.frase_final_opcoes || []), 'frase');
   renderOpts('pergunta-opts', [d.pergunta_divisora_principal].concat(d.pergunta_divisora_opcoes || []), 'pergunta');
+  var ge = document.getElementById('gancho-edit');
+  if(ge && d.gancho_principal) ge.value = d.gancho_principal;
+  var fe = document.getElementById('frase-edit');
+  if(fe && d.frase_final_principal) fe.value = d.frase_final_principal;
+  var pe = document.getElementById('pergunta-edit');
+  if(pe && d.pergunta_divisora_principal) pe.value = d.pergunta_divisora_principal;
 
   // Caixa de narração: só o corpo
   var narracao = []
@@ -507,9 +523,9 @@ function atualizarScriptFinal() {
   var fraseEl = document.querySelector('#frase-opts .gancho-opt.sel');
   var perguntaEl = document.querySelector('#pergunta-opts .gancho-opt.sel');
   var corpo = (document.getElementById('narracao-edit') || {}).value || '';
-  var gancho = ganchoEl ? ganchoEl.textContent.trim() : '';
-  var frase = fraseEl ? fraseEl.textContent.trim() : '';
-  var pergunta = perguntaEl ? perguntaEl.textContent.trim() : '';
+  var gancho = (document.getElementById('gancho-edit') || {}).value || (ganchoEl ? ganchoEl.textContent.trim() : '');
+  var frase = (document.getElementById('frase-edit') || {}).value || (fraseEl ? fraseEl.textContent.trim() : '');
+  var pergunta = (document.getElementById('pergunta-edit') || {}).value || (perguntaEl ? perguntaEl.textContent.trim() : '');
   var script = [gancho, corpo.trim(), frase, pergunta].filter(function(p){ return p; }).join(' ');
   var sf = document.getElementById('script-final');
   if(sf) sf.value = script;
@@ -609,6 +625,7 @@ async function gerarImagens() {
   var ganchoEl = document.querySelector('#gancho-opts .gancho-opt.sel');
   var fraseEl = document.querySelector('#frase-opts .gancho-opt.sel');
   var perguntaEl = document.querySelector('#pergunta-opts .gancho-opt.sel');
+  var perguntaEditEl = document.getElementById('pergunta-edit');
 
   state.prompts.forEach(function(p, i) {
     var ta = document.getElementById('pt'+i);
