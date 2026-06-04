@@ -331,7 +331,7 @@ def gerar_audio(narracao_txt, session_id):
             r = requests.post(
                 f'https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE}',
                 headers={'xi-api-key': ELEVENLABS_KEY, 'content-type': 'application/json'},
-                json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.71, 'similarity_boost': 0.5, 'style': 0.0, 'use_speaker_boost': True}},
+                json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.75, 'similarity_boost': 0.75, 'style': 0.0, 'use_speaker_boost': True}},
                 timeout=60
             )
             if r.status_code == 200 and len(r.content) > 100:
@@ -379,7 +379,7 @@ def roteiro():
     titulo = data.get('titulo', '').strip()
     contexto = data.get('contexto', '').strip()
     modelo = data.get('modelo', 'animais')
-    nh = int(data.get('historias', 3))
+    nh = 3  # fixo em 3 historias — estrutura definida pelo titulo e contexto
     duracao = str(data.get('duracao', '40'))
     dist = calc_frases(duracao, nh)
     total_palavras = PALAVRAS.get(duracao, 130)
@@ -651,36 +651,40 @@ def gerar_prompts():
     limpar_sessions_antigas()
     data = request.json
     script = data.get('script', '').strip()
+    print("GERAR-PROMPTS chars=" + str(len(script)))
     if not script:
-        return jsonify({'erro': 'Script vazio'}), 400
+        return jsonify({'erro': 'Script vazio — gere a narracao primeiro'}), 400
 
     system = (
         "Voce e um diretor de arte especialista em videos curtos virais do YouTube."
         " Recebera um script de narracao e deve identificar os MOMENTOS NARRATIVOS."
         " Um momento NAO e uma frase gramatical — e um bloco de significado narrativo."
-        " Frases curtissimas em sequencia formam UM momento, nao varios."
+        " Frases curtissimas em sequencia formam UM unico momento — nao divida em varios prompts."
         " Para cada momento gere um prompt que traduz LITERALMENTE aquele momento visual."
-        " O numero de prompts deve ser o numero natural de momentos no script."
-        " Para 40s espera-se 10-15 momentos. Para 60s, 15-20. Para 90s, 20-30."
-        " FORMATO: [descricao fisica unica do animal] + [acao exata do momento] + [angulo] + [iluminacao] + [movimento]."
+        " Para 40s espera-se 10-15 prompts. Para 60s, 15-25. Para 90s, 25-35."
+        " FORMATO: [descricao fisica ESPECIFICA do animal] + [acao EXATA descrita no script] + [angulo] + [iluminacao] + [movimento]."
         " Defina as caracteristicas fisicas do animal no primeiro prompt e repita em TODOS os outros desse animal."
         " Angulos: wide shot para apresentacao, close-up para tensao, extreme close-up para twist."
         " Iluminacao: golden hour no inicio, dramatic shadows na escalada, blue hour na revelacao."
         " Movimento: mid-motion para acao, frozen in the moment para choque, slow motion blur para emocao."
         " PROIBIDO: cinematic, realistic, documentary, photographic, an animal."
-        " Use sempre o nome especifico do animal."
+        " Use o nome especifico do animal — nunca pronomes sem referencia."
+        " Os prompts devem ser em INGLES."
         ' Retorne JSON valido sem markdown: {"prompts": ["prompt1", "prompt2"]}'
     )
-    user_msg = "Script completo:\n\n" + script + "\n\nIdentifique os momentos narrativos e gere um prompt por momento."
+    user_msg = "Script:\n\n" + script + "\n\nGere um prompt em ingles por momento narrativo."
 
     try:
         text = chamar_claude(system, user_msg, max_tokens=4000, modelo="claude-sonnet-4-5-20250929")
+        print("GERAR-PROMPTS resposta chars=" + str(len(text)))
         text = re.sub(r"```json|```", "", text).strip()
-        text = re.sub(r',\s*([}\]])', r'\1', text)
+        text = re.sub(r',[ \t\n]*([}\]])', r'\1', text)
         d = json.loads(text)
         prompts = d.get('prompts', [])
+        print("GERAR-PROMPTS total=" + str(len(prompts)))
         return jsonify({'prompts': prompts, 'total': len(prompts)})
     except Exception as e:
+        print("GERAR-PROMPTS erro=" + str(e))
         return jsonify({'erro': str(e)}), 500
 
 
