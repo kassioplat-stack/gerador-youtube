@@ -412,19 +412,14 @@ async function gerarNarracao() {
   btn.textContent = 'Gerando narracao...';
 
   // Concatena automaticamente: gancho + narracao + frase final + pergunta divisora
-  var ganchoEl = document.querySelector('#gancho-opts .gancho-opt.sel');
-  var fraseEl = document.querySelector('#frase-opts .gancho-opt.sel');
-  var perguntaEl = document.querySelector('#pergunta-opts .gancho-opt.sel');
-  var perguntaEditEl = document.getElementById('pergunta-edit');
-  var narracao = document.getElementById('narracao-edit').value;
-
-  var gancho = ganchoEl ? ganchoEl.textContent.trim() : '';
-  var frase = fraseEl ? fraseEl.textContent.trim() : '';
-  var pergunta = (perguntaEditEl && perguntaEditEl.value.trim()) || (perguntaEl ? perguntaEl.textContent.trim() : '');
-
-  // Monta narração completa na ordem correta
-  var partes = [gancho, narracao, frase, pergunta].filter(function(p){ return p && p.length > 0; });
-  var narracao_completa = partes.join(' ');
+  // Usa sempre o script-final — que já contém gancho+corpo+frase+pergunta editados
+  var narracao_completa = (document.getElementById('script-final') || {}).value || '';
+  if(!narracao_completa) {
+    alert('Script final vazio. Gere o roteiro primeiro.');
+    btn.disabled = false;
+    btn.textContent = '2. Gerar Narracao';
+    return;
+  }
 
   // Salva a narração completa no state para usar nas imagens sem regenerar
   state.narracao_gerada = narracao_completa;
@@ -637,11 +632,12 @@ async function gerarImagens() {
   payload.gancho = ganchoEl ? ganchoEl.textContent : (state.roteiro.gancho_principal || '');
   payload.frase_final = fraseEl ? fraseEl.textContent : (state.roteiro.frase_final_principal || '');
   payload.pergunta_divisora = perguntaEl ? perguntaEl.textContent : (state.roteiro.pergunta_divisora_principal || '');
-  payload.narracao_custom = document.getElementById('narracao-edit').value;
+  payload.narracao_custom = (document.getElementById('script-final') || {}).value || document.getElementById('narracao-edit').value;
+  payload.narracao_session_id = state.narracao_session_id || null;
   payload.prompts_custom = state.prompts;
   payload.estilo = state.estilo;
   payload.formato = state.formato;
-  payload.modo_teste = state.modoTeste;
+  payload.modo_teste = false;
 
   document.getElementById('steps-card').style.display = 'block';
   document.getElementById('result-card').style.display = 'none';
