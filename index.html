@@ -107,7 +107,7 @@ textarea{height:60px;resize:none}
   <div class="tab-content" id="tab-thumb">
     <div class="card">
       <span class="slbl">Avaliar Thumbnail</span>
-      <div style="font-size:12px;color:#555;margin-bottom:12px">Carregue qualquer thumbnail para receber um score de potencial viral com análise detalhada.</div>
+      <div style="font-size:12px;color:#555;margin-bottom:12px">Análise especializada + diagnóstico visual + prompt de correção + geração da versão melhorada.</div>
 
       <!-- Upload -->
       <div id="thumb-upload-area" style="border:2px dashed #2a2a2a;border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px" onclick="document.getElementById('thumb-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='#E8593C'" ondragleave="this.style.borderColor='#2a2a2a'" ondrop="handleThumbDrop(event)">
@@ -117,32 +117,79 @@ textarea{height:60px;resize:none}
       </div>
       <input type="file" id="thumb-file-input" accept="image/*" style="display:none" onchange="previewThumb(this)">
 
-      <!-- Preview -->
+      <!-- Preview + canal -->
       <div id="thumb-preview-area" style="display:none;margin-bottom:12px">
-        <img id="thumb-preview-img" style="width:100%;border-radius:10px;max-height:300px;object-fit:contain;background:#0a0a0a">
+        <img id="thumb-preview-img" style="width:100%;border-radius:10px;max-height:280px;object-fit:contain;background:#0a0a0a">
         <div style="display:flex;gap:8px;margin-top:8px">
           <select id="thumb-canal" style="flex:1;background:#111;border:1px solid #333;border-radius:6px;padding:6px;font-size:12px;color:#aaa;font-family:inherit">
             <option value="animais">Canal Animais</option>
             <option value="mente">Canal Mente</option>
             <option value="geral">Canal Geral</option>
           </select>
-          <button onclick="avaliarThumbnail()" id="btn-avaliar-thumb" style="background:#E8593C;border:none;border-radius:6px;padding:6px 16px;font-size:12px;color:#fff;cursor:pointer;font-family:inherit;font-weight:700">Avaliar</button>
+          <button onclick="avaliarThumbnail()" id="btn-avaliar-thumb" style="background:#E8593C;border:none;border-radius:6px;padding:6px 16px;font-size:12px;color:#fff;cursor:pointer;font-family:inherit;font-weight:700">🔍 Analisar</button>
           <button onclick="resetThumb()" style="background:transparent;border:1px solid #333;border-radius:6px;padding:6px 12px;font-size:12px;color:#555;cursor:pointer;font-family:inherit">Trocar</button>
         </div>
       </div>
 
-      <!-- Score -->
+      <!-- Score + Diagnóstico -->
       <div id="thumb-score-area" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+
+        <!-- Score total -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
           <span style="font-size:12px;font-weight:700;color:#888;letter-spacing:1px">SCORE VIRAL</span>
           <div id="thumb-score-total" style="font-size:32px;font-weight:900;color:#E8593C">--</div>
         </div>
-        <div style="height:6px;background:#1a1a1a;border-radius:4px;margin-bottom:16px">
+        <div style="height:6px;background:#1a1a1a;border-radius:4px;margin-bottom:14px">
           <div id="thumb-score-bar" style="height:100%;border-radius:4px;transition:width .8s ease;width:0%"></div>
         </div>
-        <div id="thumb-score-dims" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
-        <div id="thumb-score-fraco" style="display:none;background:#1a0a0a;border:1px solid #5a1a1a;border-radius:8px;padding:10px;font-size:12px;color:#ff6b6b;margin-bottom:8px"></div>
-        <div id="thumb-score-sugestao" style="display:none;background:#0a1a0a;border:1px solid #1a5a1a;border-radius:8px;padding:10px;font-size:12px;color:#6bff6b"></div>
+
+        <!-- Dimensões com botão Corrigir -->
+        <div id="thumb-score-dims" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px"></div>
+
+        <!-- Diagnóstico visual -->
+        <div id="thumb-diagnostico" style="display:none;background:#0f0f0f;border:1px solid #2a2a2a;border-radius:8px;padding:12px;margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:#E8593C;letter-spacing:1px;margin-bottom:8px">DIAGNÓSTICO DO ANALISTA</div>
+          <div id="thumb-diagnostico-texto" style="font-size:12px;color:#888;line-height:1.7"></div>
+        </div>
+
+        <!-- Checklist -->
+        <div id="thumb-checklist" style="display:none;background:#0f0f0f;border:1px solid #2a2a2a;border-radius:8px;padding:12px;margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:#888;letter-spacing:1px;margin-bottom:8px">CHECKLIST — 0,3 SEGUNDOS</div>
+          <div id="thumb-checklist-items" style="font-size:12px;color:#777;line-height:2"></div>
+        </div>
+
+        <!-- Títulos virais -->
+        <div id="thumb-titulos" style="display:none;background:#0f0f0f;border:1px solid #2a2a2a;border-radius:8px;padding:12px;margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:#888;letter-spacing:1px;margin-bottom:8px">OPÇÕES DE TEXTO — DO MAIS VIRAL AO MENOS</div>
+          <div id="thumb-titulos-items" style="display:flex;flex-direction:column;gap:6px"></div>
+        </div>
+
+        <!-- Prompt de correção editável -->
+        <div id="thumb-prompt-area" style="display:none;margin-bottom:14px">
+          <div style="font-size:11px;font-weight:700;color:#E8593C;letter-spacing:1px;margin-bottom:6px">PROMPT DE CORREÇÃO</div>
+          <textarea id="thumb-prompt-texto" style="width:100%;background:#0a0a0a;border:1px solid #E8593C;border-radius:8px;padding:10px;font-size:12px;color:#ccc;font-family:inherit;resize:vertical;height:100px"></textarea>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button onclick="traduzirThumbPrompt()" style="background:transparent;border:1px solid #333;border-radius:6px;padding:5px 12px;font-size:11px;color:#666;cursor:pointer;font-family:inherit">🌐 Traduzir</button>
+            <button onclick="gerarThumbCorrigida()" id="btn-gerar-thumb-corrigida" style="background:#E8593C;border:none;border-radius:6px;padding:5px 16px;font-size:11px;color:#fff;cursor:pointer;font-family:inherit;font-weight:700">⚡ Gerar com Leonardo</button>
+          </div>
+          <div id="thumb-trad" style="font-size:11px;color:#555;margin-top:6px;font-style:italic"></div>
+        </div>
+
+        <!-- Comparação original vs corrigida -->
+        <div id="thumb-comparacao" style="display:none">
+          <div style="font-size:11px;font-weight:700;color:#888;letter-spacing:1px;margin-bottom:8px">ORIGINAL vs CORRIGIDA</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div>
+              <div style="font-size:10px;color:#444;margin-bottom:4px;text-align:center">ORIGINAL</div>
+              <img id="thumb-original-compare" style="width:100%;border-radius:8px;border:1px solid #2a2a2a">
+            </div>
+            <div>
+              <div style="font-size:10px;color:#E8593C;margin-bottom:4px;text-align:center">CORRIGIDA</div>
+              <div id="thumb-corrigida-container" style="width:100%;border-radius:8px;border:1px solid #E8593C;min-height:80px;background:#0a0a0a;display:flex;align-items:center;justify-content:center;color:#333;font-size:11px">Aguardando geração...</div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -767,6 +814,7 @@ async function regenerarContexto() {
 }
 
 var thumbBase64 = null;
+var thumbAnalise = null;
 
 function previewThumb(input) {
   var file = input.files[0];
@@ -786,6 +834,7 @@ function processThumbFile(file) {
   reader.onload = function(e) {
     thumbBase64 = e.target.result;
     document.getElementById('thumb-preview-img').src = thumbBase64;
+    document.getElementById('thumb-original-compare').src = thumbBase64;
     document.getElementById('thumb-upload-area').style.display = 'none';
     document.getElementById('thumb-preview-area').style.display = 'block';
     document.getElementById('thumb-score-area').style.display = 'none';
@@ -795,6 +844,7 @@ function processThumbFile(file) {
 
 function resetThumb() {
   thumbBase64 = null;
+  thumbAnalise = null;
   document.getElementById('thumb-file-input').value = '';
   document.getElementById('thumb-upload-area').style.display = 'block';
   document.getElementById('thumb-preview-area').style.display = 'none';
@@ -805,8 +855,7 @@ async function avaliarThumbnail() {
   if(!thumbBase64) { alert('Carregue uma imagem primeiro'); return; }
   var btn = document.getElementById('btn-avaliar-thumb');
   var canal = document.getElementById('thumb-canal').value;
-  btn.textContent = '⏳ Analisando...';
-  btn.disabled = true;
+  setBtnLoading('btn-avaliar-thumb', true, '🔍 Analisar', '⏳ Analisando...');
   document.getElementById('thumb-score-area').style.display = 'none';
   try {
     var r = await fetch('/avaliar-thumbnail', {
@@ -816,41 +865,149 @@ async function avaliarThumbnail() {
     });
     var d = await r.json();
     if(d.erro) throw new Error(d.erro);
+    thumbAnalise = d;
+
+    // Score total
     var total = d.total;
     var cor = total >= 75 ? '#4caf50' : total >= 50 ? '#ff9800' : '#f44336';
     document.getElementById('thumb-score-total').textContent = total + '/100';
     document.getElementById('thumb-score-total').style.color = cor;
     document.getElementById('thumb-score-bar').style.width = total + '%';
     document.getElementById('thumb-score-bar').style.background = cor;
+
+    // Dimensões com botão Corrigir
     var dims = document.getElementById('thumb-score-dims');
     dims.innerHTML = '';
-    d.dimensoes.forEach(function(dim) {
+    d.dimensoes.forEach(function(dim, i) {
       var pct = (dim.score / 25) * 100;
       var dcor = dim.score >= 19 ? '#4caf50' : dim.score >= 13 ? '#ff9800' : '#f44336';
-      dims.innerHTML += '<div>'
-        + '<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
+      var mostrarCorrigir = dim.score < 19;
+      dims.innerHTML += '<div id="thumb-dim-'+i+'">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'
         + '<span style="font-size:12px;color:#888">' + esc(dim.nome) + '</span>'
-        + '<span style="font-size:12px;font-weight:700;color:' + dcor + '">' + dim.score + '/25</span>'
-        + '</div>'
+        + '<div style="display:flex;align-items:center;gap:8px">'
+        + '<span style="font-size:12px;font-weight:700;color:'+dcor+'">' + dim.score + '/25</span>'
+        + (mostrarCorrigir ? '<button onclick="corrigirDimThumb('+i+')" id="btn-thumb-dim-'+i+'" style="background:transparent;border:1px solid #E8593C;border-radius:4px;padding:2px 8px;font-size:10px;color:#E8593C;cursor:pointer;font-family:inherit">Corrigir</button>' : '')
+        + '</div></div>'
         + '<div style="height:4px;background:#1a1a1a;border-radius:2px">'
-        + '<div style="height:100%;width:' + pct + '%;background:' + dcor + ';border-radius:2px;transition:width .6s ease"></div>'
+        + '<div style="height:100%;width:'+pct+'%;background:'+dcor+';border-radius:2px;transition:width .6s ease"></div>'
         + '</div>'
         + '<div style="font-size:11px;color:#555;margin-top:2px">' + esc(dim.justificativa) + '</div>'
         + '</div>';
     });
-    var fracoEl = document.getElementById('thumb-score-fraco');
-    var sugestaoEl = document.getElementById('thumb-score-sugestao');
-    if(d.ponto_fraco) {
-      fracoEl.style.display = 'block';
-      fracoEl.innerHTML = '⚠ Ponto mais fraco: <strong>' + esc(d.ponto_fraco) + '</strong>';
+
+    // Diagnóstico
+    if(d.diagnostico) {
+      document.getElementById('thumb-diagnostico-texto').innerHTML = esc(d.diagnostico).split('\n').join('<br>');
+      document.getElementById('thumb-diagnostico').style.display = 'block';
     }
-    if(d.sugestao) {
-      sugestaoEl.style.display = 'block';
-      sugestaoEl.innerHTML = '💡 ' + esc(d.sugestao);
+
+    // Checklist
+    if(d.checklist && d.checklist.length) {
+      var cl = document.getElementById('thumb-checklist-items');
+      cl.innerHTML = d.checklist.map(function(item) {
+        var ok = item.ok;
+        return '<div>' + (ok ? '✅' : '❌') + ' ' + esc(item.pergunta) + '</div>';
+      }).join('');
+      document.getElementById('thumb-checklist').style.display = 'block';
     }
+
+    // Títulos virais
+    if(d.titulos && d.titulos.length) {
+      var tl = document.getElementById('thumb-titulos-items');
+      tl.innerHTML = d.titulos.map(function(t, i) {
+        return '<div style="display:flex;align-items:center;gap:8px;background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:8px 10px;cursor:pointer" onclick="usarTituloThumb(''+esc(t)+'')">'
+          + '<span style="background:#E8593C;color:#fff;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700">'+(i+1)+'</span>'
+          + '<span style="font-size:12px;color:#ccc">' + esc(t) + '</span>'
+          + '</div>';
+      }).join('');
+      document.getElementById('thumb-titulos').style.display = 'block';
+    }
+
+    // Prompt de correção
+    if(d.prompt_correcao) {
+      document.getElementById('thumb-prompt-texto').value = d.prompt_correcao;
+      document.getElementById('thumb-prompt-area').style.display = 'block';
+      document.getElementById('thumb-comparacao').style.display = 'block';
+    }
+
     document.getElementById('thumb-score-area').style.display = 'block';
   } catch(e) { alert('Erro: ' + e.message); }
-  btn.textContent = 'Avaliar';
+  setBtnLoading('btn-avaliar-thumb', false, '🔍 Analisar', '🔍 Analisar');
+}
+
+async function corrigirDimThumb(idx) {
+  if(!thumbAnalise) return;
+  var dim = thumbAnalise.dimensoes[idx];
+  var btn = document.getElementById('btn-thumb-dim-'+idx);
+  btn.textContent = '⏳';
+  btn.disabled = true;
+  try {
+    var r = await fetch('/corrigir-dim-thumbnail', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        dimensao: dim.nome,
+        justificativa: dim.justificativa,
+        prompt_atual: document.getElementById('thumb-prompt-texto').value,
+        canal: document.getElementById('thumb-canal').value
+      })
+    });
+    var d = await r.json();
+    if(d.erro) throw new Error(d.erro);
+    document.getElementById('thumb-prompt-texto').value = d.prompt_atualizado;
+  } catch(e) { alert('Erro: ' + e.message); }
+  btn.textContent = 'Corrigir';
+  btn.disabled = false;
+}
+
+async function traduzirThumbPrompt() {
+  var prompt = document.getElementById('thumb-prompt-texto').value.trim();
+  if(!prompt) return;
+  try {
+    var r = await fetch('/traduzir', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({prompt: prompt})
+    });
+    var d = await r.json();
+    document.getElementById('thumb-trad').textContent = d.traducao || '';
+  } catch(e) {}
+}
+
+function usarTituloThumb(titulo) {
+  var prompt = document.getElementById('thumb-prompt-texto').value;
+  var novoPrompt = prompt + ', with bold text overlay: "' + titulo + '", text in top-left corner, high contrast font';
+  document.getElementById('thumb-prompt-texto').value = novoPrompt;
+}
+
+async function gerarThumbCorrigida() {
+  var prompt = document.getElementById('thumb-prompt-texto').value.trim();
+  if(!prompt) { alert('Prompt vazio'); return; }
+  var btn = document.getElementById('btn-gerar-thumb-corrigida');
+  btn.textContent = '⏳ Gerando...';
+  btn.disabled = true;
+  var container = document.getElementById('thumb-corrigida-container');
+  container.innerHTML = '<span style="color:#555;font-size:11px">Gerando com Leonardo...</span>';
+  try {
+    var canal = document.getElementById('thumb-canal').value;
+    var formato = canal === 'mente' ? '16:9' : state.formato;
+    var estilo = canal === 'mente' ? 'mente' : state.estilo;
+    var r = await fetch('/gerar-thumbnail-imagem', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({idx: 99, prompt: prompt, formato: formato, estilo: estilo, session_id: 'thumb_' + Date.now()})
+    });
+    var d = await r.json();
+    if(d.ok) {
+      container.innerHTML = '<img src="/thumbnail/thumb_corrigida/99?t='+Date.now()+'" style="width:100%;border-radius:8px" onerror="this.parentElement.innerHTML='Erro ao carregar'">';
+    } else {
+      container.innerHTML = '<span style="color:#f44336;font-size:11px">Erro: ' + esc(d.erro || 'Falhou') + '</span>';
+    }
+  } catch(e) {
+    container.innerHTML = '<span style="color:#f44336;font-size:11px">Erro: ' + e.message + '</span>';
+  }
+  btn.textContent = '⚡ Gerar com Leonardo';
   btn.disabled = false;
 }
 
