@@ -55,6 +55,15 @@ def animais_recentes():
             pass
     return recentes
 
+MODELOS_LEONARDO = {
+    "stylized_game":     "7b592283-e8a7-4c5a-9ba6-d18c31f258b9",  # Leonardo Creative
+    "hyperrealistic":    "aa77f04e-3eec-4034-9c07-d0f619684628",  # Leonardo Kino XL
+    "cinematic_dark":    "aa77f04e-3eec-4034-9c07-d0f619684628",  # Leonardo Kino XL
+    "oil_painting":      "7b592283-e8a7-4c5a-9ba6-d18c31f258b9",  # Leonardo Creative
+    "anime":             "e316348f-7773-490e-adcd-46757c738eb9",  # Anime XL
+    "watercolor":        "7b592283-e8a7-4c5a-9ba6-d18c31f258b9",  # Leonardo Creative
+}
+
 ESTILOS = {
     "stylized_game": "stylized game character art, non-realistic, vibrant colors, bold outlines, 9:16 vertical",
     "cinematic_doc": "cinematic wildlife documentary, hyper realistic, dramatic lighting, 9:16 vertical",
@@ -235,7 +244,12 @@ def build_system(modelo, nh, dist, total_palavras):
         "10. PONTUACAO CORRETA: ponto final, exclamacao ou interrogacao. NUNCA termine com virgula.\n"
         "11. TOTAL: aproximadamente " + str(total_palavras) + " palavras para TODA a narracao — respeite esse limite.\n"
         "12. CONGRUENCIA COM DURACAO: o roteiro e a narracao devem ser dimensionados EXATAMENTE para " + str(total_palavras) + " palavras — nem mais, nem menos. Um video de 40s nao pode ter narracao de 2 minutos.\n"
-        "13. FIDELIDADE AO SCRIPT FINAL: a narracao gravada sera EXATAMENTE o texto gerado — gancho + corpo + frase final + pergunta divisora. Escreva cada frase como se ja estivesse sendo narrada. Nada sera editado antes de gravar.\n\n"
+        "13. FIDELIDADE AO SCRIPT FINAL: a narracao gravada sera EXATAMENTE o texto gerado — gancho + corpo + frase final + pergunta divisora. Escreva cada frase como se ja estivesse sendo narrada. Nada sera editado antes de gravar.\n"
+        "14. ANCORAS VISUAIS OBRIGATORIAS: cada frase da narracao deve conter pelo menos UM elemento visual concreto e especifico — uma acao fisica, postura corporal, expressao, objeto, cor ou luz. Evite frases puramente abstratas ou emocionais sem ancora visual.\n"
+        "    Nao: 'ela sentiu o peso do silencio' → Sim: 'ela ficou parada, focinho baixo, olhos fixos no chao por 3 horas'\n"
+        "    Nao: 'o medo tomou conta' → Sim: 'suas patas tremiam enquanto recuava lentamente, orelhas coladas ao cranio'\n"
+        "15. CONSISTENCIA VISUAL DO ANIMAL: na primeira frase que apresenta cada animal, descreva 3-4 caracteristicas fisicas UNICAS e especificas — cicatriz, cor dos olhos, tamanho, detalhe anatomico. Essa descricao sera usada em todos os prompts de imagem.\n"
+        "    Ex: 'um leao com juba negra nas pontas, cicatriz no olho esquerdo, patas dianteiras desproporcionalmente grandes'\n\n"
 
 
         "PERGUNTA DIVISORA — DIVIDE OPINIOES E GERA COMENTARIOS:\n"
@@ -274,9 +288,16 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game"):
             r = requests.post(
                 "https://cloud.leonardo.ai/api/rest/v1/generations",
                 headers={"authorization": f"Bearer {LEONARDO_KEY}", "content-type": "application/json"},
-                json={"prompt": prompt + ", " + sufixo, "modelId": "7b592283-e8a7-4c5a-9ba6-d18c31f258b9",
-                      "width": dims["width"], "height": dims["height"], "num_images": 1, "guidance_scale": 10,
-                      "negative_prompt": "blurry, low quality, distorted, ugly, watermark, text"},
+                json={"prompt": prompt + ", " + sufixo,
+                      "modelId": MODELOS_LEONARDO.get(estilo, "7b592283-e8a7-4c5a-9ba6-d18c31f258b9"),
+                      "width": dims["width"], "height": dims["height"], "num_images": 1,
+                      "guidance_scale": 7,
+                      "negative_prompt": (
+                          "blurry, low quality, distorted, ugly, watermark, text, letters, words, "
+                          "human hands, humans, people, multiple animals, crowded scene, "
+                          "overexposed, underexposed, cartoon, anime, illustration, painting, "
+                          "duplicate, deformed, mutated, extra limbs, bad anatomy"
+                      )},
                 timeout=40
             )
             data = r.json()
@@ -609,21 +630,31 @@ def gerar_prompts():
 
     system = (
         "Voce e um diretor de arte especialista em videos curtos virais do YouTube."
-        " Recebera um script de narracao e deve gerar EXATAMENTE " + str(num_prompts) + " prompts de imagem."
-        " Distribua as cenas pelo script inteiro de forma proporcional."
-        " Se o script tiver menos momentos que o numero pedido, divida momentos longos"
-        " em multiplas cenas do mesmo momento com angulos diferentes — close-up, wide shot, macro."
-        " Se o script tiver mais momentos, agrupe os menos importantes."
+        " Recebera um script de narracao e deve gerar EXATAMENTE " + str(num_prompts) + " prompts de imagem em ingles."
+        " Distribua as cenas proporcionalmente pelo script inteiro."
+        " Se precisar de mais cenas que momentos narrativos, divida momentos longos em angulos diferentes do mesmo momento."
         " O objetivo e sempre EXATAMENTE " + str(num_prompts) + " prompts — nem mais, nem menos."
-        " FORMATO de cada prompt: [descricao fisica ESPECIFICA do animal] + [acao EXATA] + [angulo] + [iluminacao] + [movimento]."
-        " Defina as caracteristicas fisicas do animal no primeiro prompt e repita em TODOS os outros desse animal."
-        " Angulos: wide shot para apresentacao, close-up para tensao, extreme close-up para twist."
-        " Iluminacao: golden hour no inicio, dramatic shadows na escalada, blue hour na revelacao."
-        " Movimento: mid-motion para acao, frozen in the moment para choque, slow motion blur para emocao."
-        " PROIBIDO: cinematic, realistic, documentary, photographic, an animal."
-        " Use o nome especifico do animal — nunca pronomes sem referencia."
-        " Os prompts devem ser em INGLES."
-        ' Retorne JSON valido sem markdown: {"prompts": ["prompt1", "prompt2"]}'
+        "\n\nANATOMIA OBRIGATORIA de cada prompt (nessa ordem exata):"
+        "\n[ID VISUAL DO ANIMAL] + [ACAO FISICA EXATA descrita no script] + [ANGULO DE CAMERA] + [ILUMINACAO] + [MOVIMENTO] + [NEGATIVES]"
+        "\n\nID VISUAL: na primeira aparicao de cada animal, extraia do script suas caracteristicas fisicas unicas"
+        " (cicatriz, cor dos olhos, tamanho, detalhe anatomico especifico) e use IDENTICAMENTE em todos os prompts desse animal."
+        " Ex: 'massive male lion with black-tipped mane, scar over left eye, oversized front paws, gaunt frame'"
+        "\n\nACAO FISICA: traduza LITERALMENTE o que o script diz que o animal esta fazendo."
+        " Nao interprete — traduza. Se o script diz 'ficou parada por 3 horas', o prompt diz 'standing completely still, unmoving'."
+        " Use verbos de acao: standing, crouching, running, staring, retreating — nunca adjetivos emocionais vagos."
+        "\n\nANGULOS por momento:"
+        " wide shot (apresentacao e contexto), medium shot (acao em andamento),"
+        " close-up (tensao e emocao), extreme close-up (twist e revelacao), aerial (escala e isolamento)."
+        " shot on 85mm lens, shallow depth of field — use sempre."
+        "\n\nILUMINACAO por fase:"
+        " golden hour (inicio e apresentacao), soft natural light (desenvolvimento),"
+        " dramatic side shadows (escalada), single spotlight (twist), cold blue hour (revelacao final)."
+        "\n\nMOVIMENTO: mid-motion (acao acontecendo), frozen in the moment (choque e revelacao), slow motion blur (emocao intensa)."
+        "\n\nNEGATIVES — adicione ao final de cada prompt:"
+        " 'no humans, no text, no watermark, no other animals, isolated subject, no cartoon, no anime'"
+        "\n\nPROIBIDO no prompt: cinematic, realistic, documentary, photographic, 'an animal'."
+        " Use sempre o nome especifico do animal."
+        ' Retorne JSON valido sem markdown: {"prompts": ["prompt1 completo", "prompt2 completo"]}'
     )
     user_msg = (
         "Script de narracao:\n\n" + script +
