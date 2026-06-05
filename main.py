@@ -104,8 +104,12 @@ def build_system(modelo, nh, dist, total_palavras):
 
     if modelo == "mente":
         ctx = (
-            "Voce cria roteiros virais de psicologia, comportamento humano e percepcao para YouTube.\n"
-            "O canal expoe como a mente humana funciona de formas que o espectador nao quer admitir.\n"
+            "MISSAO DO CANAL — leia antes de escrever uma palavra:\n"
+            "Revelar o mecanismo psicologico oculto por tras de comportamentos humanos.\n"
+            "Nao e autoajuda. Nao e motivacao. Nao e conselho.\n"
+            "E expor o que esta acontecendo embaixo — o que voce nao ve, o que sua mente faz sem te avisar.\n"
+            "O espectador nao aprende algo novo. Ele RECONHECE algo que ja fazia sem saber o nome.\n"
+            "Isso e mais perturbador do que qualquer fato novo.\n\n"
             "IDENTIDADE DO CANAL: autoconhecimento forcado e desconfortavel.\n"
             "O espectador termina o video sabendo algo sobre si mesmo que nao pediu para saber.\n\n"
 
