@@ -915,12 +915,13 @@ async function avaliarThumbnail() {
     // Títulos virais
     if(d.titulos && d.titulos.length) {
       var tl = document.getElementById('thumb-titulos-items');
-      tl.innerHTML = d.titulos.map(function(t, i) {
-        return '<div style="display:flex;align-items:center;gap:8px;background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:8px 10px;cursor:pointer" onclick="usarTituloThumb(''+esc(t)+'')">'
-          + '<span style="background:#E8593C;color:#fff;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700">'+(i+1)+'</span>'
-          + '<span style="font-size:12px;color:#ccc">' + esc(t) + '</span>'
-          + '</div>';
-      }).join('');
+      tl.innerHTML = d.titulos.forEach(function(t, i) {
+        var div = document.createElement('div');
+        div.style.cssText = 'display:flex;align-items:center;gap:8px;background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:8px 10px;cursor:pointer;margin-bottom:4px';
+        div.innerHTML = '<span style="background:#E8593C;color:#fff;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700">'+(i+1)+'</span><span style="font-size:12px;color:#ccc">'+esc(t)+'</span>';
+        div.onclick = function(){ usarTituloThumb(t); };
+        tl.appendChild(div);
+      });
       document.getElementById('thumb-titulos').style.display = 'block';
     }
 
@@ -1000,7 +1001,12 @@ async function gerarThumbCorrigida() {
     });
     var d = await r.json();
     if(d.ok) {
-      container.innerHTML = '<img src="/thumbnail/thumb_corrigida/99?t='+Date.now()+'" style="width:100%;border-radius:8px" onerror="this.parentElement.innerHTML='Erro ao carregar'">';
+      var img = document.createElement('img');
+      img.src = '/thumbnail/thumb_corrigida/99?t=' + Date.now();
+      img.style.cssText = 'width:100%;border-radius:8px';
+      img.onerror = function(){ container.textContent = 'Erro ao carregar'; };
+      container.innerHTML = '';
+      container.appendChild(img);
     } else {
       container.innerHTML = '<span style="color:#f44336;font-size:11px">Erro: ' + esc(d.erro || 'Falhou') + '</span>';
     }
