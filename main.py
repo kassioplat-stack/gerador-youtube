@@ -1040,7 +1040,6 @@ def avaliar_thumbnail():
     if not imagem_b64:
         return jsonify({'erro': 'Imagem vazia'}), 400
 
-    # Extrai base64 puro
     if ',' in imagem_b64:
         media_type = imagem_b64.split(';')[0].replace('data:', '')
         imagem_b64 = imagem_b64.split(',')[1]
@@ -1048,24 +1047,39 @@ def avaliar_thumbnail():
         media_type = 'image/jpeg'
 
     canal_ctx = {
-        'animais': 'Canal de comportamento animal — personagens sao animais reais em cenas cinematograficas.',
-        'mente': 'Canal de psicologia — personagem azul 3D neutro, fundo branco, metafora visual minimalista.',
-        'geral': 'Canal generico de conteudo educativo viral.'
+        'animais': 'Canal de comportamento animal — cenas cinematograficas de animais reais, estilo documental estilizado.',
+        'mente': 'Canal de psicologia — personagem azul 3D neutro genderless, fundo branco absoluto, metafora visual minimalista, texto integrado bold.',
+        'geral': 'Canal generico de conteudo educativo viral para YouTube.'
     }.get(canal, 'Canal generico')
 
     system = (
-        "Voce e o maior especialista em thumbnails virais do YouTube em 2026."
-        " Analise a imagem fornecida e avalie seu potencial viral em 4 dimensoes de 0 a 25 pontos cada."
-        " Seja RIGOROSO — um score acima de 80 e raro. Abaixo de 50 e comum."
+        "Voce e o maior analista de thumbnails do YouTube do mundo."
+        " Ja analisou mais de 500 mil thumbnails e sabe exatamente por que uma imagem para o scroll e outra nao."
+        " Analise a thumbnail com precisao cirurgica."
         " CONTEXTO DO CANAL: " + canal_ctx +
-        " DIMENSOES:"
-        " 1. IMPACTO VISUAL (0-25): para o scroll em 0.3 segundos? Contraste, foco, elemento dominante, composicao."
-        " 2. CLAREZA DA MENSAGEM (0-25): o espectador entende o tema em 1 segundo sem ler nada? Simplicidade vs poluicao visual."
-        " 3. GATILHO EMOCIONAL (0-25): gera curiosidade, choque, identificacao ou medo de perder? Qual emocao e qual intensidade?"
-        " 4. CONSISTENCIA COM O CANAL (0-25): bate com a identidade visual descrita? Estilo, cores, personagem, tom."
-        " Para cada dimensao: score (0-25) e justificativa de 1 frase especifica sobre o que ve na imagem."
-        " Identifique o PONTO MAIS FRACO e uma SUGESTAO ESPECIFICA e visual de melhoria."
-        ' Retorne JSON: {"total": 0-100, "dimensoes": [{"nome": "string", "score": 0-25, "justificativa": "string"}], "ponto_fraco": "string", "sugestao": "string"}'
+        " ENTREGUE:"
+        " 1. SCORE em 4 dimensoes de 0-25 cada com justificativa especifica do que ve na imagem."
+        " 2. DIAGNOSTICO: 6 analises — teste dos 0.3 segundos (o que o olho ve primeiro/segundo/terceiro),"
+        " hierarquia visual (o que domina, o que compete), gatilho emocional (qual emocao e intensidade),"
+        " consistencia de canal, analise do texto (amplifica ou compete), diagnostico final em 2 frases."
+        " 3. CHECKLIST: 5 perguntas sim/nao que o espectador responderia em 0.3 segundos."
+        " 4. TITULOS: 3 opcoes de texto curto para a thumbnail — ordenadas da mais viral para a menos viral."
+        " 5. PROMPT DE CORRECAO: prompt completo em ingles para Leonardo gerar versao melhorada com texto integrado."
+        " O prompt deve corrigir ESPECIFICAMENTE os problemas identificados e manter o que funciona."
+        " DIMENSOES DE SCORE:"
+        " 1. PARADA DE SCROLL (0-25): elemento dominante claro, contraste, ponto focal unico."
+        " 2. HIERARQUIA VISUAL (0-25): caminho do olho claro, sem elementos competindo, composicao."
+        " 3. GATILHO EMOCIONAL (0-25): emocao clara, intensidade, curiosidade ou choque gerado."
+        " 4. CONSISTENCIA DE CANAL (0-25): identidade visual reconhecivel, estilo coerente, texto integrado."
+        ' Retorne JSON: {'
+        '"total": 0-100,'
+        '"dimensoes": [{"nome": "string", "score": 0-25, "justificativa": "string especifica sobre a imagem"}],'
+        '"diagnostico": "analise completa em paragrafos com as 6 dimensoes",'
+        '"checklist": [{"pergunta": "string", "ok": true/false}],'
+        '"titulos": ["titulo mais viral", "segundo", "terceiro"],'
+        '"prompt_correcao": "prompt completo em ingles para Leonardo",'
+        '"ponto_fraco": "dimensao mais fraca",'
+        '"sugestao": "sugestao especifica e visual"}'
     )
 
     try:
@@ -1074,13 +1088,13 @@ def avaliar_thumbnail():
             headers={"x-api-key": CLAUDE_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json"},
             json={
                 "model": "claude-sonnet-4-6",
-                "max_tokens": 1000,
+                "max_tokens": 2000,
                 "system": system,
                 "messages": [{
                     "role": "user",
                     "content": [
                         {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": imagem_b64}},
-                        {"type": "text", "text": "Avalie esta thumbnail seguindo as instrucoes do sistema."}
+                        {"type": "text", "text": "Analise esta thumbnail seguindo todas as instrucoes. Seja especifico sobre o que ve na imagem."}
                     ]
                 }]
             },
@@ -1093,6 +1107,36 @@ def avaliar_thumbnail():
         if 'dimensoes' in d:
             d['total'] = sum(dim.get('score', 0) for dim in d['dimensoes'])
         return jsonify(d)
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
+@app.route('/corrigir-dim-thumbnail', methods=['POST'])
+def corrigir_dim_thumbnail():
+    data = request.json
+    dimensao = data.get('dimensao', '')
+    justificativa = data.get('justificativa', '')
+    prompt_atual = data.get('prompt_atual', '')
+    canal = data.get('canal', 'geral')
+
+    system = (
+        "Voce e especialista em thumbnails virais do YouTube."
+        " Recebera um prompt de imagem e um problema especifico identificado numa dimensao."
+        " Sua tarefa: atualizar o prompt para corrigir ESPECIFICAMENTE aquela dimensao."
+        " Mantenha tudo que ja estava bom no prompt original."
+        " Retorne apenas o prompt atualizado em ingles, sem explicacoes."
+    )
+    user_msg = (
+        "PROMPT ATUAL:\n" + prompt_atual +
+        "\n\nDIMENSAO COM PROBLEMA: " + dimensao +
+        "\nPROBLEMA ESPECIFICO: " + justificativa +
+        "\n\nAtualize o prompt para corrigir esse problema especifico."
+    )
+
+    try:
+        text = chamar_claude(system, user_msg, max_tokens=500, modelo="claude-sonnet-4-6")
+        text = text.strip().strip('"')
+        return jsonify({'prompt_atualizado': text})
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
 
