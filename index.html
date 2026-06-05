@@ -137,7 +137,7 @@ textarea{height:60px;resize:none}
       <textarea id="contexto" placeholder="Descreva o angulo, animais especificos, tom da historia... ou clique em Gerar"></textarea>
     </div>
 
-    <div class="card">
+    <div class="card" id="style-section">
       <span class="slbl">Estilo visual</span>
       <div class="style-grid">
         <button class="style-card sel" id="s-stylized_game" onclick="selStyle('stylized_game')"><div class="mc-icon">🎮</div><div class="mc-name">Stylized Game</div></button>
@@ -333,6 +333,10 @@ function selModel(val) {
   document.querySelectorAll('.model-card').forEach(function(b){ b.classList.remove('sel'); });
   var el = document.getElementById('m-'+val);
   if(el) el.classList.add('sel');
+  // Esconde estilo visual para MENTE — estilo fixo e intocavel
+  var styleSection = document.getElementById('style-section');
+  if(styleSection) styleSection.style.display = val === 'mente' ? 'none' : 'block';
+  if(val === 'mente') state.estilo = 'mente';
   updatePreviewInfo();
 }
 
@@ -794,7 +798,7 @@ async function gerarPrompts() {
     var resp = await fetch('/gerar-prompts', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ script: script, roteiro: state.roteiro, duracao: state.duracao })
+      body: JSON.stringify({ script: script, roteiro: state.roteiro, duracao: state.duracao, modelo: state.modelo })
     });
     var d = await resp.json();
     if(d.erro) throw new Error(d.erro);
@@ -875,6 +879,7 @@ async function gerarImagens() {
   payload.pergunta_divisora = (document.getElementById('pergunta-edit') || {}).value || (perguntaEl ? perguntaEl.textContent : (state.roteiro.pergunta_divisora_principal || ''));
   payload.narracao_custom = (document.getElementById('script-final') || {}).value || document.getElementById('narracao-edit').value;
   payload.narracao_session_id = state.narracao_session_id || null;
+  payload.modelo = state.modelo;
   payload.prompts_custom = state.prompts;
   payload.estilo = state.estilo;
   payload.formato = state.formato;
