@@ -101,8 +101,50 @@ textarea{height:60px;resize:none}
 
   <div class="tabs">
     <button class="tab active" id="tab-btn-gerar" onclick="showTab('gerar',this)">Gerar</button>
+    <button class="tab" id="tab-btn-thumb" onclick="showTab('thumb',this)">Avaliar Thumbnail</button>
+  </div>
 
+  <div class="tab-content" id="tab-thumb">
+    <div class="card">
+      <span class="slbl">Avaliar Thumbnail</span>
+      <div style="font-size:12px;color:#555;margin-bottom:12px">Carregue qualquer thumbnail para receber um score de potencial viral com análise detalhada.</div>
 
+      <!-- Upload -->
+      <div id="thumb-upload-area" style="border:2px dashed #2a2a2a;border-radius:10px;padding:24px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:12px" onclick="document.getElementById('thumb-file-input').click()" ondragover="event.preventDefault();this.style.borderColor='#E8593C'" ondragleave="this.style.borderColor='#2a2a2a'" ondrop="handleThumbDrop(event)">
+        <div style="font-size:28px;margin-bottom:8px">🖼</div>
+        <div style="font-size:13px;color:#666">Clique para carregar ou arraste a imagem aqui</div>
+        <div style="font-size:11px;color:#444;margin-top:4px">JPG, PNG, WEBP — até 5MB</div>
+      </div>
+      <input type="file" id="thumb-file-input" accept="image/*" style="display:none" onchange="previewThumb(this)">
+
+      <!-- Preview -->
+      <div id="thumb-preview-area" style="display:none;margin-bottom:12px">
+        <img id="thumb-preview-img" style="width:100%;border-radius:10px;max-height:300px;object-fit:contain;background:#0a0a0a">
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <select id="thumb-canal" style="flex:1;background:#111;border:1px solid #333;border-radius:6px;padding:6px;font-size:12px;color:#aaa;font-family:inherit">
+            <option value="animais">Canal Animais</option>
+            <option value="mente">Canal Mente</option>
+            <option value="geral">Canal Geral</option>
+          </select>
+          <button onclick="avaliarThumbnail()" id="btn-avaliar-thumb" style="background:#E8593C;border:none;border-radius:6px;padding:6px 16px;font-size:12px;color:#fff;cursor:pointer;font-family:inherit;font-weight:700">Avaliar</button>
+          <button onclick="resetThumb()" style="background:transparent;border:1px solid #333;border-radius:6px;padding:6px 12px;font-size:12px;color:#555;cursor:pointer;font-family:inherit">Trocar</button>
+        </div>
+      </div>
+
+      <!-- Score -->
+      <div id="thumb-score-area" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <span style="font-size:12px;font-weight:700;color:#888;letter-spacing:1px">SCORE VIRAL</span>
+          <div id="thumb-score-total" style="font-size:32px;font-weight:900;color:#E8593C">--</div>
+        </div>
+        <div style="height:6px;background:#1a1a1a;border-radius:4px;margin-bottom:16px">
+          <div id="thumb-score-bar" style="height:100%;border-radius:4px;transition:width .8s ease;width:0%"></div>
+        </div>
+        <div id="thumb-score-dims" style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px"></div>
+        <div id="thumb-score-fraco" style="display:none;background:#1a0a0a;border:1px solid #5a1a1a;border-radius:8px;padding:10px;font-size:12px;color:#ff6b6b;margin-bottom:8px"></div>
+        <div id="thumb-score-sugestao" style="display:none;background:#0a1a0a;border:1px solid #1a5a1a;border-radius:8px;padding:10px;font-size:12px;color:#6bff6b"></div>
+      </div>
+    </div>
   </div>
 
   <div class="tab-content active" id="tab-gerar">
@@ -722,6 +764,94 @@ async function regenerarContexto() {
   btn.textContent = '🔄 Regenerar';
   btn.disabled = false;
   btnG.disabled = false;
+}
+
+var thumbBase64 = null;
+
+function previewThumb(input) {
+  var file = input.files[0];
+  if(!file) return;
+  processThumbFile(file);
+}
+
+function handleThumbDrop(e) {
+  e.preventDefault();
+  document.getElementById('thumb-upload-area').style.borderColor = '#2a2a2a';
+  var file = e.dataTransfer.files[0];
+  if(file && file.type.startsWith('image/')) processThumbFile(file);
+}
+
+function processThumbFile(file) {
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    thumbBase64 = e.target.result;
+    document.getElementById('thumb-preview-img').src = thumbBase64;
+    document.getElementById('thumb-upload-area').style.display = 'none';
+    document.getElementById('thumb-preview-area').style.display = 'block';
+    document.getElementById('thumb-score-area').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function resetThumb() {
+  thumbBase64 = null;
+  document.getElementById('thumb-file-input').value = '';
+  document.getElementById('thumb-upload-area').style.display = 'block';
+  document.getElementById('thumb-preview-area').style.display = 'none';
+  document.getElementById('thumb-score-area').style.display = 'none';
+}
+
+async function avaliarThumbnail() {
+  if(!thumbBase64) { alert('Carregue uma imagem primeiro'); return; }
+  var btn = document.getElementById('btn-avaliar-thumb');
+  var canal = document.getElementById('thumb-canal').value;
+  btn.textContent = '⏳ Analisando...';
+  btn.disabled = true;
+  document.getElementById('thumb-score-area').style.display = 'none';
+  try {
+    var r = await fetch('/avaliar-thumbnail', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({imagem: thumbBase64, canal: canal})
+    });
+    var d = await r.json();
+    if(d.erro) throw new Error(d.erro);
+    var total = d.total;
+    var cor = total >= 75 ? '#4caf50' : total >= 50 ? '#ff9800' : '#f44336';
+    document.getElementById('thumb-score-total').textContent = total + '/100';
+    document.getElementById('thumb-score-total').style.color = cor;
+    document.getElementById('thumb-score-bar').style.width = total + '%';
+    document.getElementById('thumb-score-bar').style.background = cor;
+    var dims = document.getElementById('thumb-score-dims');
+    dims.innerHTML = '';
+    d.dimensoes.forEach(function(dim) {
+      var pct = (dim.score / 25) * 100;
+      var dcor = dim.score >= 19 ? '#4caf50' : dim.score >= 13 ? '#ff9800' : '#f44336';
+      dims.innerHTML += '<div>'
+        + '<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
+        + '<span style="font-size:12px;color:#888">' + esc(dim.nome) + '</span>'
+        + '<span style="font-size:12px;font-weight:700;color:' + dcor + '">' + dim.score + '/25</span>'
+        + '</div>'
+        + '<div style="height:4px;background:#1a1a1a;border-radius:2px">'
+        + '<div style="height:100%;width:' + pct + '%;background:' + dcor + ';border-radius:2px;transition:width .6s ease"></div>'
+        + '</div>'
+        + '<div style="font-size:11px;color:#555;margin-top:2px">' + esc(dim.justificativa) + '</div>'
+        + '</div>';
+    });
+    var fracoEl = document.getElementById('thumb-score-fraco');
+    var sugestaoEl = document.getElementById('thumb-score-sugestao');
+    if(d.ponto_fraco) {
+      fracoEl.style.display = 'block';
+      fracoEl.innerHTML = '⚠ Ponto mais fraco: <strong>' + esc(d.ponto_fraco) + '</strong>';
+    }
+    if(d.sugestao) {
+      sugestaoEl.style.display = 'block';
+      sugestaoEl.innerHTML = '💡 ' + esc(d.sugestao);
+    }
+    document.getElementById('thumb-score-area').style.display = 'block';
+  } catch(e) { alert('Erro: ' + e.message); }
+  btn.textContent = 'Avaliar';
+  btn.disabled = false;
 }
 
 function atualizarContador() {
