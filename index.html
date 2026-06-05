@@ -800,7 +800,7 @@ async function gerarPrompts() {
     var resp = await fetch('/gerar-prompts', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ script: script, roteiro: state.roteiro })
+      body: JSON.stringify({ script: script, roteiro: state.roteiro, duracao: state.duracao })
     });
     var d = await resp.json();
     if(d.erro) throw new Error(d.erro);
