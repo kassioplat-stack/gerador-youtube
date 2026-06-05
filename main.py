@@ -101,19 +101,31 @@ def build_system(modelo, nh, dist, total_palavras):
     restricao = animais_recentes()
     restr = "Animais usados nos ultimos 7 dias - NAO repita: " + ", ".join(restricao) + "." if restricao else "Sem restricao de animais."
 
-    if modelo == "psicologia":
+    if modelo == "mente":
         ctx = (
-            "Voce cria roteiros virais de psicologia humana para YouTube. "
-            "Os casos sao comportamentos humanos em escalada: comum, surpreendente, perturbador. "
-            "Narracao em segunda pessoa direta: Voce faz isso, Voce ja percebeu. "
-            "Prompts mostram HUMANOS em situacoes cotidianas reconheciveis."
-        )
-    elif modelo == "fatos":
-        ctx = (
-            "Voce cria roteiros virais de ciencia para YouTube. "
-            "Os casos contradizem crencas populares: surpreendente, chocante, muda tudo. "
-            "A narracao comeca contradizendo uma crenca forte. "
-            "Prompts mostram ciencia, natureza, descobertas."
+            "Voce cria roteiros virais de psicologia, comportamento humano e percepcao para YouTube.\n"
+            "O canal expoe como a mente humana funciona de formas que o espectador nao quer admitir.\n"
+            "IDENTIDADE DO CANAL: autoconhecimento forcado e desconfortavel.\n"
+            "O espectador termina o video sabendo algo sobre si mesmo que nao pediu para saber.\n\n"
+
+            "BANCO DE TEMAS POR NIVEL:\n"
+            "Caso 1 FAMILIAR: procrastinacao, comparacao social, necessidade de aprovacao, medo de rejeicao, "
+            "autossabotagem, perfeccionismo paralisante, necessidade de controle, dificuldade de pedir ajuda.\n"
+            "Caso 2 PERTURBADOR: vies de confirmacao, efeito Dunning-Kruger, projecao psicologica, "
+            "disonancia cognitiva, trauma de abandono mascarado, mecanismos de defesa inconscientes, "
+            "apego ansioso, gaslighting que voce mesmo faz em si.\n"
+            "Caso 3 CHOCANTE E PESSOAL: o espectador percebe que faz isso agora, nessa semana, "
+            "nessa relacao. Temas: como o cerebro fabrica memorias falsas para se proteger, "
+            "por que voce escolhe pessoas que te machucam, como voce sabotar o que mais quer, "
+            "por que voce nunca se sente suficiente independente do que conquista.\n\n"
+
+            "REGRAS DO MODELO MENTE:\n"
+            "1. SEGUNDA PESSOA DIRETA E OBRIGATORIA: Voce faz isso. Voce ja percebeu. Sua mente faz.\n"
+            "2. ZERO distancia entre o espectador e o conteudo — cada caso e sobre ELE, nao sobre outros.\n"
+            "3. REALISMO PSICOLOGICO: baseado em estudos reais, nomes de pesquisadores, anos, universidades.\n"
+            "4. NUNCA julgue. Explique o mecanismo. O espectador se julga sozinho.\n"
+            "5. Prompts de imagem mostram HUMANOS em situacoes cotidianas reconheciveis — nao animais.\n"
+            "6. A emocao-ancora escala: caso1=reconhecimento leve, caso2=desconforto real, caso3=perturbacao pessoal.\n"
         )
     else:
         ctx = (
@@ -157,9 +169,9 @@ def build_system(modelo, nh, dist, total_palavras):
         "  \"tipo_gancho\": \"PROVOCACAO | CONTRADICAO | ESPELHO HUMANO | NUMERO CURIOSO\",\n"
         "  \"gancho_principal\": \"string — primeira frase do video, vai direto sem apresentacao\",\n"
         "  \"gancho_opcoes\": [\"variacao2\",\"variacao3\",\"variacao4\"],\n"
-        "  \"caso1\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Interessante\",\"apresentacao\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\"},\n"
-        "  \"caso2\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Surpreendente\",\"apresentacao\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\"},\n"
-        "  \"caso3\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Chocante\",\"apresentacao\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\"},\n"
+        "  \"caso1\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Interessante\",\"captura\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\"},\n"
+        "  \"caso2\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Surpreendente\",\"captura\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\"},\n"
+        "  \"caso3\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Chocante\",\"captura\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\"},\n"
         "  \"micro_promessa\": \"string — frase entre caso 2 e 3 que promete algo maior, NUNCA transicao mecanica\",\n"
         "  \"narracao_caso1\": [\"" + str(dist["caso1"]) + " frases em portugues\"],\n"
         "  \"narracao_caso2\": [\"" + str(dist["caso2"]) + " frases em portugues\"],\n"
