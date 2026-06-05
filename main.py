@@ -65,6 +65,7 @@ MODELOS_LEONARDO = {
 }
 
 ESTILOS = {
+    "mente": "3D render, blue matte rubber character, genderless faceless smooth blue figure, white absolute background, single metaphor object, centered composition, studio lighting, high contrast, minimalist, no text, no other characters, photorealistic 3D, blender render style, clean shadows",
     "stylized_game": "stylized game character art, non-realistic, vibrant colors, bold outlines, 9:16 vertical",
     "cinematic_doc": "cinematic wildlife documentary, hyper realistic, dramatic lighting, 9:16 vertical",
     "anime": "anime style illustration, vibrant colors, emotional scene, studio ghibli inspired, 9:16 vertical",
@@ -469,7 +470,14 @@ def gerar_narracao():
 def gerar():
     limpar_sessions_antigas()
     data = request.json
-    estilo = data.get('estilo', 'stylized_game')
+    narracao_custom = data.get('narracao_custom', '').strip()
+    narracao_session_id = data.get('narracao_session_id')
+    # Modelo MENTE tem estilo visual fixo — nao pode ser alterado
+    modelo_conteudo = data.get('modelo', 'animais')
+    if modelo_conteudo == 'mente':
+        estilo = 'mente'
+    else:
+        estilo = data.get('estilo', 'stylized_game')
     formato = data.get('formato', '9:16')
     prompts_custom = data.get('prompts_custom', [])
     narracao_custom = data.get('narracao_custom', '')
@@ -607,7 +615,14 @@ def regenerar_imagem():
     session_id = data.get('session_id')
     idx = data.get('idx')
     prompt = data.get('prompt', '')
-    estilo = data.get('estilo', 'stylized_game')
+    narracao_custom = data.get('narracao_custom', '').strip()
+    narracao_session_id = data.get('narracao_session_id')
+    # Modelo MENTE tem estilo visual fixo — nao pode ser alterado
+    modelo_conteudo = data.get('modelo', 'animais')
+    if modelo_conteudo == 'mente':
+        estilo = 'mente'
+    else:
+        estilo = data.get('estilo', 'stylized_game')
     formato = data.get('formato', '9:16')
     try:
         img = leonardo_generate(prompt, formato, estilo)
@@ -676,9 +691,28 @@ def gerar_prompts():
         " Use sempre o nome especifico do animal."
         ' Retorne JSON valido sem markdown: {"prompts": ["prompt1 completo", "prompt2 completo"]}'
     )
+    # Instrucao especifica por modelo
+    if data.get('modelo', 'animais') == 'mente':
+        instrucao_modelo = (
+            "PERSONAGEM FIXO — use em TODOS os prompts sem excecao:\n"
+            "blue matte rubber 3D figure, genderless, faceless, smooth surface, "
+            "no facial features except two black dot eyes, rounded head, "
+            "human proportions but stylized. Este personagem E o espectador.\n\n"
+            "DIRECOES VISUAIS — escolha a mais adequada para cada cena:\n"
+            "1. SOMBRA REVELADORA: personagem pequeno, sombra grande e diferente revelando verdade oculta\n"
+            "2. CABECA ABERTA: personagem com cabeca aberta mostrando metafora do que controla a mente\n"
+            "3. DUPLO EU: duas versoes do personagem em conflito interno\n"
+            "4. PSICOLOGIA SURREALISTA: personagem com objeto impossivel representando verdade psicologica\n\n"
+            "ESTILO FIXO de cada prompt: white background, centered composition, single metaphor, "
+            "studio lighting, high contrast, minimalist, no text\n"
+            "PROIBIDO: outros personagens, animais, cenarios complexos, texto, fundo colorido\n"
+        )
+    else:
+        instrucao_modelo = ""
     user_msg = (
         "Script de narracao:\n\n" + script +
-        "\n\nGere EXATAMENTE " + str(num_prompts) + " prompts em ingles. "
+        "\n\n" + instrucao_modelo +
+        "Gere EXATAMENTE " + str(num_prompts) + " prompts em ingles. "
         "Distribua pelo script inteiro. Use angulos variados para cenas longas."
     )
 
@@ -747,7 +781,14 @@ def gerar_thumbnails():
     roteiro = data.get('roteiro', {})
     script = data.get('script', '')
     formato = data.get('formato', '9:16')
-    estilo = data.get('estilo', 'stylized_game')
+    narracao_custom = data.get('narracao_custom', '').strip()
+    narracao_session_id = data.get('narracao_session_id')
+    # Modelo MENTE tem estilo visual fixo — nao pode ser alterado
+    modelo_conteudo = data.get('modelo', 'animais')
+    if modelo_conteudo == 'mente':
+        estilo = 'mente'
+    else:
+        estilo = data.get('estilo', 'stylized_game')
 
     # Extrai contexto do roteiro
     caso3 = roteiro.get('caso3', {})
@@ -798,7 +839,14 @@ def gerar_thumbnail_imagem():
     idx = data.get('idx', 0)
     prompt = data.get('prompt', '')
     formato = data.get('formato', '9:16')
-    estilo = data.get('estilo', 'stylized_game')
+    narracao_custom = data.get('narracao_custom', '').strip()
+    narracao_session_id = data.get('narracao_session_id')
+    # Modelo MENTE tem estilo visual fixo — nao pode ser alterado
+    modelo_conteudo = data.get('modelo', 'animais')
+    if modelo_conteudo == 'mente':
+        estilo = 'mente'
+    else:
+        estilo = data.get('estilo', 'stylized_game')
     session_id = data.get('session_id', '')
 
     try:
