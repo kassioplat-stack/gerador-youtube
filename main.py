@@ -1031,6 +1031,72 @@ def gerar_contexto():
         return jsonify({'erro': str(e)}), 500
 
 
+@app.route('/avaliar-thumbnail', methods=['POST'])
+def avaliar_thumbnail():
+    data = request.json
+    imagem_b64 = data.get('imagem', '')
+    canal = data.get('canal', 'geral')
+
+    if not imagem_b64:
+        return jsonify({'erro': 'Imagem vazia'}), 400
+
+    # Extrai base64 puro
+    if ',' in imagem_b64:
+        media_type = imagem_b64.split(';')[0].replace('data:', '')
+        imagem_b64 = imagem_b64.split(',')[1]
+    else:
+        media_type = 'image/jpeg'
+
+    canal_ctx = {
+        'animais': 'Canal de comportamento animal — personagens sao animais reais em cenas cinematograficas.',
+        'mente': 'Canal de psicologia — personagem azul 3D neutro, fundo branco, metafora visual minimalista.',
+        'geral': 'Canal generico de conteudo educativo viral.'
+    }.get(canal, 'Canal generico')
+
+    system = (
+        "Voce e o maior especialista em thumbnails virais do YouTube em 2026."
+        " Analise a imagem fornecida e avalie seu potencial viral em 4 dimensoes de 0 a 25 pontos cada."
+        " Seja RIGOROSO — um score acima de 80 e raro. Abaixo de 50 e comum."
+        " CONTEXTO DO CANAL: " + canal_ctx +
+        " DIMENSOES:"
+        " 1. IMPACTO VISUAL (0-25): para o scroll em 0.3 segundos? Contraste, foco, elemento dominante, composicao."
+        " 2. CLAREZA DA MENSAGEM (0-25): o espectador entende o tema em 1 segundo sem ler nada? Simplicidade vs poluicao visual."
+        " 3. GATILHO EMOCIONAL (0-25): gera curiosidade, choque, identificacao ou medo de perder? Qual emocao e qual intensidade?"
+        " 4. CONSISTENCIA COM O CANAL (0-25): bate com a identidade visual descrita? Estilo, cores, personagem, tom."
+        " Para cada dimensao: score (0-25) e justificativa de 1 frase especifica sobre o que ve na imagem."
+        " Identifique o PONTO MAIS FRACO e uma SUGESTAO ESPECIFICA e visual de melhoria."
+        ' Retorne JSON: {"total": 0-100, "dimensoes": [{"nome": "string", "score": 0-25, "justificativa": "string"}], "ponto_fraco": "string", "sugestao": "string"}'
+    )
+
+    try:
+        r = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={"x-api-key": CLAUDE_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json"},
+            json={
+                "model": "claude-sonnet-4-6",
+                "max_tokens": 1000,
+                "system": system,
+                "messages": [{
+                    "role": "user",
+                    "content": [
+                        {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": imagem_b64}},
+                        {"type": "text", "text": "Avalie esta thumbnail seguindo as instrucoes do sistema."}
+                    ]
+                }]
+            },
+            timeout=30
+        )
+        resp = r.json()
+        text = resp['content'][0]['text']
+        text = re.sub(r"```json|```", "", text).strip()
+        d = json.loads(text)
+        if 'dimensoes' in d:
+            d['total'] = sum(dim.get('score', 0) for dim in d['dimensoes'])
+        return jsonify(d)
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
