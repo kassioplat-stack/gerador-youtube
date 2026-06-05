@@ -597,18 +597,25 @@ def gerar_prompts():
     limpar_sessions_antigas()
     data = request.json
     script = data.get('script', '').strip()
-    print("GERAR-PROMPTS chars=" + str(len(script)))
+    duracao = str(data.get('duracao', '60'))
+    print("GERAR-PROMPTS chars=" + str(len(script)) + " duracao=" + duracao)
     if not script:
         return jsonify({'erro': 'Script vazio — gere a narracao primeiro'}), 400
 
+    # Calcula numero exato de prompts: 1 imagem a cada 3 segundos
+    dur_s = DURACOES.get(duracao, 60)
+    num_prompts = max(round(dur_s / 3), 8)
+    print("GERAR-PROMPTS num_prompts=" + str(num_prompts))
+
     system = (
         "Voce e um diretor de arte especialista em videos curtos virais do YouTube."
-        " Recebera um script de narracao e deve identificar os MOMENTOS NARRATIVOS."
-        " Um momento NAO e uma frase gramatical — e um bloco de significado narrativo."
-        " Frases curtissimas em sequencia formam UM unico momento — nao divida em varios prompts."
-        " Para cada momento gere um prompt que traduz LITERALMENTE aquele momento visual."
-        " Para 40s espera-se 15-20 prompts. Para 60s, 20-30. Para 90s, 35-50. Para 120s, 45-60. NUNCA agrupe mais de 2 frases em um unico momento — prefira mais prompts com cenas curtas."
-        " FORMATO: [descricao fisica ESPECIFICA do animal] + [acao EXATA descrita no script] + [angulo] + [iluminacao] + [movimento]."
+        " Recebera um script de narracao e deve gerar EXATAMENTE " + str(num_prompts) + " prompts de imagem."
+        " Distribua as cenas pelo script inteiro de forma proporcional."
+        " Se o script tiver menos momentos que o numero pedido, divida momentos longos"
+        " em multiplas cenas do mesmo momento com angulos diferentes — close-up, wide shot, macro."
+        " Se o script tiver mais momentos, agrupe os menos importantes."
+        " O objetivo e sempre EXATAMENTE " + str(num_prompts) + " prompts — nem mais, nem menos."
+        " FORMATO de cada prompt: [descricao fisica ESPECIFICA do animal] + [acao EXATA] + [angulo] + [iluminacao] + [movimento]."
         " Defina as caracteristicas fisicas do animal no primeiro prompt e repita em TODOS os outros desse animal."
         " Angulos: wide shot para apresentacao, close-up para tensao, extreme close-up para twist."
         " Iluminacao: golden hour no inicio, dramatic shadows na escalada, blue hour na revelacao."
@@ -618,10 +625,14 @@ def gerar_prompts():
         " Os prompts devem ser em INGLES."
         ' Retorne JSON valido sem markdown: {"prompts": ["prompt1", "prompt2"]}'
     )
-    user_msg = "Script:\n\n" + script + "\n\nGere um prompt em ingles por momento narrativo."
+    user_msg = (
+        "Script de narracao:\n\n" + script +
+        "\n\nGere EXATAMENTE " + str(num_prompts) + " prompts em ingles. "
+        "Distribua pelo script inteiro. Use angulos variados para cenas longas."
+    )
 
     try:
-        text = chamar_claude(system, user_msg, max_tokens=4000, modelo="claude-sonnet-4-6")
+        text = chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-6")
         print("GERAR-PROMPTS resposta chars=" + str(len(text)))
         text = re.sub(r"```json|```", "", text).strip()
         text = re.sub(r',[ \t\n]*([}\]])', r'\1', text)
