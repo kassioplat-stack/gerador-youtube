@@ -318,7 +318,7 @@ textarea{height:60px;resize:none}
         <textarea id="gancho-edit" style="margin-top:8px;height:50px;background:#0a0a0a;border:1px solid #444;color:#fff;font-size:13px" oninput="atualizarScriptFinal()" placeholder="Edite o gancho aqui..."></textarea>
       </div>
       <div class="card">
-        <span class="slbl">Narracao completa</span>
+        <span class="slbl" id="label-narracao-corpo">Corpo Elaborado</span>
         <textarea id="narracao-edit" style="height:200px" oninput="atualizarScriptFinal()"></textarea>
       </div>
 
@@ -381,13 +381,7 @@ textarea{height:60px;resize:none}
   </div>
 
   
-  </div>
-
-  
-
-</div>
-
-<script>
+  </di
 var state = {
   modelo: 'animais',
   estilo: 'stylized_game',
@@ -708,12 +702,15 @@ function renderRoteiro(d) {
   // Corpo da narração — diferente para MENTE e Animal
   var narracao;
   if(ehMente) {
+    // Corpo elaborado = APENAS as 3 camadas. Gancho, frase final e pergunta ficam separados.
     narracao = []
       .concat(d.narracao_camada1 || [])
       .concat(d.narracao_camada2 || [])
       .concat(d.narracao_camada3 || [])
-      .concat(d.narracao_final || [])
       .filter(Boolean).join(' ');
+    // Atualiza label
+    var labelNar = document.getElementById('label-narracao-corpo');
+    if(labelNar) labelNar.textContent = 'Corpo Elaborado';
     // Prompts do MENTE já vêm no roteiro
     state.prompts = []
       .concat(d.prompts_camada1 || [])
@@ -748,6 +745,8 @@ function renderRoteiro(d) {
     var resumoEl = document.getElementById('casos-resumo');
     if(resumoEl) resumoEl.innerHTML = resumoMente;
   } else {
+    var labelNar = document.getElementById('label-narracao-corpo');
+    if(labelNar) labelNar.textContent = 'Narracao completa';
     narracao = []
       .concat(d.narracao_caso1 || [])
       .concat(d.narracao_caso2 || [])
@@ -1233,7 +1232,17 @@ function atualizarScriptFinal() {
   var gancho = (document.getElementById('gancho-edit') || {}).value || (ganchoEl ? ganchoEl.textContent.trim() : '');
   var frase = (document.getElementById('frase-edit') || {}).value || (fraseEl ? fraseEl.textContent.trim() : '');
   var pergunta = (document.getElementById('pergunta-edit') || {}).value || (perguntaEl ? perguntaEl.textContent.trim() : '');
-  var script = [gancho, corpo.trim(), frase, pergunta].filter(function(p){ return p; }).join(' ');
+  var rot = state.roteiro || {};
+  var partes;
+  if(rot._modelo === 'mente') {
+    // MENTE: gancho + corpo(camadas) + narracao_final + frase + pergunta
+    var narFinal = (rot.narracao_final || []).join(' ');
+    partes = [gancho, corpo.trim(), narFinal, frase, pergunta];
+  } else {
+    // Animal: gancho + corpo completo + frase + pergunta
+    partes = [gancho, corpo.trim(), frase, pergunta];
+  }
+  var script = partes.filter(function(p){ return p && p.trim(); }).join(' ');
   var sf = document.getElementById('script-final');
   if(sf) { sf.value = script; atualizarContador(); }
 }
@@ -1573,6 +1582,8 @@ function esc(s) {
 
 document.getElementById('titulo').addEventListener('keydown', function(e) {
   if(e.key === 'Enter') gerarRoteiro();
+});
+r') gerarRoteiro();
 });
 </script>
 </body>
