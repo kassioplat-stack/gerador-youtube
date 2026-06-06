@@ -379,9 +379,11 @@ textarea{height:60px;resize:none}
 
     </div>
   </div>
+    </div>
+  </div>
+</div>
 
-  
-  </di
+<script>
 var state = {
   modelo: 'animais',
   estilo: 'stylized_game',
@@ -433,7 +435,7 @@ function restaurarEstado() {
     // Restaura chips — desmarca todos antes de marcar o correto
     if(salvo.duracao) {
       document.querySelectorAll('.chips-row .chip').forEach(function(c){ c.classList.remove('sel'); });
-      selChip('duracao', salvo.duracao, 'd40','d60','d90','d120','d180','d240','d300');
+      selChip('duracao', salvo.duracao);
     }
     if(salvo.modelo) selModel(salvo.modelo);
     if(salvo.estilo) selStyle(salvo.estilo);
@@ -442,7 +444,10 @@ function restaurarEstado() {
     if(salvo.roteiro) {
       state.roteiro = salvo.roteiro;
       state.prompts = salvo.prompts || [];
+      state.sessionId = salvo.sessionId || null;
       state.narracao_session_id = salvo.narracao_session_id || null;
+      state.narracao_gerada = salvo.narracao_gerada || '';
+      state.zipPath = salvo.zipPath || null;
       renderRoteiro(salvo.roteiro);
       document.getElementById('roteiro-preview').style.display = 'block';
       // Restaura edições manuais
@@ -454,6 +459,8 @@ function restaurarEstado() {
       // Habilita botões
       var btnN = document.getElementById('btn-narracao');
       if(btnN) { btnN.disabled = false; btnN.style.opacity = '1'; }
+      var btnP = document.getElementById('btn-prompts');
+      if(btnP) { btnP.disabled = false; btnP.style.opacity = '1'; }
       // Restaura prompts
       if(salvo.prompts && salvo.prompts.length) {
         renderPrompts(salvo.prompts);
@@ -1225,26 +1232,26 @@ function setBtnLoading(id, loading, textoOriginal, textoLoading) {
 }
 
 function atualizarScriptFinal() {
-  var ganchoEl = document.querySelector('#gancho-opts .gancho-opt.sel');
-  var fraseEl = document.querySelector('#frase-opts .gancho-opt.sel');
-  var perguntaEl = document.querySelector('#pergunta-opts .gancho-opt.sel');
-  var corpo = (document.getElementById('narracao-edit') || {}).value || '';
-  var gancho = (document.getElementById('gancho-edit') || {}).value || (ganchoEl ? ganchoEl.textContent.trim() : '');
-  var frase = (document.getElementById('frase-edit') || {}).value || (fraseEl ? fraseEl.textContent.trim() : '');
-  var pergunta = (document.getElementById('pergunta-edit') || {}).value || (perguntaEl ? perguntaEl.textContent.trim() : '');
-  var rot = state.roteiro || {};
-  var partes;
-  if(rot._modelo === 'mente') {
-    // MENTE: gancho + corpo(camadas) + narracao_final + frase + pergunta
-    var narFinal = (rot.narracao_final || []).join(' ');
-    partes = [gancho, corpo.trim(), narFinal, frase, pergunta];
-  } else {
-    // Animal: gancho + corpo completo + frase + pergunta
-    partes = [gancho, corpo.trim(), frase, pergunta];
-  }
-  var script = partes.filter(function(p){ return p && p.trim(); }).join(' ');
-  var sf = document.getElementById('script-final');
-  if(sf) { sf.value = script; atualizarContador(); }
+  try {
+    var ganchoEl = document.querySelector('#gancho-opts .gancho-opt.sel');
+    var fraseEl = document.querySelector('#frase-opts .gancho-opt.sel');
+    var perguntaEl = document.querySelector('#pergunta-opts .gancho-opt.sel');
+    var corpo = (document.getElementById('narracao-edit') || {}).value || '';
+    var gancho = (document.getElementById('gancho-edit') || {}).value || (ganchoEl ? ganchoEl.textContent.trim() : '');
+    var frase = (document.getElementById('frase-edit') || {}).value || (fraseEl ? fraseEl.textContent.trim() : '');
+    var pergunta = (document.getElementById('pergunta-edit') || {}).value || (perguntaEl ? perguntaEl.textContent.trim() : '');
+    var rot = state.roteiro || {};
+    var partes;
+    if(rot._modelo === 'mente') {
+      var narFinal = (rot.narracao_final || []).join(' ');
+      partes = [gancho, corpo.trim(), narFinal, frase, pergunta];
+    } else {
+      partes = [gancho, corpo.trim(), frase, pergunta];
+    }
+    var script = partes.filter(function(p){ return p && p.trim(); }).join(' ');
+    var sf = document.getElementById('script-final');
+    if(sf) { sf.value = script; atualizarContador(); }
+  } catch(e) { console.log('atualizarScriptFinal erro:', e); }
 }
 
 async function gerarPrompts() {
@@ -1582,8 +1589,6 @@ function esc(s) {
 
 document.getElementById('titulo').addEventListener('keydown', function(e) {
   if(e.key === 'Enter') gerarRoteiro();
-});
-r') gerarRoteiro();
 });
 </script>
 </body>
