@@ -539,6 +539,7 @@ def gerar():
     prompts_custom = data.get('prompts_custom', [])
     narracao_custom = data.get('narracao_custom', '')
     narracao_session_id = data.get('narracao_session_id')
+    so_audio = data.get('so_audio', False)
 
     narracao_txt = narracao_custom if narracao_custom else ' '.join(filter(None, [
         data.get('gancho', ''),
@@ -563,6 +564,18 @@ def gerar():
     def stream():
         sessions[session_id] = {'imagens': {}, 'prompts': prompts, 'audio': None}
         yield 'data:' + json.dumps({'session_id': session_id}) + '\n\n'
+        # Modo so_audio — pula imagens e gera apenas audio
+        if so_audio:
+            try:
+                audio_data, audio_service = gerar_audio(narracao_txt, session_id)
+                sessions[session_id]['audio'] = audio_data
+                if audio_data:
+                    yield 'data:' + json.dumps({'audio_ok': True}) + '\n\n'
+                else:
+                    yield 'data:' + json.dumps({'erro': 'Falha ao gerar audio'}) + '\n\n'
+            except Exception as e:
+                yield 'data:' + json.dumps({'erro': str(e)}) + '\n\n'
+            return
         yield 'data:' + json.dumps({'step': 1, 'status': 'done', 'msg': 'Roteiro aprovado', 'progress': 15}) + '\n\n'
 
         yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': 'Gerando imagens...', 'progress': 18}) + '\n\n'
