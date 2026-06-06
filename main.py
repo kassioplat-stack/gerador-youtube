@@ -88,7 +88,6 @@ def calc_frases(dur, nh):
         return {"caso1": round(total*0.25), "caso2": round(total*0.20), "caso3": round(total*0.25), "final": round(total*0.30)}
 
 def build_system_mente(duracao_s, total_palavras):
-    """System prompt para o modelo MENTE — 3 camadas de um unico comportamento."""
     frases_por_camada = max(round(duracao_s / 9), 3)
     frases_final = max(round(duracao_s / 18), 2)
 
@@ -110,7 +109,7 @@ def build_system_mente(duracao_s, total_palavras):
         "CAMADA 2 — O MECANISMO (" + str(frases_por_camada) + " frases):\n"
         "Revela a engrenagem psicologica por tras do comportamento.\n"
         "Baseado em ciencia real: nome do fenomeno, pesquisador, universidade, ano.\n"
-        "O espectador começa a se desconfortar porque entende que nao e acidente.\n"
+        "O espectador comeca a se desconfortar porque entende que nao e acidente.\n"
         "Nao e falha de carater — e arquitetura cerebral. Isso e ainda mais perturbador.\n\n"
 
         "CAMADA 3 — A FERIDA (" + str(frases_por_camada) + " frases):\n"
@@ -725,23 +724,43 @@ def gerar_prompts():
     if not script:
         return jsonify({'erro': 'Script vazio — gere a narracao primeiro'}), 400
 
-    system = (
-        "Voce e um diretor de arte especialista em videos curtos virais do YouTube."
-        " Recebera um script de narracao e deve identificar os MOMENTOS NARRATIVOS."
-        " Um momento NAO e uma frase gramatical — e um bloco de significado narrativo."
-        " Frases curtissimas em sequencia formam UM unico momento — nao divida em varios prompts."
-        " Para cada momento gere um prompt que traduz LITERALMENTE aquele momento visual."
-        " Para 40s espera-se 10-15 prompts. Para 60s, 15-25. Para 90s, 25-35."
-        " FORMATO: [descricao fisica ESPECIFICA do animal] + [acao EXATA descrita no script] + [angulo] + [iluminacao] + [movimento]."
-        " Defina as caracteristicas fisicas do animal no primeiro prompt e repita em TODOS os outros desse animal."
-        " Angulos: wide shot para apresentacao, close-up para tensao, extreme close-up para twist."
-        " Iluminacao: golden hour no inicio, dramatic shadows na escalada, blue hour na revelacao."
-        " Movimento: mid-motion para acao, frozen in the moment para choque, slow motion blur para emocao."
-        " PROIBIDO: cinematic, realistic, documentary, photographic, an animal."
-        " Use o nome especifico do animal — nunca pronomes sem referencia."
-        " Os prompts devem ser em INGLES."
-        ' Retorne JSON valido sem markdown: {"prompts": ["prompt1", "prompt2"]}'
-    )
+    modelo = data.get('modelo', 'animais')
+
+    if modelo == 'mente':
+        system = (
+            "Voce e um diretor de arte especialista em videos curtos virais do YouTube."
+            " Recebera um script de narracao sobre psicologia humana e deve identificar os MOMENTOS NARRATIVOS."
+            " Um momento NAO e uma frase gramatical — e um bloco de significado narrativo."
+            " Para cada momento gere um prompt visual com o PERSONAGEM FIXO abaixo."
+            " PERSONAGEM OBRIGATORIO em TODOS os prompts: blue matte rubber 3D humanoid figure, genderless, faceless, smooth surface, two small black dot eyes, rounded head, white absolute background, soft studio lighting."
+            " Escolha UMA direcao visual para cada prompt:\n"
+            " 1. SOMBRA REVELADORA: figura pequena, sombra enorme e diferente revelando algo oculto\n"
+            " 2. CABECA ABERTA: topo da cabeca aberto com objeto metaforico do momento narrativo\n"
+            " 3. DUPLO EU: duas figuras identicas em conflito ou tensao\n"
+            " 4. PSICOLOGIA SURREALISTA: figura com elemento impossivel representando a verdade psicologica\n"
+            " Fundo branco absoluto. Sem texto. Sem outros personagens."
+            " PROIBIDO: cinematic, realistic, documentary, photographic, human, face, skin."
+            " Os prompts devem ser em INGLES."
+            ' Retorne JSON valido sem markdown: {"prompts": ["prompt1", "prompt2"]}'
+        )
+    else:
+        system = (
+            "Voce e um diretor de arte especialista em videos curtos virais do YouTube."
+            " Recebera um script de narracao e deve identificar os MOMENTOS NARRATIVOS."
+            " Um momento NAO e uma frase gramatical — e um bloco de significado narrativo."
+            " Frases curtissimas em sequencia formam UM unico momento — nao divida em varios prompts."
+            " Para cada momento gere um prompt que traduz LITERALMENTE aquele momento visual."
+            " Para 40s espera-se 10-15 prompts. Para 60s, 15-25. Para 90s, 25-35."
+            " FORMATO: [descricao fisica ESPECIFICA do animal] + [acao EXATA descrita no script] + [angulo] + [iluminacao] + [movimento]."
+            " Defina as caracteristicas fisicas do animal no primeiro prompt e repita em TODOS os outros desse animal."
+            " Angulos: wide shot para apresentacao, close-up para tensao, extreme close-up para twist."
+            " Iluminacao: golden hour no inicio, dramatic shadows na escalada, blue hour na revelacao."
+            " Movimento: mid-motion para acao, frozen in the moment para choque, slow motion blur para emocao."
+            " PROIBIDO: cinematic, realistic, documentary, photographic, an animal."
+            " Use o nome especifico do animal — nunca pronomes sem referencia."
+            " Os prompts devem ser em INGLES."
+            ' Retorne JSON valido sem markdown: {"prompts": ["prompt1", "prompt2"]}'
+        )
     user_msg = "Script:\n\n" + script + "\n\nGere um prompt em ingles por momento narrativo."
 
     try:
