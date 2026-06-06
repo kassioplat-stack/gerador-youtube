@@ -988,6 +988,13 @@ def corrigir_dimensao():
     try:
         text = chamar_claude(system, user_msg, max_tokens=2000, modelo="claude-sonnet-4-6")
         text = re.sub(r"```json|```", "", text).strip()
+        # Remove trailing commas e texto extra apos o JSON
+        text = re.sub(r',\s*([}\]])', r'', text)
+        # Extrai apenas o primeiro objeto JSON valido
+        import re as re2
+        m = re2.search(r'\{.*\}', text, re2.DOTALL)
+        if m:
+            text = m.group()
         d = json.loads(text)
         return jsonify(d)
     except Exception as e:
