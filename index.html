@@ -692,6 +692,8 @@ function renderOpts(containerId, items, grp) {
 }
 
 function renderRoteiro(d) {
+  var ehMente = d._modelo === 'mente';
+
   renderOpts('gancho-opts', [d.gancho_principal].concat(d.gancho_opcoes || []), 'gancho');
   renderOpts('frase-opts', [d.frase_final_principal].concat(d.frase_final_opcoes || []), 'frase');
   renderOpts('pergunta-opts', [d.pergunta_divisora_principal].concat(d.pergunta_divisora_opcoes || []), 'pergunta');
@@ -702,33 +704,88 @@ function renderRoteiro(d) {
   var pe = document.getElementById('pergunta-edit');
   if(pe && d.pergunta_divisora_principal) pe.value = d.pergunta_divisora_principal;
 
-  // Caixa de narração: só o corpo
-  var narracao = []
-    .concat(d.narracao_caso1 || [])
-    .concat(d.narracao_caso2 || [])
-    .concat(d.micro_promessa ? [d.micro_promessa] : [])
-    .concat(d.narracao_caso3 || [])
-    .concat(d.narracao_final || [])
-    .filter(Boolean).join(' ');
-  document.getElementById('narracao-edit').value = narracao;
+  // Corpo da narração — diferente para MENTE e Animal
+  var narracao;
+  if(ehMente) {
+    narracao = []
+      .concat(d.narracao_camada1 || [])
+      .concat(d.narracao_camada2 || [])
+      .concat(d.narracao_camada3 || [])
+      .concat(d.narracao_final || [])
+      .filter(Boolean).join(' ');
+    // Prompts do MENTE já vêm no roteiro
+    state.prompts = []
+      .concat(d.prompts_camada1 || [])
+      .concat(d.prompts_camada2 || [])
+      .concat(d.prompts_camada3 || [])
+      .concat(d.prompts_final || []);
+    // Mostra resumo das camadas
+    var resumoMente = '';
+    var camadas = [
+      {key: 'camada1', label: 'O ESPELHO', cor: '#5b9bd5'},
+      {key: 'camada2', label: 'O MECANISMO', cor: '#ff9800'},
+      {key: 'camada3', label: 'A FERIDA', cor: '#E8593C'}
+    ];
+    camadas.forEach(function(c) {
+      var cam = d[c.key] || {};
+      if(!cam.titulo && !cam.descricao) return;
+      resumoMente += '<div style="margin-bottom:10px;padding:10px;background:#111;border-left:3px solid ' + c.cor + ';border-radius:0 6px 6px 0">'
+        + '<div style="font-size:10px;font-weight:700;color:' + c.cor + ';margin-bottom:4px;letter-spacing:1px">' + c.label + '</div>'
+        + '<div style="font-size:12px;color:#ccc">' + esc(cam.descricao || '') + '</div>'
+        + (cam.pesquisa ? '<div style="font-size:11px;color:#555;margin-top:4px;font-style:italic">📚 ' + esc(cam.pesquisa) + '</div>' : '')
+        + (cam.twist ? '<div style="font-size:11px;color:#aaa;margin-top:4px">↳ ' + esc(cam.twist) + '</div>' : '')
+        + '</div>';
+    });
+    // Comportamento e mecanismo no topo
+    if(d.comportamento || d.mecanismo) {
+      var tagsMente = '<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">';
+      if(d.comportamento) tagsMente += '<span style="background:#1a2a3a;color:#5b9bd5;border-radius:4px;padding:3px 8px;font-size:11px">🧠 ' + esc(d.comportamento) + '</span>';
+      if(d.mecanismo) tagsMente += '<span style="background:#1a1a2a;color:#9b7bd5;border-radius:4px;padding:3px 8px;font-size:11px">⚙ ' + esc(d.mecanismo) + '</span>';
+      tagsMente += '</div>';
+      resumoMente = tagsMente + resumoMente;
+    }
+    var resumoEl = document.getElementById('casos-resumo');
+    if(resumoEl) resumoEl.innerHTML = resumoMente;
+  } else {
+    narracao = []
+      .concat(d.narracao_caso1 || [])
+      .concat(d.narracao_caso2 || [])
+      .concat(d.micro_promessa ? [d.micro_promessa] : [])
+      .concat(d.narracao_caso3 || [])
+      .concat(d.narracao_final || [])
+      .filter(Boolean).join(' ');
+    // Resumo Animal
+    var resumoAnimal = '';
+    var casos = [
+      {key: 'caso1', cor: '#4caf50'},
+      {key: 'caso2', cor: '#ff9800'},
+      {key: 'caso3', cor: '#E8593C'}
+    ];
+    casos.forEach(function(c) {
+      var caso = d[c.key] || {};
+      if(!caso.nome && !caso.animal) return;
+      resumoAnimal += '<div style="margin-bottom:8px;padding:8px;background:#111;border-left:3px solid ' + c.cor + ';border-radius:0 6px 6px 0">'
+        + '<div style="display:flex;gap:6px;align-items:center;margin-bottom:3px">'
+        + '<span style="font-size:10px;font-weight:700;color:' + c.cor + '">' + esc(caso.nivel || '') + '</span>'
+        + '<span style="font-size:12px;color:#ccc;font-weight:600">' + esc(caso.animal || '') + '</span>'
+        + '</div>'
+        + '<div style="font-size:11px;color:#666">' + esc(caso.twist || '') + '</div>'
+        + '</div>';
+    });
+    if(d.micro_promessa) {
+      resumoAnimal += '<div style="font-size:11px;color:#888;font-style:italic;padding:6px 10px;background:#0a0a0a;border-radius:6px;margin-bottom:8px">↳ ' + esc(d.micro_promessa) + '</div>';
+    }
+    var resumoEl = document.getElementById('casos-resumo');
+    if(resumoEl) resumoEl.innerHTML = resumoAnimal;
+  }
 
-  // Script Final = gancho + corpo + frase final + pergunta divisora
+  document.getElementById('narracao-edit').value = narracao;
   atualizarScriptFinal();
 
-  var html = '';
-  state.prompts.forEach(function(p, i) {
-    html += '<div style="display:flex;gap:8px;margin-bottom:8px">'
-      + '<span style="background:#E8593C;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;flex-shrink:0">' + (i+1) + '</span>'
-      + '<div style="flex:1">'
-      + '<textarea id="pt'+i+'" style="width:100%;background:#111;border:1px solid #333;border-radius:6px;padding:8px;font-size:12px;color:#ccc;font-family:inherit;resize:none;height:60px">' + esc(p) + '</textarea>'
-      + '<div style="display:flex;gap:6px;margin-top:3px">'
-      + '<button onclick="traduzirPrompt(' + i + ')" style="background:transparent;border:1px solid #333;border-radius:4px;padding:2px 8px;font-size:11px;color:#555;cursor:pointer;font-family:inherit">Traduzir</button>'
-      + '<button onclick="regenPrompt(' + i + ')" style="background:#E8593C;color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;font-family:inherit">Regenerar</button>'
-      + '</div>'
-      + '<div id="trad'+i+'" style="font-size:11px;color:#555;margin-top:3px;font-style:italic"></div>'
-      + '</div></div>';
-  });
-  document.getElementById('prompts-list').innerHTML = html;
+  // Renderiza prompts
+  if(state.prompts && state.prompts.length) {
+    renderPrompts(state.prompts);
+  }
   document.getElementById('roteiro-preview').style.display = 'block';
 }
 
