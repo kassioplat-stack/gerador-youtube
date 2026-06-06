@@ -277,11 +277,26 @@ def build_system(modelo, nh, dist, total_palavras):
 def parse_json_robusto(text):
     import re as _re, json as _json
     text = _re.sub(r"```json|```", "", text).strip()
+    # Remove trailing commas
     text = _re.sub(r",\s*([}\]])", r"\1", text)
+    # Extrai bloco JSON
     m = _re.search(r"\{.*\}", text, _re.DOTALL)
     if m:
         text = m.group()
-    return _json.loads(text)
+    # Tenta parse direto
+    try:
+        return _json.loads(text)
+    except _json.JSONDecodeError:
+        # Remove caracteres de controle problemáticos
+        text = _re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", text)
+        # Remove newlines dentro de strings JSON
+        text = _re.sub(r'(?<=:)\s*"([^"]*?)\n([^"]*?)"', lambda m: ': "' + m.group(1).replace("\n", " ") + m.group(2) + '"', text)
+        try:
+            return _json.loads(text)
+        except:
+            # Última tentativa: usa json5 approach - converte aspas simples
+            text = text.replace("'", '"')
+            return _json.loads(text)
 
 def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-6"):
     for tentativa in range(3):
