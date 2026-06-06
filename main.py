@@ -55,17 +55,7 @@ def animais_recentes():
             pass
     return recentes
 
-MODELOS_LEONARDO = {
-    "stylized_game":     "7b592283-e8a7-4c5a-9ba6-d18c31f258b9",  # Leonardo Creative
-    "hyperrealistic":    "aa77f04e-3eec-4034-9c07-d0f619684628",  # Leonardo Kino XL
-    "cinematic_dark":    "aa77f04e-3eec-4034-9c07-d0f619684628",  # Leonardo Kino XL
-    "oil_painting":      "7b592283-e8a7-4c5a-9ba6-d18c31f258b9",  # Leonardo Creative
-    "anime":             "e316348f-7773-490e-adcd-46757c738eb9",  # Anime XL
-    "watercolor":        "7b592283-e8a7-4c5a-9ba6-d18c31f258b9",  # Leonardo Creative
-}
-
 ESTILOS = {
-    "mente": "3D render, blue matte rubber character, genderless faceless smooth blue figure, white absolute background, single metaphor object, centered composition, studio lighting, high contrast, minimalist, no text, no other characters, photorealistic 3D, blender render style, clean shadows",
     "stylized_game": "stylized game character art, non-realistic, vibrant colors, bold outlines, 9:16 vertical",
     "cinematic_doc": "cinematic wildlife documentary, hyper realistic, dramatic lighting, 9:16 vertical",
     "anime": "anime style illustration, vibrant colors, emotional scene, studio ghibli inspired, 9:16 vertical",
@@ -87,10 +77,9 @@ PALAVRAS  = {"40": 88, "60": 130, "90": 195, "120": 260, "180": 390, "240": 520,
 
 def calc_frases(dur, nh):
     # Numero de frases por historia baseado na duracao
-    # ~2.5 palavras/segundo, ~5 palavras por frase curta = ~2s por frase
-    # Mistura frases curtas de impacto (2s) e medias descritivas (3s)
+    # ~2.5 palavras/segundo, ~8 palavras por frase = ~3s por frase em media
     d = DURACOES.get(str(dur), 60)
-    total = max(round(d / 2), nh * 6 + 6)
+    total = max(round(d / 3), nh * 4 + 4)
     if nh == 1:
         return {"caso1": round(total*0.70), "caso2": 0, "caso3": 0, "final": round(total*0.30)}
     elif nh == 2:
@@ -102,35 +91,19 @@ def build_system(modelo, nh, dist, total_palavras):
     restricao = animais_recentes()
     restr = "Animais usados nos ultimos 7 dias - NAO repita: " + ", ".join(restricao) + "." if restricao else "Sem restricao de animais."
 
-    if modelo == "mente":
+    if modelo == "psicologia":
         ctx = (
-            "MISSAO DO CANAL — leia antes de escrever uma palavra:\n"
-            "Revelar o mecanismo psicologico oculto por tras de comportamentos humanos.\n"
-            "Nao e autoajuda. Nao e motivacao. Nao e conselho.\n"
-            "E expor o que esta acontecendo embaixo — o que voce nao ve, o que sua mente faz sem te avisar.\n"
-            "O espectador nao aprende algo novo. Ele RECONHECE algo que ja fazia sem saber o nome.\n"
-            "Isso e mais perturbador do que qualquer fato novo.\n\n"
-            "IDENTIDADE DO CANAL: autoconhecimento forcado e desconfortavel.\n"
-            "O espectador termina o video sabendo algo sobre si mesmo que nao pediu para saber.\n\n"
-
-            "BANCO DE TEMAS POR NIVEL:\n"
-            "Caso 1 FAMILIAR: procrastinacao, comparacao social, necessidade de aprovacao, medo de rejeicao, "
-            "autossabotagem, perfeccionismo paralisante, necessidade de controle, dificuldade de pedir ajuda.\n"
-            "Caso 2 PERTURBADOR: vies de confirmacao, efeito Dunning-Kruger, projecao psicologica, "
-            "disonancia cognitiva, trauma de abandono mascarado, mecanismos de defesa inconscientes, "
-            "apego ansioso, gaslighting que voce mesmo faz em si.\n"
-            "Caso 3 CHOCANTE E PESSOAL: o espectador percebe que faz isso agora, nessa semana, "
-            "nessa relacao. Temas: como o cerebro fabrica memorias falsas para se proteger, "
-            "por que voce escolhe pessoas que te machucam, como voce sabotar o que mais quer, "
-            "por que voce nunca se sente suficiente independente do que conquista.\n\n"
-
-            "REGRAS DO MODELO MENTE:\n"
-            "1. SEGUNDA PESSOA DIRETA E OBRIGATORIA: Voce faz isso. Voce ja percebeu. Sua mente faz.\n"
-            "2. ZERO distancia entre o espectador e o conteudo — cada caso e sobre ELE, nao sobre outros.\n"
-            "3. REALISMO PSICOLOGICO: baseado em estudos reais, nomes de pesquisadores, anos, universidades.\n"
-            "4. NUNCA julgue. Explique o mecanismo. O espectador se julga sozinho.\n"
-            "5. Prompts de imagem mostram HUMANOS em situacoes cotidianas reconheciveis — nao animais.\n"
-            "6. A emocao-ancora escala: caso1=reconhecimento leve, caso2=desconforto real, caso3=perturbacao pessoal.\n"
+            "Voce cria roteiros virais de psicologia humana para YouTube. "
+            "Os casos sao comportamentos humanos em escalada: comum, surpreendente, perturbador. "
+            "Narracao em segunda pessoa direta: Voce faz isso, Voce ja percebeu. "
+            "Prompts mostram HUMANOS em situacoes cotidianas reconheciveis."
+        )
+    elif modelo == "fatos":
+        ctx = (
+            "Voce cria roteiros virais de ciencia para YouTube. "
+            "Os casos contradizem crencas populares: surpreendente, chocante, muda tudo. "
+            "A narracao comeca contradizendo uma crenca forte. "
+            "Prompts mostram ciencia, natureza, descobertas."
         )
     else:
         ctx = (
@@ -174,9 +147,9 @@ def build_system(modelo, nh, dist, total_palavras):
         "  \"tipo_gancho\": \"PROVOCACAO | CONTRADICAO | ESPELHO HUMANO | NUMERO CURIOSO\",\n"
         "  \"gancho_principal\": \"string — primeira frase do video, vai direto sem apresentacao\",\n"
         "  \"gancho_opcoes\": [\"variacao2\",\"variacao3\",\"variacao4\"],\n"
-        "  \"caso1\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Interessante\",\"captura\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\"},\n"
-        "  \"caso2\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Surpreendente\",\"captura\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\"},\n"
-        "  \"caso3\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Chocante\",\"captura\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\"},\n"
+        "  \"caso1\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Interessante\",\"apresentacao\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\"},\n"
+        "  \"caso2\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Surpreendente\",\"apresentacao\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\"},\n"
+        "  \"caso3\": {\"nome\":\"string\",\"animal\":\"string\",\"nivel\":\"Chocante\",\"apresentacao\":\"string\",\"tensao\":\"string\",\"escalada\":\"string\",\"twist\":\"string\"},\n"
         "  \"micro_promessa\": \"string — frase entre caso 2 e 3 que promete algo maior, NUNCA transicao mecanica\",\n"
         "  \"narracao_caso1\": [\"" + str(dist["caso1"]) + " frases em portugues\"],\n"
         "  \"narracao_caso2\": [\"" + str(dist["caso2"]) + " frases em portugues\"],\n"
@@ -192,99 +165,123 @@ def build_system(modelo, nh, dist, total_palavras):
     return (
         ctx + "\n\n"
 
-        "=== PSICOLOGIA DO ROTEIRO — MAQUINA DE RETENCAO ===\n\n"
+        "=== PSICOLOGIA DO ROTEIRO — ALMA DO VIDEO ===\n\n"
 
         "EMOCAO-ANCORA:\n"
-        "Defina UMA emocao que escala a cada historia e se torna pessoal no caso 3.\n"
-        "Caso 1: o espectador sente curiosidade sobre o animal.\n"
-        "Caso 2: o espectador se incomoda porque reconhece o comportamento em humanos.\n"
-        "Caso 3: o espectador percebe que faz isso — e nao gosta.\n"
-        "A emocao-ancora escala de CURIOSIDADE para RECONHECIMENTO para PERTURBACAO PESSOAL.\n"
-        "Exemplos: Reconhecimento culpado / Admiracao perturbadora / Identificacao involuntaria.\n\n"
+        "Defina UMA emocao que conecta TODAS as historias ao espectador de forma pessoal.\n"
+        "Nao e a emocao DO animal — e a emocao que o ESPECTADOR vai sentir ao se ver no animal.\n"
+        "Exemplos poderosos:\n"
+        "- Reconhecimento culpado: o espectador se ve no comportamento e nao gosta do que ve\n"
+        "- Admiracao perturbadora: admira mas fica incomodado com o que isso diz sobre si mesmo\n"
+        "- Identificacao involuntaria: nao quer se identificar mas nao consegue negar\n\n"
 
-        "DIVIDA EMOCIONAL — OBRIGATORIA:\n"
-        "O gancho cria uma divida que o espectador so paga assistindo ate o fim.\n"
-        "Nao e curiosidade vaga. E uma promessa especifica e pessoal.\n"
-        "A divida e plantada no gancho e cobrada na frase final + pergunta divisora.\n"
-        "Ex: 'No final voce vai entender por que faz exatamente o que esse animal faz. E nao vai gostar.'\n"
-        "A pergunta invisivel que o video responde sem nunca fazer em voz alta deve ser PESSOAL:\n"
-        "Nao: 'Esse animal e incrivel?' — Sim: 'Eu sou diferente desse animal?' / 'O que chamo de escolha e apenas instinto?'\n\n"
+        "PERGUNTA INVISIVEL:\n"
+        "Uma pergunta que o video responde sem nunca fazer em voz alta.\n"
+        "Ela e plantada no gancho, cresce nas historias e explode no twist do caso 3.\n"
+        "So e revelada indiretamente na frase final filosofica.\n"
+        "Exemplos: Sera que sou tao diferente desse animal? / O que chamo de escolha e apenas instinto?\n\n"
 
-        "=== GANCHO — OS 5 PRIMEIROS SEGUNDOS SEQUESTRAM A ATENCAO ===\n\n"
-        "O gancho nao apresenta o video. Ele JOGA o espectador no meio da acao com uma divida emocional.\n"
-        "REGRA ABSOLUTA: a primeira frase ja e o impacto maximo. Zero introducao. Zero contexto.\n\n"
-        "5 tipos — escolha o mais poderoso para o tema:\n"
-        "1. PROVOCACAO: afirmacao que desafia crenca. Ex: Esse animal e mais honesto que a maioria das pessoas que voce conhece.\n"
-        "2. CONTRADICAO: quebra crenca popular. Ex: O animal que voce acha romantico e o maior manipulador da natureza.\n"
-        "3. ESPELHO HUMANO: animal faz algo humano demais. Ex: Esse animal contrata seguranças. Literalmente.\n"
-        "4. NUMERO CURIOSO: dado especifico absurdo. Ex: Esse animal passou 47 dias esperando. A ciencia ficou sem explicacao.\n"
-        "5. PROMESSA SUSPENSA: promete revelacao pessoal perturbadora. Ex: O que esse animal faz nos proximos 3 minutos vai te fazer questionar uma decisao que voce tomou essa semana.\n\n"
+        "=== GANCHO — PRIMEIRA IMPRESSAO ABSOLUTA ===\n\n"
+        "Escolha o tipo mais poderoso para o tema:\n"
+        "PROVOCACAO: afirmacao que ofende ou desafia uma crenca. Ex: Esse animal e mais honesto que a maioria das pessoas que voce conhece.\n"
+        "CONTRADICAO: quebra crenca popular. Ex: O animal que voce acha romantico e na verdade o maior manipulador da natureza.\n"
+        "ESPELHO HUMANO: animal faz algo humano demais. Ex: Esse animal contrata seguranças. Literalmente.\n"
+        "NUMERO CURIOSO: dado especifico que para o scroll. Ex: Esse animal passou 47 dias esperando. A ciencia ficou sem explicacao.\n\n"
         "REGRAS DO GANCHO:\n"
-        "- Primeira palavra ja e impacto. NUNCA comece com Hoje, Voce sabia, Existe um animal.\n"
-        "- Nao explica o que vai acontecer. Cria uma pergunta que o espectador precisa responder.\n"
-        "- Os primeiros 5 segundos determinam 80% da retencao. Trate como o momento mais importante do video.\n\n"
+        "- VAI DIRETO. Zero apresentacao do video. Zero contexto. A primeira palavra ja e impacto.\n"
+        "- Nao explica o que vai acontecer. Joga o espectador no meio da acao.\n"
+        "- Gera uma pergunta imediata na cabeca do espectador sem fazer a pergunta.\n\n"
 
-        "=== SUB-ARCOS DE CADA HISTORIA — MAQUINA SEM PAUSA ===\n\n"
-        "ELIMINE a apresentacao como momento separado. O animal e apresentado JA EM CONFLITO.\n"
-        "O espectador aprende quem e o animal enquanto ja esta preso na tensao.\n\n"
-        "Cada historia tem 4 momentos SEM RESPIRO entre eles:\n"
-        "1. CAPTURA (1-2s) — animal apresentado ja em situacao de conflito ou comportamento perturbador:\n"
-        "   - NAO: 'O elefante africano vive nas savanas.' SIM: 'Essa elefanta parou de andar ha 23 dias. Os pesquisadores nao entendiam por que.'\n"
-        "   - O detalhe fisico unico do animal aparece aqui — integrado ao conflito, nao separado.\n\n"
-        "2. TENSAO (2-3s) — algo esta errado, sinais especificos sem explicacao:\n"
-        "   - Nao explique. Mostre comportamento concreto. Numeros. Detalhes fisicos.\n"
-        "   - MINI-PROMESSA OBRIGATORIA no final da tensao: 'E entao veio o detalhe que ninguem conseguia explicar.'\n\n"
-        "3. ESCALADA (3-4s) — detalhes mais especificos e perturbadores, stakes pessoais aumentam:\n"
-        "   - Numeros exatos: 23 dias, 340 quilos, 14 horas por dia.\n"
-        "   - Conecte ao espectador: o que esse comportamento diz sobre nos?\n"
-        "   - PATTERN INTERRUPT obrigatorio: dado absurdo ou virada de perspectiva que contradiz o que acabou de ser dito.\n\n"
-        "4. TWIST (2s) — revelacao em rafagas curtissimas que muda tudo:\n"
-        "   - Tres frases curtas. Sem explicacao. Sem suavizar. Sem folego.\n"
-        "   - Ex: Ela nao foi embora. Ficou. Por tres dias. Olhando.\n"
-        "   - O twist implica algo sobre o espectador — nao so sobre o animal.\n\n"
+        "=== SUB-ARCOS DE CADA HISTORIA — OBRIGATORIOS ===\n\n"
+        "Cada historia tem 4 momentos DISTINTOS e PROGRESSIVOS:\n"
+        "1. APRESENTACAO (equivale a 2s de video):\n"
+        "   - Apresenta o personagem com UM detalhe unico e humanizante\n"
+        "   - Nao generalize. Nao diga ele vive na floresta. Diga ela tem uma cicatriz no ombro direito de uma briga de 2019.\n"
+        "   - O espectador deve sentir que conhece esse animal.\n\n"
+        "2. TENSAO (3-4s):\n"
+        "   - Algo esta errado. O espectador pressente mas nao sabe o que.\n"
+        "   - Nao explique. Mostre sinais. Comportamento mudou. Algo esta diferente.\n\n"
+        "3. ESCALADA (4-5s):\n"
+        "   - A situacao piora. Os detalhes ficam mais especificos e perturbadores.\n"
+        "   - Aqui entram os numeros: 23 dias, 340 quilos, 14 horas por dia.\n"
+        "   - O espectador ja nao consegue parar de assistir.\n\n"
+        "4. TWIST (2-3s):\n"
+        "   - A revelacao que muda tudo. O espectador NAO esperava.\n"
+        "   - Chega em rafagas curtissimas. Sem folego. Sem explicacao.\n"
+        "   - Ex: Ela nao foi embora. Ficou. Por tres dias. Olhando.\n\n"
 
-        "TRANSICAO ENTRE HISTORIAS — CORTE ABRUPTO COM MINI-PROMESSA:\n"
-        "NUNCA deixe o espectador respirar entre historias. Corte direto com mini-promessa.\n"
+        "MICRO-PROMESSA entre caso 2 e 3 — OBRIGATORIA:\n"
+        "Frase unica que promete algo ainda maior e mais perturbador.\n"
         "NUNCA use: O proximo animal e... / Agora veja... / Mas ha mais...\n"
-        "USE ENTRE CASO 1 E 2: 'Mas esse comportamento nao e exclusivo dele.' / 'E nao e o unico que faz isso.'\n"
-        "MICRO-PROMESSA ENTRE CASO 2 E 3 — mais intensa: 'Nenhum deles chegou perto do que o terceiro fez.' / 'O ultimo caso perturbou pesquisadores de Harvard por 3 anos.'\n\n"
+        "Use: Mas nenhum deles chegou perto do que esse terceiro fez. / O ultimo caso perturbou os pesquisadores de Harvard.\n\n"
 
-        "=== FILOSOFIA DE NARRACAO — MAQUINA DE RETENCAO ===\n\n"
-        "A narracao e um roteiro de thriller. Cada frase avanca. Nenhuma frase existe so para existir.\n"
-        "O espectador deve sentir que se parar vai perder algo importante.\n"
-        "NUNCA deixe o espectador em zona de conforto narrativo por mais de 10 segundos.\n\n"
+        "=== FILOSOFIA DE NARRACAO — LEI ABSOLUTA ===\n\n"
+        "A narracao e um roteiro de filme. Nao e um documentario. Nao e uma lista de fatos.\n"
+        "E uma historia UNICA que respira, acelera, para, surpreende e termina.\n"
+        "O espectador NAO deve sentir que esta sendo informado.\n"
+        "Deve sentir que esta sendo PUXADO para dentro de algo que nao consegue parar de ouvir.\n\n"
 
         "REGRAS ABSOLUTAS DA NARRACAO:\n"
-        "1. FRASES COMPLETAS: sujeito, verbo, sentido. NUNCA frase cortada.\n"
-        "2. NOME DO ANIMAL com detalhe fisico unico nas primeiras frases. Nunca so ele ou ela.\n"
-        "3. DETALHES ESPECIFICOS: 47 dias (nao muito tempo). Parou de comer por 11 dias (nao ficou triste).\n"
-        "4. RITMO CINEMATOGRAFICO: alterne frases curtas de impacto (3-6 palavras) com medias (10-16 palavras).\n"
-        "5. MINI-PROMESSAS INTERNAS: dentro de cada historia, plante pelo menos 1 frase que promete revelacao iminente.\n"
-        "6. PATTERN INTERRUPT a cada 30s: dado absurdo, virada de perspectiva ou contradicao do que acabou de ser dito.\n"
-        "7. TRANSICOES ABRUPTAS: corte direto entre historias com mini-promessa. Zero respiro.\n"
-        "8. VIRADAS EM RAFAGAS: twist em 3 frases curtas. Sem explicacao. Sem suavizar.\n"
-        "9. COESAO TOTAL: cada frase flui da anterior. Zero saltos logicos.\n"
-        "10. SEM REPETICAO: cada frase avanca. Nunca repita a mesma ideia.\n"
-        "11. PONTUACAO CORRETA: ponto final, exclamacao ou interrogacao. NUNCA virgula no final.\n"
-        "12. TOTAL: aproximadamente " + str(total_palavras) + " palavras — respeite esse limite.\n"
-        "13. CONGRUENCIA COM DURACAO: dimensionado EXATAMENTE para " + str(total_palavras) + " palavras.\n"
-        "14. FIDELIDADE AO SCRIPT: a narracao sera gravada EXATAMENTE como escrita.\n"
-        "15. ANCORAS VISUAIS: cada frase tem UM elemento visual concreto — acao fisica, postura, expressao, cor, luz.\n"
-        "    Nao: 'ela sentiu o peso do silencio' → Sim: 'ela ficou parada, focinho baixo, olhos fixos no chao por 3 horas'\n"
-        "16. CONSISTENCIA VISUAL: na primeira aparicao de cada animal, descreva 3-4 caracteristicas fisicas UNICAS.\n"
-        "    Ex: 'leao com juba negra nas pontas, cicatriz no olho esquerdo, patas dianteiras desproporcionalmente grandes'\n"
-        "17. ESCALADA DE STAKES PESSOAIS: caso1=curiosidade, caso2=reconhecimento perturbador, caso3=identificacao pessoal forcada.\n"
-        "18. FRASE FINAL: NAO e filosofica lenta. E uma revelacao + impacto direto que leva ao comentario.\n\n"
+        "1. FRASES COMPLETAS: cada frase tem sujeito, verbo e sentido completo. NUNCA frase cortada.\n"
+        "2. NOME DO ANIMAL: cite o nome nas primeiras frases de cada historia. Nunca so ele ou ela sem apresentar antes.\n"
+        "3. DETALHES ESPECIFICOS: nunca muito tempo — use 47 dias. Nunca ficou triste — use parou de comer por 11 dias.\n"
+        "4. RITMO CINEMATOGRAFICO: alterne frases curtas de impacto (3-6 palavras) com frases medias descritivas (10-16 palavras).\n"
+        "5. CONECTORES NATURAIS: Mas o que ninguem esperava era... / E entao algo impossivel aconteceu. / Isso sozinho ja seria incrivel. Mas espera.\n"
+        "6. TRANSICOES ORGANICAS entre historias: NUNCA O proximo animal e... Use: Mas nao e o unico. / Se isso ja te surpreendeu...\n"
+        "7. VIRADAS EM RAFAGAS: o twist chega sem folego. Tres frases curtas em sequencia. Sem explicacao. Sem suavizar.\n"
+        "8. COESAO TOTAL: cada frase deve fluir da anterior como se fossem uma unica conversa. Zero saltos logicos.\n"
+        "9. SEM REPETICAO: nunca repita a mesma ideia em frases diferentes. Cada frase avanca a historia.\n"
+        "10. PONTUACAO CORRETA: ponto final, exclamacao ou interrogacao. NUNCA termine com virgula.\n"
+        "11. TOTAL: aproximadamente " + str(total_palavras) + " palavras para TODA a narracao — respeite esse limite.\n"
+        "12. CONGRUENCIA COM DURACAO: o roteiro e a narracao devem ser dimensionados EXATAMENTE para " + str(total_palavras) + " palavras — nem mais, nem menos. Um video de 40s nao pode ter narracao de 2 minutos.\n"
+        "13. FIDELIDADE AO SCRIPT FINAL: a narracao gravada sera EXATAMENTE o texto gerado — gancho + corpo + frase final + pergunta divisora. Escreva cada frase como se ja estivesse sendo narrada. Nada sera editado antes de gravar.\n\n"
 
-        "PERGUNTA DIVISORA — GATILHO DE COMENTARIO:\n"
-        "Pessoal, direta, sem resposta obvia. Divide em dois lados opostos.\n"
-        "Deve ser feita enquanto o espectador ainda esta em tensao — nao depois de alivio.\n"
-        "Ex: Voce acha que isso e instinto — ou e escolha? / Isso muda como voce ve esse comportamento em voce mesmo?\n\n"
+        "=== REGRAS DOS PROMPTS DE IMAGEM — CONGRUENCIA TOTAL ===\n\n"
+        "PRINCIPIO FUNDAMENTAL: cada prompt e a traducao visual LITERAL da frase de narracao correspondente.\n"
+        "Se a narracao diz 'ela quebrou a cerca', o prompt mostra o animal quebrando a cerca — nao olhando para o horizonte.\n"
+        "Se a narracao diz '47 dias esperando', o prompt mostra o animal em postura de espera tensa — nao correndo.\n"
+        "NUNCA crie uma cena generica. A cena visual deve ser impossivel de trocar com qualquer outra frase.\n\n"
+        "FORMATO OBRIGATORIO de cada prompt:\n"
+        "[descricao fisica unica e especifica do animal] + [ACAO EXATA descrita na narracao] + [angulo que melhor captura a emocao] + [iluminacao que reforça o tom] + [estado de movimento]\n\n"
+        "CARACTERISTICAS FISICAS: defina no primeiro prompt de cada historia e repita IDENTICAMENTE em todos os outros da mesma historia.\n"
+        "Ex: 'large African elephant with torn left ear, deep-set amber eyes, dusty gray skin'\n"
+        "Nao mude a descricao fisica dentro da mesma historia — e o mesmo personagem em cenas diferentes.\n\n"
+        "ANGULOS por emocao:\n"
+        "- Apresentacao: wide shot ou over the shoulder — apresenta o ambiente e o personagem\n"
+        "- Tensao: close-up no rosto ou macro em detalhe corporal — cria intimidade e desconforto\n"
+        "- Escalada: angulo medio dinamico — mostra o comportamento em acao\n"
+        "- Twist: extreme close-up ou angulo inusitado — destabiliza o espectador\n\n"
+        "ILUMINACAO por momento:\n"
+        "- Apresentacao e tensao inicial: soft natural light ou golden hour — conforto falso\n"
+        "- Escalada: dramatic shadows ou single spotlight — algo escuro esta acontecendo\n"
+        "- Twist e final: blue hour ou high contrast — revelacao perturbadora\n\n"
+        "MOVIMENTO:\n"
+        "- mid-motion: quando a acao esta acontecendo agora\n"
+        "- frozen in the moment: para revelaçoes, twists, momentos de choque\n"
+        "- slow motion blur: para emocao intensa, fim de historia\n\n"
+        "PROIBIDO em qualquer prompt:\n"
+        "- cinematic, realistic, documentary, photographic (o estilo e adicionado automaticamente)\n"
+        "- 'an animal' ou pronomes sem referencia — sempre o nome especifico\n"
+        "- cenas genericas que poderiam ser de qualquer historia\n"
+        "- acoes que contradizem o que a narracao descreve\n\n"
+
+        "PERGUNTA DIVISORA — DIVIDE OPINIOES E GERA COMENTARIOS:\n"
+        "Pessoal, direta, sem resposta obvia. Divide o publico em dois lados.\n"
+        "Ex: Voce acha que isso e instinto — ou e escolha? / Isso te faz ver os animais diferente. Ou as pessoas?\n\n"
 
         + struct + "\n\n"
         "Responda SOMENTE em JSON valido sem markdown:\n"
         + json_template
     )
+
+def parse_json_robusto(text):
+    import re as _re, json as _json
+    text = _re.sub(r"```json|```", "", text).strip()
+    text = _re.sub(r",\s*([}\]])", r"\1", text)
+    m = _re.search(r"\{.*\}", text, _re.DOTALL)
+    if m:
+        text = m.group()
+    return _json.loads(text)
 
 def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-6"):
     for tentativa in range(3):
@@ -313,16 +310,9 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game"):
             r = requests.post(
                 "https://cloud.leonardo.ai/api/rest/v1/generations",
                 headers={"authorization": f"Bearer {LEONARDO_KEY}", "content-type": "application/json"},
-                json={"prompt": prompt + ", " + sufixo,
-                      "modelId": MODELOS_LEONARDO.get(estilo, "7b592283-e8a7-4c5a-9ba6-d18c31f258b9"),
-                      "width": dims["width"], "height": dims["height"], "num_images": 1,
-                      "guidance_scale": 7,
-                      "negative_prompt": (
-                          "blurry, low quality, distorted, ugly, watermark, text, letters, words, "
-                          "human hands, humans, people, multiple animals, crowded scene, "
-                          "overexposed, underexposed, cartoon, anime, illustration, painting, "
-                          "duplicate, deformed, mutated, extra limbs, bad anatomy"
-                      )},
+                json={"prompt": prompt + ", " + sufixo, "modelId": "7b592283-e8a7-4c5a-9ba6-d18c31f258b9",
+                      "width": dims["width"], "height": dims["height"], "num_images": 1, "guidance_scale": 10,
+                      "negative_prompt": "blurry, low quality, distorted, ugly, watermark, text, humans, human hands, multiple animals, cartoon, anime, deformed", "guidance_scale": 7},
                 timeout=40
             )
             data = r.json()
@@ -455,9 +445,11 @@ def gerar_narracao():
     limpar_sessions_antigas()
     data = request.json
     print(f"NARRACAO REQUEST keys={list(data.keys())}")
+    # Aceita narracao_completa (novo fluxo) ou monta das partes (legado)
     narracao_txt = data.get('narracao_completa', '').strip()
     if not narracao_txt:
-        return jsonify({'erro': 'Script vazio'}), 400
+        partes = [data.get('gancho',''), data.get('narracao_custom',''), data.get('frase_final',''), data.get('pergunta_divisora','')]
+        narracao_txt = ' '.join(p for p in partes if p)
     print(f"NARRACAO TXT chars={len(narracao_txt)} preview={narracao_txt[:80]}")
 
     session_id = str(int(time.time()))
@@ -474,22 +466,29 @@ def gerar_narracao():
 def gerar():
     limpar_sessions_antigas()
     data = request.json
-    narracao_custom = data.get('narracao_custom', '').strip()
-    narracao_session_id = data.get('narracao_session_id')
-    # Modelo MENTE tem estilo visual fixo — nao pode ser alterado
-    modelo_conteudo = data.get('modelo', 'animais')
-    if modelo_conteudo == 'mente':
-        estilo = 'mente'
-    else:
-        estilo = data.get('estilo', 'stylized_game')
+    estilo = data.get('estilo', 'stylized_game')
     formato = data.get('formato', '9:16')
     prompts_custom = data.get('prompts_custom', [])
     narracao_custom = data.get('narracao_custom', '')
     narracao_session_id = data.get('narracao_session_id')
 
-    narracao_txt = narracao_custom
+    narracao_txt = narracao_custom if narracao_custom else ' '.join(filter(None, [
+        data.get('gancho', ''),
+        *data.get('narracao_caso1', []),
+        *data.get('narracao_caso2', []),
+        data.get('micro_promessa', ''),
+        *data.get('narracao_caso3', []),
+        *data.get('narracao_final', []),
+        data.get('frase_final', ''),
+        data.get('pergunta_divisora', '')
+    ]))
 
-    prompts = prompts_custom
+    prompts = prompts_custom if prompts_custom else (
+        data.get('caso1', {}).get('prompts', []) +
+        data.get('caso2', {}).get('prompts', []) +
+        data.get('caso3', {}).get('prompts', []) +
+        data.get('prompts_final', [])
+    )
 
     session_id = str(int(time.time()))
 
@@ -557,9 +556,6 @@ def gerar():
             with zipfile.ZipFile(zip_path, 'w') as zf:
                 for idx, img in sessions[session_id]['imagens'].items():
                     zf.writestr(f'IMG_{str(idx + 1).zfill(2)}.jpg', img)
-                # Inclui thumbnails se existirem
-                for idx, img in sessions[session_id].get('thumbnails', {}).items():
-                    zf.writestr(f'THUMB_{str(idx + 1).zfill(2)}.jpg', img)
                 if audio_data:
                     zf.writestr('narracao.mp3', audio_data)
                 rot = f"TITULO: {data.get('titulo', '')}\n\n"
@@ -619,14 +615,7 @@ def regenerar_imagem():
     session_id = data.get('session_id')
     idx = data.get('idx')
     prompt = data.get('prompt', '')
-    narracao_custom = data.get('narracao_custom', '').strip()
-    narracao_session_id = data.get('narracao_session_id')
-    # Modelo MENTE tem estilo visual fixo — nao pode ser alterado
-    modelo_conteudo = data.get('modelo', 'animais')
-    if modelo_conteudo == 'mente':
-        estilo = 'mente'
-    else:
-        estilo = data.get('estilo', 'stylized_game')
+    estilo = data.get('estilo', 'stylized_game')
     formato = data.get('formato', '9:16')
     try:
         img = leonardo_generate(prompt, formato, estilo)
@@ -646,16 +635,8 @@ def regenerar_opcoes():
         'frase': 'Gere 4 opcoes de frase final filosofica para o titulo. Retorne JSON: {"opcoes":["op1","op2","op3","op4"]}',
         'pergunta': 'Gere 4 opcoes de pergunta divisora para o titulo. Retorne JSON: {"opcoes":["op1","op2","op3","op4"]}'
     }
-    modelo_ctx = data.get('modelo', 'animais')
-    system = tipos_map.get(tipo, '')
-    if not system:
-        return jsonify({'erro': 'Tipo invalido'}), 400
     try:
-        text = chamar_claude(system, "Titulo: " + titulo + "\nModelo: " + modelo_ctx, max_tokens=500, modelo="claude-haiku-4-5-20251001")
-        text = re.sub(r"```json|```", "", text).strip()
-        text = re.sub(r',\s*([}\]])', r'\1', text)
-        m = re.search(r'\{.*\}', text, re.DOTALL)
-        if m: text = m.group()
+        text = chamar_claude(tipos_map.get(tipo, ''), f"Titulo: {titulo}", max_tokens=500, modelo="claude-haiku-4-5-20251001")
         return jsonify(json.loads(text))
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
@@ -665,71 +646,31 @@ def gerar_prompts():
     limpar_sessions_antigas()
     data = request.json
     script = data.get('script', '').strip()
-    duracao = str(data.get('duracao', '60'))
-    print("GERAR-PROMPTS chars=" + str(len(script)) + " duracao=" + duracao)
+    print("GERAR-PROMPTS chars=" + str(len(script)))
     if not script:
         return jsonify({'erro': 'Script vazio — gere a narracao primeiro'}), 400
 
-    # Calcula numero exato de prompts: 1 imagem a cada 3 segundos
-    dur_s = DURACOES.get(duracao, 60)
-    num_prompts = max(round(dur_s / 3), 8)
-    print("GERAR-PROMPTS num_prompts=" + str(num_prompts))
-
     system = (
         "Voce e um diretor de arte especialista em videos curtos virais do YouTube."
-        " Recebera um script de narracao e deve gerar EXATAMENTE " + str(num_prompts) + " prompts de imagem em ingles."
-        " Distribua as cenas proporcionalmente pelo script inteiro."
-        " Se precisar de mais cenas que momentos narrativos, divida momentos longos em angulos diferentes do mesmo momento."
-        " O objetivo e sempre EXATAMENTE " + str(num_prompts) + " prompts — nem mais, nem menos."
-        "\n\nANATOMIA OBRIGATORIA de cada prompt (nessa ordem exata):"
-        "\n[ID VISUAL DO ANIMAL] + [ACAO FISICA EXATA descrita no script] + [ANGULO DE CAMERA] + [ILUMINACAO] + [MOVIMENTO] + [NEGATIVES]"
-        "\n\nID VISUAL: na primeira aparicao de cada animal, extraia do script suas caracteristicas fisicas unicas"
-        " (cicatriz, cor dos olhos, tamanho, detalhe anatomico especifico) e use IDENTICAMENTE em todos os prompts desse animal."
-        " Ex: 'massive male lion with black-tipped mane, scar over left eye, oversized front paws, gaunt frame'"
-        "\n\nACAO FISICA: traduza LITERALMENTE o que o script diz que o animal esta fazendo."
-        " Nao interprete — traduza. Se o script diz 'ficou parada por 3 horas', o prompt diz 'standing completely still, unmoving'."
-        " Use verbos de acao: standing, crouching, running, staring, retreating — nunca adjetivos emocionais vagos."
-        "\n\nANGULOS por momento:"
-        " wide shot (apresentacao e contexto), medium shot (acao em andamento),"
-        " close-up (tensao e emocao), extreme close-up (twist e revelacao), aerial (escala e isolamento)."
-        " shot on 85mm lens, shallow depth of field — use sempre."
-        "\n\nILUMINACAO por fase:"
-        " golden hour (inicio e apresentacao), soft natural light (desenvolvimento),"
-        " dramatic side shadows (escalada), single spotlight (twist), cold blue hour (revelacao final)."
-        "\n\nMOVIMENTO: mid-motion (acao acontecendo), frozen in the moment (choque e revelacao), slow motion blur (emocao intensa)."
-        "\n\nNEGATIVES — adicione ao final de cada prompt:"
-        " 'no humans, no text, no watermark, no other animals, isolated subject, no cartoon, no anime'"
-        "\n\nPROIBIDO no prompt: cinematic, realistic, documentary, photographic, 'an animal'."
-        " Use sempre o nome especifico do animal."
-        ' Retorne JSON valido sem markdown: {"prompts": ["prompt1 completo", "prompt2 completo"]}'
+        " Recebera um script de narracao e deve identificar os MOMENTOS NARRATIVOS."
+        " Um momento NAO e uma frase gramatical — e um bloco de significado narrativo."
+        " Frases curtissimas em sequencia formam UM unico momento — nao divida em varios prompts."
+        " Para cada momento gere um prompt que traduz LITERALMENTE aquele momento visual."
+        " Para 40s espera-se 10-15 prompts. Para 60s, 15-25. Para 90s, 25-35."
+        " FORMATO: [descricao fisica ESPECIFICA do animal] + [acao EXATA descrita no script] + [angulo] + [iluminacao] + [movimento]."
+        " Defina as caracteristicas fisicas do animal no primeiro prompt e repita em TODOS os outros desse animal."
+        " Angulos: wide shot para apresentacao, close-up para tensao, extreme close-up para twist."
+        " Iluminacao: golden hour no inicio, dramatic shadows na escalada, blue hour na revelacao."
+        " Movimento: mid-motion para acao, frozen in the moment para choque, slow motion blur para emocao."
+        " PROIBIDO: cinematic, realistic, documentary, photographic, an animal."
+        " Use o nome especifico do animal — nunca pronomes sem referencia."
+        " Os prompts devem ser em INGLES."
+        ' Retorne JSON valido sem markdown: {"prompts": ["prompt1", "prompt2"]}'
     )
-    # Instrucao especifica por modelo
-    if data.get('modelo', 'animais') == 'mente':
-        instrucao_modelo = (
-            "PERSONAGEM FIXO — use em TODOS os prompts sem excecao:\n"
-            "blue matte rubber 3D figure, genderless, faceless, smooth surface, "
-            "no facial features except two black dot eyes, rounded head, "
-            "human proportions but stylized. Este personagem E o espectador.\n\n"
-            "DIRECOES VISUAIS — escolha a mais adequada para cada cena:\n"
-            "1. SOMBRA REVELADORA: personagem pequeno, sombra grande e diferente revelando verdade oculta\n"
-            "2. CABECA ABERTA: personagem com cabeca aberta mostrando metafora do que controla a mente\n"
-            "3. DUPLO EU: duas versoes do personagem em conflito interno\n"
-            "4. PSICOLOGIA SURREALISTA: personagem com objeto impossivel representando verdade psicologica\n\n"
-            "ESTILO FIXO de cada prompt: white background, centered composition, single metaphor, "
-            "studio lighting, high contrast, minimalist, no text\n"
-            "PROIBIDO: outros personagens, animais, cenarios complexos, texto, fundo colorido\n"
-        )
-    else:
-        instrucao_modelo = ""
-    user_msg = (
-        "Script de narracao:\n\n" + script +
-        "\n\n" + instrucao_modelo +
-        "Gere EXATAMENTE " + str(num_prompts) + " prompts em ingles. "
-        "Distribua pelo script inteiro. Use angulos variados para cenas longas."
-    )
+    user_msg = "Script:\n\n" + script + "\n\nGere um prompt em ingles por momento narrativo."
 
     try:
-        text = chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-6")
+        text = chamar_claude(system, user_msg, max_tokens=4000, modelo="claude-sonnet-4-6")
         print("GERAR-PROMPTS resposta chars=" + str(len(text)))
         text = re.sub(r"```json|```", "", text).strip()
         text = re.sub(r',[ \t\n]*([}\]])', r'\1', text)
@@ -764,25 +705,133 @@ def sugerir_titulos():
         return jsonify({'erro': str(e)}), 500
 
 
+
 @app.route('/regenerar-prompt', methods=['POST'])
 def regenerar_prompt():
     data = request.json
     prompt_atual = data.get('prompt_atual', '').strip()
-    idx = data.get('idx', 0)
     system = (
         "Voce e um diretor de arte especialista em videos curtos virais do YouTube."
         " Recebera um prompt de imagem e deve gerar uma variacao melhorada do mesmo."
-        " A variacao deve manter o mesmo momento narrativo e o mesmo animal,"
-        " mas com angulo, iluminacao ou composicao diferente."
+        " Mantenha o mesmo momento narrativo e o mesmo animal mas com angulo ou iluminacao diferente."
         " Mantenha as caracteristicas fisicas do animal identicas."
         " PROIBIDO: cinematic, realistic, documentary, photographic, an animal."
         " Retorne apenas o novo prompt em ingles, sem explicacoes."
     )
-    user_msg = "Prompt atual:\n" + prompt_atual + "\n\nGere uma variacao melhorada."
+    try:
+        text = chamar_claude(system, "Prompt atual:\n" + prompt_atual + "\n\nGere variacao melhorada.", max_tokens=300, modelo="claude-haiku-4-5-20251001")
+        return jsonify({'prompt': text.strip().strip('"')})
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
+@app.route('/gerar-contexto', methods=['POST'])
+def gerar_contexto():
+    data = request.json
+    titulo = data.get('titulo', '').strip()
+    modelo = data.get('modelo', 'animais')
+    duracao = data.get('duracao', '60')
+    contexto_atual = data.get('contexto_atual', '').strip()
+    dur_s = DURACOES.get(str(duracao), 60)
+    system = (
+        "Voce e um estrategista de conteudo viral para YouTube."
+        " Dado um titulo, gere um contexto criativo e especifico para guiar o roteiro."
+        " Inclua: angulo emocional especifico, sugestao de animais ou casos, tom narrativo, elemento diferenciador."
+        " Seja ESPECIFICO e CRIATIVO. Entre 2 e 4 frases diretas."
+        " Retorne apenas o contexto em texto, sem explicacoes."
+    )
+    user_msg = "Titulo: " + titulo + "\nModelo: " + modelo + "\nDuracao: " + str(dur_s) + "s"
+    if contexto_atual:
+        user_msg += "\nContexto atual (gere variacao DIFERENTE): " + contexto_atual
     try:
         text = chamar_claude(system, user_msg, max_tokens=300, modelo="claude-haiku-4-5-20251001")
-        text = text.strip().strip('"')
-        return jsonify({'prompt': text})
+        return jsonify({'contexto': text.strip().strip('"')})
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
+@app.route('/score-viral', methods=['POST'])
+def score_viral():
+    data = request.json
+    roteiro = data.get('roteiro', {})
+    gancho = roteiro.get('gancho_principal', '')
+    tipo_gancho = roteiro.get('tipo_gancho', '')
+    emocao = roteiro.get('emocao_ancora', '')
+    pergunta_inv = roteiro.get('pergunta_invisivel', '')
+    micro = roteiro.get('micro_promessa', '')
+    caso1 = roteiro.get('caso1', {})
+    caso2 = roteiro.get('caso2', {})
+    caso3 = roteiro.get('caso3', {})
+    frase_final = roteiro.get('frase_final_principal', '')
+    pergunta_div = roteiro.get('pergunta_divisora_principal', '')
+    narracao = ' '.join(
+        roteiro.get('narracao_caso1', []) + roteiro.get('narracao_caso2', []) +
+        roteiro.get('narracao_caso3', []) + roteiro.get('narracao_final', [])
+    )
+    system = (
+        "Voce e o maior especialista em crescimento de canais faceless no YouTube em 2026."
+        " Avalie o roteiro em 5 dimensoes de 0 a 20 pontos cada. Seja RIGOROSO."
+        " DIMENSOES:"
+        " 1. FORCA DO GANCHO (0-20): vai direto sem apresentacao? gera pergunta imediata? e do tipo certo?"
+        " 2. ESCALADA EMOCIONAL (0-20): caso1 menor que caso2 menor que caso3 em intensidade real? micro-promessa funciona?"
+        " 3. QUALIDADE DO TWIST (0-20): e impossivel de prever? chega em rafagas curtas? muda a percepcao?"
+        " 4. PERGUNTA DIVISORA (0-20): divide em dois lados reais? e pessoal? vai gerar comentarios polarizados?"
+        " 5. CONGRUENCIA NARRATIVA (0-20): pergunta invisivel plantada e respondida? emocao-ancora nos 3 casos? fio condutor?"
+        ' Retorne JSON: {"total": 0-100, "dimensoes": [{"nome": "string", "score": 0-20, "justificativa": "string"}], "ponto_fraco": "string", "sugestao": "string"}'
+    )
+    user_msg = (
+        "GANCHO: " + gancho + "\nTIPO: " + tipo_gancho + "\nEMOCAO: " + emocao +
+        "\nPERGUNTA INVISIVEL: " + pergunta_inv +
+        "\nCASO1: " + caso1.get('animal','') + " twist: " + caso1.get('twist','') +
+        "\nCASO2: " + caso2.get('animal','') + " twist: " + caso2.get('twist','') +
+        "\nCASO3: " + caso3.get('animal','') + " twist: " + caso3.get('twist','') +
+        "\nMICRO-PROMESSA: " + micro + "\nFRASE FINAL: " + frase_final +
+        "\nPERGUNTA DIVISORA: " + pergunta_div +
+        "\nNARRACAO: " + narracao[:800]
+    )
+    try:
+        text = chamar_claude(system, user_msg, max_tokens=1000, modelo="claude-sonnet-4-6")
+        d = parse_json_robusto(text)
+        if 'dimensoes' in d:
+            d['total'] = sum(dim.get('score', 0) for dim in d['dimensoes'])
+        return jsonify(d)
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
+@app.route('/corrigir-dimensao', methods=['POST'])
+def corrigir_dimensao():
+    data = request.json
+    roteiro = data.get('roteiro', {})
+    dimensao = data.get('dimensao', '')
+    justificativa = data.get('justificativa', '')
+    sugestao = data.get('sugestao', '')
+    campos_map = {
+        'FORCA DO GANCHO': 'gancho_principal, gancho_opcoes',
+        'ESCALADA EMOCIONAL': 'caso3, micro_promessa',
+        'QUALIDADE DO TWIST': 'caso3, narracao_caso3',
+        'PERGUNTA DIVISORA': 'pergunta_divisora_principal, pergunta_divisora_opcoes',
+        'CONGRUENCIA NARRATIVA': 'narracao_caso3, narracao_final, frase_final_principal',
+    }
+    campos = campos_map.get(dimensao.upper(), 'campos relevantes')
+    system = (
+        "Voce e especialista em roteiros virais para YouTube."
+        " Recebera um roteiro e um problema especifico. Corrija APENAS os campos necessarios."
+        " NAO altere o que nao foi solicitado. Preserve o estilo e estrutura geral."
+        " Retorne JSON apenas com os campos corrigidos. Sem campos que nao mudaram."
+        " Campos: gancho_principal, gancho_opcoes, caso3, micro_promessa, narracao_caso3,"
+        " frase_final_principal, frase_final_opcoes, pergunta_divisora_principal, pergunta_divisora_opcoes, narracao_final."
+        " Retorne JSON valido sem markdown."
+    )
+    user_msg = (
+        "ROTEIRO:\n" + json.dumps(roteiro, ensure_ascii=False)[:2000] +
+        "\n\nDIMENSAO: " + dimensao + "\nPROBLEMA: " + justificativa +
+        "\nSUGESTAO: " + sugestao + "\nCAMPOS: " + campos +
+        "\n\nCorrija apenas o necessario."
+    )
+    try:
+        text = chamar_claude(system, user_msg, max_tokens=2000, modelo="claude-sonnet-4-6")
+        return jsonify(parse_json_robusto(text))
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
 
@@ -793,53 +842,28 @@ def gerar_thumbnails():
     roteiro = data.get('roteiro', {})
     script = data.get('script', '')
     formato = data.get('formato', '9:16')
-    narracao_custom = data.get('narracao_custom', '').strip()
-    narracao_session_id = data.get('narracao_session_id')
-    # Modelo MENTE tem estilo visual fixo — nao pode ser alterado
-    modelo_conteudo = data.get('modelo', 'animais')
-    if modelo_conteudo == 'mente':
-        estilo = 'mente'
-    else:
-        estilo = data.get('estilo', 'stylized_game')
-
-    # Extrai contexto do roteiro
+    estilo = data.get('estilo', 'stylized_game')
     caso3 = roteiro.get('caso3', {})
     caso1 = roteiro.get('caso1', {})
-    animal3 = caso3.get('animal', '')
-    animal1 = caso1.get('animal', '')
-    twist3 = caso3.get('twist', '')
-    emocao = roteiro.get('emocao_ancora', '')
-
     system = (
-        "Voce e um especialista em thumbnails virais para YouTube."
-        " Gere 3 conceitos de thumbnail para o video descrito."
-        " REGRAS ABSOLUTAS:"
-        " 1. ZERO texto na imagem — nenhuma palavra, letra ou numero."
-        " 2. Cada thumbnail tem um conceito visual e emocao gatilho diferente."
-        " 3. Os prompts devem gerar imagens que param o scroll em 0.3 segundos."
-        " 4. Foco em rosto, olhos ou momento de tensao maxima."
-        " CONCEITOS OBRIGATORIOS:"
-        " Thumbnail 1 TENSAO MAXIMA: close extremo no animal do caso 3 no momento do twist. Olhos, expressao, iluminacao dramatica. O espectador sente que algo esta errado."
-        " Thumbnail 2 ESPELHO HUMANO: o animal em comportamento mais humano do video. O espectador se reconhece. Composicao central, elemento perturbador sutil."
-        " Thumbnail 3 CURIOSIDADE VISUAL: cena ambigua — o espectador nao entende o que esta acontecendo. Provoca a pergunta visual que gera o clique."
-        " FORMATO do prompt: [descricao fisica UNICA do animal] + [cena exata] + [angulo] + [iluminacao] + [movimento]. Em INGLES."
-        " PROIBIDO: cinematic, realistic, documentary, photographic, text, words, letters."
-        ' Retorne JSON: {"conceitos": [{"emocao": "nome da emocao", "conceito": "descricao do conceito visual em portugues", "prompt": "prompt em ingles"}, ...]}'
+        "Voce e especialista em thumbnails virais para YouTube."
+        " Gere 3 conceitos de thumbnail. ZERO texto na imagem."
+        " Thumbnail 1 TENSAO MAXIMA: close extremo no animal do caso 3 no momento do twist."
+        " Thumbnail 2 ESPELHO HUMANO: animal em comportamento mais humano do video."
+        " Thumbnail 3 CURIOSIDADE VISUAL: cena ambigua que provoca pergunta visual."
+        " FORMATO de cada prompt: [fisico unico do animal] + [cena exata] + [angulo] + [iluminacao] + [movimento]."
+        " Prompts em INGLES."
+        ' Retorne JSON: {"conceitos": [{"emocao": "string", "conceito": "string pt-br", "prompt": "string en"}]}'
     )
-
     user_msg = (
-        "Roteiro:\n"
-        "Animal caso 1: " + animal1 + "\n"
-        "Animal caso 3 (mais chocante): " + animal3 + "\n"
-        "Twist do caso 3: " + twist3 + "\n"
-        "Emocao ancora: " + emocao + "\n"
-        "Script: " + script[:500]
+        "Animal caso1: " + caso1.get('animal','') +
+        "\nAnimal caso3: " + caso3.get('animal','') +
+        "\nTwist caso3: " + caso3.get('twist','') +
+        "\nScript: " + script[:500]
     )
-
     try:
         text = chamar_claude(system, user_msg, max_tokens=1500, modelo="claude-sonnet-4-6")
-        text = re.sub(r"```json|```", "", text).strip()
-        d = json.loads(text)
+        d = parse_json_robusto(text)
         return jsonify({'conceitos': d.get('conceitos', [])})
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
@@ -851,24 +875,14 @@ def gerar_thumbnail_imagem():
     idx = data.get('idx', 0)
     prompt = data.get('prompt', '')
     formato = data.get('formato', '9:16')
-    narracao_custom = data.get('narracao_custom', '').strip()
-    narracao_session_id = data.get('narracao_session_id')
-    # Modelo MENTE tem estilo visual fixo — nao pode ser alterado
-    modelo_conteudo = data.get('modelo', 'animais')
-    if modelo_conteudo == 'mente':
-        estilo = 'mente'
-    else:
-        estilo = data.get('estilo', 'stylized_game')
+    estilo = data.get('estilo', 'stylized_game')
     session_id = data.get('session_id', '')
-
     try:
         img = leonardo_generate(prompt, formato, estilo)
-        # Salva na session
         if session_id and session_id in sessions:
             if 'thumbnails' not in sessions[session_id]:
                 sessions[session_id]['thumbnails'] = {}
             sessions[session_id]['thumbnails'][idx] = img
-        # Salva em disco como fallback
         try:
             with open(f'/tmp/thumb_{session_id}_{idx}.jpg', 'wb') as f:
                 f.write(img)
@@ -890,218 +904,40 @@ def thumbnail(session_id, idx):
     return 'Nao encontrado', 404
 
 
-@app.route('/score-viral', methods=['POST'])
-def score_viral():
-    data = request.json
-    roteiro = data.get('roteiro', {})
-
-    gancho = roteiro.get('gancho_principal', '')
-    tipo_gancho = roteiro.get('tipo_gancho', '')
-    emocao = roteiro.get('emocao_ancora', '')
-    pergunta_inv = roteiro.get('pergunta_invisivel', '')
-    micro = roteiro.get('micro_promessa', '')
-    caso1 = roteiro.get('caso1', {})
-    caso2 = roteiro.get('caso2', {})
-    caso3 = roteiro.get('caso3', {})
-    frase_final = roteiro.get('frase_final_principal', '')
-    pergunta_div = roteiro.get('pergunta_divisora_principal', '')
-    narracao = ' '.join(
-        roteiro.get('narracao_caso1', []) +
-        roteiro.get('narracao_caso2', []) +
-        roteiro.get('narracao_caso3', []) +
-        roteiro.get('narracao_final', [])
-    )
-
-    system = (
-        "Voce e o maior especialista em crescimento de canais faceless no YouTube em 2026."
-        " Avalie o roteiro fornecido em 5 dimensoes de 0 a 20 pontos cada."
-        " Seja RIGOROSO — um score acima de 80 e raro e merece. Abaixo de 50 e comum."
-        " DIMENSOES:"
-        " 1. FORCA DO GANCHO (0-20): vai direto sem apresentacao? gera pergunta imediata? e do tipo certo para o tema?"
-        " 2. ESCALADA EMOCIONAL (0-20): caso1 menor que caso2 menor que caso3 em intensidade real? micro-promessa funciona?"
-        " 3. QUALIDADE DO TWIST (0-20): e impossivel de prever? chega em rafagas curtas? muda a percepcao de tudo?"
-        " 4. PERGUNTA DIVISORA (0-20): divide em dois lados reais? e pessoal o suficiente? vai gerar comentarios polarizados?"
-        " 5. CONGRUENCIA NARRATIVA (0-20): pergunta invisivel esta plantada e respondida? emocao-ancora aparece nos 3 casos? fio condutor sentido sem ser dito?"
-        " Para cada dimensao retorne: score (0-20) e justificativa de 1 frase."
-        " Identifique o PONTO MAIS FRACO e uma SUGESTAO ESPECIFICA de melhoria."
-        ' Retorne JSON: {"total": 0-100, "dimensoes": [{"nome": "string", "score": 0-20, "justificativa": "string"}], "ponto_fraco": "string", "sugestao": "string"}'
-    )
-
-    user_msg = (
-        "GANCHO: " + gancho + "\n"
-        "TIPO: " + tipo_gancho + "\n"
-        "EMOCAO-ANCORA: " + emocao + "\n"
-        "PERGUNTA INVISIVEL: " + pergunta_inv + "\n"
-        "CASO1 (" + caso1.get('nivel','') + "): " + caso1.get('animal','') + " — twist: " + caso1.get('twist','') + "\n"
-        "CASO2 (" + caso2.get('nivel','') + "): " + caso2.get('animal','') + " — twist: " + caso2.get('twist','') + "\n"
-        "CASO3 (" + caso3.get('nivel','') + "): " + caso3.get('animal','') + " — twist: " + caso3.get('twist','') + "\n"
-        "MICRO-PROMESSA: " + micro + "\n"
-        "FRASE FINAL: " + frase_final + "\n"
-        "PERGUNTA DIVISORA: " + pergunta_div + "\n"
-        "NARRACAO (primeiros 800 chars): " + narracao[:800]
-    )
-
-    try:
-        text = chamar_claude(system, user_msg, max_tokens=1000, modelo="claude-sonnet-4-6")
-        text = re.sub(r"```json|```", "", text).strip()
-        # Remove trailing commas
-        text = re.sub(r',\s*([}\]])', r'', text)
-        # Extrai apenas o primeiro JSON valido
-        m = re.search(r'\{.*\}', text, re.DOTALL)
-        if m:
-            text = m.group()
-        d = json.loads(text)
-        if 'dimensoes' in d:
-            d['total'] = sum(dim.get('score', 0) for dim in d['dimensoes'])
-        return jsonify(d)
-    except Exception as e:
-        return jsonify({'erro': str(e)}), 500
-
-
-@app.route('/corrigir-dimensao', methods=['POST'])
-def corrigir_dimensao():
-    data = request.json
-    roteiro = data.get('roteiro', {})
-    dimensao = data.get('dimensao', '')
-    justificativa = data.get('justificativa', '')
-    sugestao = data.get('sugestao', '')
-
-    # Mapa de dimensao para campos do roteiro
-    campos_por_dimensao = {
-        'FORCA DO GANCHO': 'gancho_principal, gancho_opcoes',
-        'ESCALADA EMOCIONAL': 'caso3 (twist), micro_promessa',
-        'QUALIDADE DO TWIST': 'caso3 (twist), narracao_caso3',
-        'PERGUNTA DIVISORA': 'pergunta_divisora_principal, pergunta_divisora_opcoes',
-        'CONGRUENCIA NARRATIVA': 'narracao_caso3, narracao_final, frase_final_principal',
-    }
-    campos = campos_por_dimensao.get(dimensao.upper(), 'campos relevantes')
-
-    system = (
-        "Voce e um especialista em roteiros virais para YouTube."
-        " Recebera um roteiro completo com um problema especifico identificado."
-        " Sua tarefa: corrigir APENAS os campos necessarios para resolver o problema."
-        " NAO altere o que nao foi solicitado. Preserve o estilo, tom e estrutura geral."
-        " Retorne JSON apenas com os campos corrigidos — nao inclua campos que nao mudaram."
-        " Campos possiveis: gancho_principal, gancho_opcoes, caso3, micro_promessa,"
-        " narracao_caso3, frase_final_principal, frase_final_opcoes,"
-        " pergunta_divisora_principal, pergunta_divisora_opcoes, narracao_final."
-        " Para caso3, retorne apenas os subcampos alterados (twist, escalada, etc)."
-        " Retorne JSON valido sem markdown."
-    )
-
-    user_msg = (
-        "ROTEIRO ATUAL:\n" + json.dumps(roteiro, ensure_ascii=False)[:2000] + "\n\n"
-        "DIMENSAO COM PROBLEMA: " + dimensao + "\n"
-        "PROBLEMA IDENTIFICADO: " + justificativa + "\n"
-        "SUGESTAO DE MELHORIA: " + sugestao + "\n"
-        "CAMPOS A CORRIGIR: " + campos + "\n\n"
-        "Corrija apenas o necessario para resolver o problema mantendo tudo mais intacto."
-    )
-
-    try:
-        text = chamar_claude(system, user_msg, max_tokens=2000, modelo="claude-sonnet-4-6")
-        text = re.sub(r"```json|```", "", text).strip()
-        # Remove trailing commas e texto extra apos o JSON
-        text = re.sub(r',\s*([}\]])', r'', text)
-        # Extrai apenas o primeiro objeto JSON valido
-        import re as re2
-        m = re2.search(r'\{.*\}', text, re2.DOTALL)
-        if m:
-            text = m.group()
-        d = json.loads(text)
-        return jsonify(d)
-    except Exception as e:
-        return jsonify({'erro': str(e)}), 500
-
-
-@app.route('/gerar-contexto', methods=['POST'])
-def gerar_contexto():
-    data = request.json
-    titulo = data.get('titulo', '').strip()
-    modelo = data.get('modelo', 'animais')
-    duracao = data.get('duracao', '60')
-    contexto_atual = data.get('contexto_atual', '').strip()
-
-    dur_s = DURACOES.get(str(duracao), 60)
-
-    system = (
-        "Voce e um estrategista de conteudo viral para YouTube."
-        " Dado um titulo de video, gere um contexto criativo e especifico que vai guiar a criacao do roteiro."
-        " O contexto deve incluir:"
-        " - Angulo emocional especifico (qual emocao o video vai explorar)"
-        " - Sugestao de animais ou casos especificos se relevante"
-        " - Tom narrativo (perturbador, filosofico, chocante, etc)"
-        " - Elemento diferenciador que vai tornar esse video unico"
-        " Seja ESPECIFICO e CRIATIVO — nao generalize."
-        " O contexto deve ter entre 2 e 4 frases diretas e objetivas."
-        " Retorne apenas o contexto em texto, sem explicacoes adicionais."
-    )
-
-    user_msg = "Titulo: " + titulo
-    user_msg += "\nModelo: " + modelo
-    user_msg += "\nDuracao: " + str(dur_s) + "s"
-    if contexto_atual:
-        user_msg += "\nContexto atual (gere uma variacao DIFERENTE): " + contexto_atual
-
-    try:
-        text = chamar_claude(system, user_msg, max_tokens=300, modelo="claude-haiku-4-5-20251001")
-        text = text.strip().strip('"')
-        return jsonify({'contexto': text})
-    except Exception as e:
-        return jsonify({'erro': str(e)}), 500
-
-
 @app.route('/avaliar-thumbnail', methods=['POST'])
 def avaliar_thumbnail():
     data = request.json
     imagem_b64 = data.get('imagem', '')
     canal = data.get('canal', 'geral')
-
     if not imagem_b64:
         return jsonify({'erro': 'Imagem vazia'}), 400
-
     if ',' in imagem_b64:
         media_type = imagem_b64.split(';')[0].replace('data:', '')
         imagem_b64 = imagem_b64.split(',')[1]
     else:
         media_type = 'image/jpeg'
-
     canal_ctx = {
-        'animais': 'Canal de comportamento animal — cenas cinematograficas de animais reais, estilo documental estilizado.',
-        'mente': 'Canal de psicologia — personagem azul 3D neutro genderless, fundo branco absoluto, metafora visual minimalista, texto integrado bold.',
-        'geral': 'Canal generico de conteudo educativo viral para YouTube.'
+        'animais': 'Canal de comportamento animal — cenas cinematograficas de animais reais.',
+        'mente': 'Canal de psicologia — personagem azul 3D neutro, fundo branco, metafora visual minimalista.',
+        'geral': 'Canal generico de conteudo educativo viral.'
     }.get(canal, 'Canal generico')
-
     system = (
         "Voce e o maior analista de thumbnails do YouTube do mundo."
-        " Ja analisou mais de 500 mil thumbnails e sabe exatamente por que uma imagem para o scroll e outra nao."
         " Analise a thumbnail com precisao cirurgica."
         " CONTEXTO DO CANAL: " + canal_ctx +
-        " ENTREGUE:"
-        " 1. SCORE em 4 dimensoes de 0-25 cada com justificativa especifica do que ve na imagem."
-        " 2. DIAGNOSTICO: 6 analises — teste dos 0.3 segundos (o que o olho ve primeiro/segundo/terceiro),"
-        " hierarquia visual (o que domina, o que compete), gatilho emocional (qual emocao e intensidade),"
-        " consistencia de canal, analise do texto (amplifica ou compete), diagnostico final em 2 frases."
-        " 3. CHECKLIST: 5 perguntas sim/nao que o espectador responderia em 0.3 segundos."
-        " 4. TITULOS: 3 opcoes de texto curto para a thumbnail — ordenadas da mais viral para a menos viral."
-        " 5. PROMPT DE CORRECAO: prompt completo em ingles para Leonardo gerar versao melhorada com texto integrado."
-        " O prompt deve corrigir ESPECIFICAMENTE os problemas identificados e manter o que funciona."
-        " DIMENSOES DE SCORE:"
-        " 1. PARADA DE SCROLL (0-25): elemento dominante claro, contraste, ponto focal unico."
-        " 2. HIERARQUIA VISUAL (0-25): caminho do olho claro, sem elementos competindo, composicao."
-        " 3. GATILHO EMOCIONAL (0-25): emocao clara, intensidade, curiosidade ou choque gerado."
-        " 4. CONSISTENCIA DE CANAL (0-25): identidade visual reconhecivel, estilo coerente, texto integrado."
-        ' Retorne JSON: {'
-        '"total": 0-100,'
-        '"dimensoes": [{"nome": "string", "score": 0-25, "justificativa": "string especifica sobre a imagem"}],'
-        '"diagnostico": "analise completa em paragrafos com as 6 dimensoes",'
-        '"checklist": [{"pergunta": "string", "ok": true/false}],'
-        '"titulos": ["titulo mais viral", "segundo", "terceiro"],'
-        '"prompt_correcao": "prompt completo em ingles para Leonardo",'
-        '"ponto_fraco": "dimensao mais fraca",'
-        '"sugestao": "sugestao especifica e visual"}'
+        " DIMENSOES (0-25 cada):"
+        " 1. PARADA DE SCROLL: elemento dominante claro, contraste, ponto focal."
+        " 2. HIERARQUIA VISUAL: caminho do olho claro, composicao, sem elementos competindo."
+        " 3. GATILHO EMOCIONAL: emocao clara, intensidade, curiosidade ou choque."
+        " 4. CONSISTENCIA DE CANAL: identidade visual reconhecivel, estilo coerente."
+        " Diagnostico: teste dos 0.3s, hierarquia, gatilho, texto, diagnostico final."
+        " Checklist: 5 perguntas sim/nao."
+        " Titulos: 3 opcoes do mais viral ao menos."
+        " Prompt de correcao completo em ingles para Leonardo."
+        ' Retorne JSON: {"total":0-100,"dimensoes":[{"nome":"string","score":0-25,"justificativa":"string"}],'
+        '"diagnostico":"string","checklist":[{"pergunta":"string","ok":true}],'
+        '"titulos":["t1","t2","t3"],"prompt_correcao":"string","ponto_fraco":"string","sugestao":"string"}'
     )
-
     try:
         r = requests.post(
             "https://api.anthropic.com/v1/messages",
@@ -1110,20 +946,15 @@ def avaliar_thumbnail():
                 "model": "claude-sonnet-4-6",
                 "max_tokens": 2000,
                 "system": system,
-                "messages": [{
-                    "role": "user",
-                    "content": [
-                        {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": imagem_b64}},
-                        {"type": "text", "text": "Analise esta thumbnail seguindo todas as instrucoes. Seja especifico sobre o que ve na imagem."}
-                    ]
-                }]
+                "messages": [{"role": "user", "content": [
+                    {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": imagem_b64}},
+                    {"type": "text", "text": "Avalie esta thumbnail."}
+                ]}]
             },
             timeout=30
         )
-        resp = r.json()
-        text = resp['content'][0]['text']
-        text = re.sub(r"```json|```", "", text).strip()
-        d = json.loads(text)
+        text = r.json()['content'][0]['text']
+        d = parse_json_robusto(text)
         if 'dimensoes' in d:
             d['total'] = sum(dim.get('score', 0) for dim in d['dimensoes'])
         return jsonify(d)
@@ -1137,26 +968,15 @@ def corrigir_dim_thumbnail():
     dimensao = data.get('dimensao', '')
     justificativa = data.get('justificativa', '')
     prompt_atual = data.get('prompt_atual', '')
-    canal = data.get('canal', 'geral')
-
     system = (
         "Voce e especialista em thumbnails virais do YouTube."
-        " Recebera um prompt de imagem e um problema especifico identificado numa dimensao."
-        " Sua tarefa: atualizar o prompt para corrigir ESPECIFICAMENTE aquela dimensao."
-        " Mantenha tudo que ja estava bom no prompt original."
-        " Retorne apenas o prompt atualizado em ingles, sem explicacoes."
+        " Recebera um prompt e um problema especifico. Atualize o prompt para corrigir aquela dimensao."
+        " Mantenha tudo que ja estava bom. Retorne apenas o prompt atualizado em ingles."
     )
-    user_msg = (
-        "PROMPT ATUAL:\n" + prompt_atual +
-        "\n\nDIMENSAO COM PROBLEMA: " + dimensao +
-        "\nPROBLEMA ESPECIFICO: " + justificativa +
-        "\n\nAtualize o prompt para corrigir esse problema especifico."
-    )
-
+    user_msg = "PROMPT: " + prompt_atual + "\nPROBLEMA: " + dimensao + " - " + justificativa + "\nAtualize o prompt."
     try:
         text = chamar_claude(system, user_msg, max_tokens=500, modelo="claude-sonnet-4-6")
-        text = text.strip().strip('"')
-        return jsonify({'prompt_atualizado': text})
+        return jsonify({'prompt_atualizado': text.strip().strip('"')})
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
 
