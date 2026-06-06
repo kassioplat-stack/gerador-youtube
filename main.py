@@ -791,7 +791,7 @@ def gerar_prompts():
     duracao_s = {"40":40,"60":60,"90":90,"120":120,"180":180,"240":240,"300":300}.get(duracao, 60)
 
     if modelo == 'mente':
-        n_prompts = max(round(duracao_s / 2), 5)
+        n_prompts = max(round(duracao_s / 3), 5)
 
         system_lines = [
             "Voce e o diretor de arte do canal de psicologia mais viral do YouTube.",
