@@ -434,11 +434,14 @@ function restaurarEstado() {
     // Restaura campos de texto
     if(salvo.titulo) document.getElementById('titulo').value = salvo.titulo;
     if(salvo.contexto) document.getElementById('contexto').value = salvo.contexto;
-    // Restaura chips
-    if(salvo.duracao) selChip('duracao', salvo.duracao);
+    // Restaura chips — desmarca todos antes de marcar o correto
+    if(salvo.duracao) {
+      document.querySelectorAll('.chips-row .chip').forEach(function(c){ c.classList.remove('sel'); });
+      selChip('duracao', salvo.duracao, 'd40','d60','d90','d120','d180','d240','d300');
+    }
     if(salvo.modelo) selModel(salvo.modelo);
     if(salvo.estilo) selStyle(salvo.estilo);
-    if(salvo.formato) selChip('formato', salvo.formato);
+    if(salvo.formato) selChip('formato', salvo.formato, 'f916','f169','f11');
     // Restaura roteiro
     if(salvo.roteiro) {
       state.roteiro = salvo.roteiro;
