@@ -399,6 +399,7 @@ var state = {
   narracao_gerada: '',
   zipPath: null,
   scoreData: null,
+  thumbnails: [],
   calendarioItems: []
 };
 
@@ -779,22 +780,17 @@ async function calcularScore(roteiro) {
     d.dimensoes.forEach(function(dim, i) {
       var pct = (dim.score / 20) * 100;
       var dcor = dim.score >= 15 ? '#4caf50' : dim.score >= 10 ? '#ff9800' : '#f44336';
-      var mostrarCorrigir = dim.score < 15;
-      dims.innerHTML += '<div style="margin-bottom:10px" id="dim-block-'+i+'">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'
+      dims.innerHTML += '<div style="margin-bottom:10px">'
+        + '<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
         + '<span style="font-size:12px;color:#888">' + esc(dim.nome) + '</span>'
-        + '<div style="display:flex;align-items:center;gap:8px">'
         + '<span style="font-size:12px;font-weight:700;color:' + dcor + '">' + dim.score + '/20</span>'
-        + (mostrarCorrigir ? '<button onclick="corrigirDimensao('+i+')" id="btn-corrigir-'+i+'" style="background:transparent;border:1px solid #E8593C;border-radius:4px;padding:2px 8px;font-size:10px;color:#E8593C;cursor:pointer;font-family:inherit">Corrigir</button>' : '')
-        + '</div>'
         + '</div>'
         + '<div style="height:4px;background:#1a1a1a;border-radius:2px">'
-        + '<div id="dim-bar-'+i+'" style="height:100%;width:' + pct + '%;background:' + dcor + ';border-radius:2px;transition:width .6s ease"></div>'
+        + '<div style="height:100%;width:'+pct+'%;background:'+dcor+';border-radius:2px;transition:width .6s ease"></div>'
         + '</div>'
         + '<div style="font-size:11px;color:#555;margin-top:2px">' + esc(dim.justificativa) + '</div>'
         + '</div>';
     });
-
     if(d.ponto_fraco) {
       fracoEl.style.display = 'block';
       fracoEl.innerHTML = '⚠ Ponto mais fraco: <strong>' + esc(d.ponto_fraco) + '</strong>';
@@ -803,9 +799,49 @@ async function calcularScore(roteiro) {
       sugestaoEl.style.display = 'block';
       sugestaoEl.innerHTML = '💡 ' + esc(d.sugestao);
     }
+    var btnCorrigir = document.getElementById('btn-corrigir-score');
+    if(btnCorrigir) btnCorrigir.style.display = 'block';
   } catch(e) {
     dims.innerHTML = '<div style="color:#555;font-size:12px">Erro ao calcular score: ' + e.message + '</div>';
   }
+}
+
+async function corrigirPontoFraco() {
+  if(!state.roteiro || !state.scoreData) return;
+  var pontoFraco = state.scoreData.ponto_fraco || '';
+  var sugestao = state.scoreData.sugestao || '';
+  var dimFraca = state.scoreData.dimensoes.reduce(function(a, b) { return a.score < b.score ? a : b; });
+  var btn = document.getElementById('btn-corrigir-score');
+  btn.textContent = '⏳ Corrigindo...';
+  btn.disabled = true;
+  try {
+    var r = await fetch('/corrigir-dimensao', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        roteiro: state.roteiro,
+        dimensao: dimFraca.nome,
+        justificativa: dimFraca.justificativa,
+        sugestao: sugestao
+      })
+    });
+    var d = await r.json();
+    if(d.erro) throw new Error(d.erro);
+    var rot = state.roteiro;
+    if(d.gancho_principal) { rot.gancho_principal = d.gancho_principal; rot.gancho_opcoes = d.gancho_opcoes || rot.gancho_opcoes; }
+    if(d.caso3) rot.caso3 = Object.assign(rot.caso3, d.caso3);
+    if(d.micro_promessa) rot.micro_promessa = d.micro_promessa;
+    if(d.narracao_caso3) rot.narracao_caso3 = d.narracao_caso3;
+    if(d.frase_final_principal) { rot.frase_final_principal = d.frase_final_principal; rot.frase_final_opcoes = d.frase_final_opcoes || rot.frase_final_opcoes; }
+    if(d.pergunta_divisora_principal) { rot.pergunta_divisora_principal = d.pergunta_divisora_principal; rot.pergunta_divisora_opcoes = d.pergunta_divisora_opcoes || rot.pergunta_divisora_opcoes; }
+    if(d.narracao_final) rot.narracao_final = d.narracao_final;
+    state.roteiro = rot;
+    renderRoteiro(rot);
+    await calcularScore(rot);
+    salvarEstado();
+  } catch(e) { alert('Erro ao corrigir: ' + e.message); }
+  btn.textContent = '🔧 Corrigir ponto mais fraco';
+  btn.disabled = false;
 }
 
 async function corrigirDimensao(idx) {
@@ -1479,30 +1515,6 @@ function renderGrid(total) {
   document.getElementById('img-grid').innerHTML = html;
 }
 
-async function clonarRoteiro() {
-  var transcricao = document.getElementById('transcricao').value.trim();
-  var titulo = document.getElementById('titulo-clone').value.trim();
-  if(!transcricao || !titulo) { alert('Preencha a transcricao e o titulo'); return; }
-  document.getElementById('clone-result').textContent = 'Analisando...';
-  try {
-    var r = await fetch('/clonar', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({transcricao: transcricao, titulo: titulo, obs: document.getElementById('obs-clone').value})
-    });
-    var d = await r.json();
-    if(d.erro) throw new Error(d.erro);
-    document.getElementById('clone-result').textContent = 'Modelo: ' + (d.modelo_identificado || 'Animal');
-    state.roteiro = d;
-    state.prompts = [].concat(d.caso1&&d.caso1.prompts||[], d.caso2&&d.caso2.prompts||[], d.caso3&&d.caso3.prompts||[], d.prompts_final||[]);
-    showTab('gerar', document.getElementById('tab-btn-gerar'));
-    renderRoteiro(d);
-    document.getElementById('btn-imagens').disabled = false;
-    document.getElementById('btn-imagens').style.opacity = '1';
-  } catch(e) {
-    document.getElementById('clone-result').textContent = 'Erro: ' + e.message;
-  }
-}
 
 function addCalendario() {
   var titulo = document.getElementById('cal-titulo').value.trim();
