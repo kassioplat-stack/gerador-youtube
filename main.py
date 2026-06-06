@@ -646,8 +646,16 @@ def regenerar_opcoes():
         'frase': 'Gere 4 opcoes de frase final filosofica para o titulo. Retorne JSON: {"opcoes":["op1","op2","op3","op4"]}',
         'pergunta': 'Gere 4 opcoes de pergunta divisora para o titulo. Retorne JSON: {"opcoes":["op1","op2","op3","op4"]}'
     }
+    modelo_ctx = data.get('modelo', 'animais')
+    system = tipos_map.get(tipo, '')
+    if not system:
+        return jsonify({'erro': 'Tipo invalido'}), 400
     try:
-        text = chamar_claude(tipos_map.get(tipo, ''), f"Titulo: {titulo}", max_tokens=500, modelo="claude-haiku-4-5-20251001")
+        text = chamar_claude(system, "Titulo: " + titulo + "\nModelo: " + modelo_ctx, max_tokens=500, modelo="claude-haiku-4-5-20251001")
+        text = re.sub(r"```json|```", "", text).strip()
+        text = re.sub(r',\s*([}\]])', r'\1', text)
+        m = re.search(r'\{.*\}', text, re.DOTALL)
+        if m: text = m.group()
         return jsonify(json.loads(text))
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
