@@ -439,7 +439,7 @@ function restaurarEstado() {
     }
     if(salvo.modelo) selModel(salvo.modelo);
     if(salvo.estilo) selStyle(salvo.estilo);
-    if(salvo.formato) selChip('formato', salvo.formato, 'f916','f169','f11');
+    if(salvo.formato) selChip('formato', salvo.formato);
     // Restaura roteiro
     if(salvo.roteiro) {
       state.roteiro = salvo.roteiro;
