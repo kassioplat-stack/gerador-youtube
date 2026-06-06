@@ -783,40 +783,73 @@ def regenerar_opcoes():
 
 @app.route('/gerar-prompts', methods=['POST'])
 def gerar_prompts():
-    limpar_sessions_antigas()
     data = request.json
     script = data.get('script', '').strip()
-    print("GERAR-PROMPTS chars=" + str(len(script)))
-    if not script:
-        return jsonify({'erro': 'Script vazio — gere a narracao primeiro'}), 400
-
+    duracao = str(data.get('duracao', '60'))
     modelo = data.get('modelo', 'animais')
 
+    duracao_s = {"40":40,"60":60,"90":90,"120":120,"180":180,"240":240,"300":300}.get(duracao, 60)
+
     if modelo == 'mente':
-        system = (
-            "Voce e um diretor de arte especialista em videos curtos virais do YouTube."
-            " Recebera um script de narracao sobre psicologia humana e deve identificar os MOMENTOS NARRATIVOS."
-            " Um momento NAO e uma frase gramatical — e um bloco de significado narrativo."
-            " Para cada momento gere um prompt visual com o PERSONAGEM FIXO abaixo."
-            " PERSONAGEM OBRIGATORIO em TODOS os prompts: blue matte rubber 3D humanoid figure, genderless, faceless, smooth surface, two small black dot eyes, rounded head, white absolute background, soft studio lighting."
-            " Escolha UMA direcao visual para cada prompt:\n"
-            " 1. SOMBRA REVELADORA: figura pequena, sombra enorme e diferente revelando algo oculto\n"
-            " 2. CABECA ABERTA: topo da cabeca aberto com objeto metaforico do momento narrativo\n"
-            " 3. DUPLO EU: duas figuras identicas em conflito ou tensao\n"
-            " 4. PSICOLOGIA SURREALISTA: figura com elemento impossivel representando a verdade psicologica\n"
-            " Fundo branco absoluto. Sem texto. Sem outros personagens."
-            " PROIBIDO: cinematic, realistic, documentary, photographic, human, face, skin."
-            " Os prompts devem ser em INGLES."
-            ' Retorne JSON valido sem markdown: {"prompts": ["prompt1", "prompt2"]}'
+        n_prompts = max(round(duracao_s / 2), 5)
+
+        system_lines = [
+            "Voce e o diretor de arte do canal de psicologia mais viral do YouTube.",
+            "Sua missao: traduzir cada momento emocional da narracao em uma imagem impossivel, perturbadora e viciante.",
+            "Nao ilustre o que foi DITO — ilustre o que foi SENTIDO.",
+            "",
+            "PERSONAGEM FIXO em TODOS os prompts (obrigatorio):",
+            "blue matte rubber 3D humanoid figure, genderless, faceless, smooth surface, two small black dot eyes, rounded head, white absolute background, soft studio lighting.",
+            "",
+            "O QUE FAZ UMA IMAGEM VICIANTE NO ESTILO MENTE:",
+            "1. TENSAO VISUAL IMPOSSIVEL: algo que nao pode existir mas faz sentido emocional — o cerebro tenta resolver e nao consegue",
+            "2. FIDELIDADE A EMOCAO: nao ilustra a palavra — ilustra o SENTIMENTO daquele momento",
+            "3. ESCALA E ISOLAMENTO: figura pequena em espaco enorme cria vulnerabilidade sem explicar",
+            "4. O DETALHE IMPOSSIVEL: cada imagem tem um elemento que nao deveria estar ali — sombra errada, duplicacao, objeto saindo da cabeca",
+            "5. ESTRANHEZA CONTROLADA: perturbador mas nao assustador — o espectador para para entender",
+            "",
+            "4 DIRECOES VISUAIS — escolha a mais perturbadora para cada momento:",
+            "SOMBRA REVELADORA: figura pequena, sombra enorme e diferente dela — a sombra mostra o que ela esconde",
+            "CABECA ABERTA: topo da cabeca aberto com objeto metaforico do momento — o que controla sem pedir permissao",
+            "DUPLO EU: duas figuras identicas em conflito, tensao ou negacao — o eu real vs o eu performado",
+            "PSICOLOGIA SURREALISTA: figura com elemento impossivel que representa a verdade psicologica daquele momento",
+            "",
+            "EXEMPLOS DE PROMPT CORRETO:",
+            "MOMENTO: voce terceirizou seu valor",
+            "PROMPT: blue matte 3D figure standing small in vast white space, its enormous shadow on the wall shaped like a crowd of people watching and judging, figure looking at shadow not at viewer, dramatic side lighting, isolated, vulnerable",
+            "---",
+            "MOMENTO: seu cerebro aprendeu isso antes de voce aprender a ler",
+            "PROMPT: blue matte 3D figure with head opened at top, inside a small child figure sits looking outward, the adult figure unaware, white absolute background, soft melancholic lighting, surreal and tender",
+            "---",
+            "MOMENTO: voce deixa qualquer um votar em quanto voce vale",
+            "PROMPT: blue matte 3D figure standing on a scale, dozens of tiny identical figures surrounding it placing weights on the scale, figure looking down helpless, white background, cold overhead lighting",
+            "",
+            "PROIBIDO:",
+            "- Texto ou palavras na imagem",
+            "- Outros personagens que nao sejam versoes da figura azul",
+            "- Cenarios complexos ou coloridos — fundo BRANCO ABSOLUTO sempre",
+            "- Imagens genericas sem conexao emocional com o momento",
+            "- cinematic, realistic, photographic, human skin, face",
+            "",
+            "Gere EXATAMENTE " + str(n_prompts) + " prompts — um por momento emocional da narracao.",
+            "Distribua pelos momentos mais impactantes — gancho, viradas, ferida, final.",
+            'Retorne JSON valido sem markdown: {"prompts": ["prompt1", "prompt2"]}'
+        ]
+        system = "\n".join(system_lines)
+        user_msg = (
+            "Script (" + str(duracao_s) + "s, " + str(n_prompts) + " imagens necessarias):\n\n" + script +
+            "\n\nGere " + str(n_prompts) + " prompts em ingles — um por momento emocional. "
+            "Cada prompt deve ser impossivel, perturbador e fiel ao sentimento daquele momento."
         )
     else:
+        n_prompts = max(round(duracao_s / 3), 5)
         system = (
             "Voce e um diretor de arte especialista em videos curtos virais do YouTube."
             " Recebera um script de narracao e deve identificar os MOMENTOS NARRATIVOS."
             " Um momento NAO e uma frase gramatical — e um bloco de significado narrativo."
             " Frases curtissimas em sequencia formam UM unico momento — nao divida em varios prompts."
             " Para cada momento gere um prompt que traduz LITERALMENTE aquele momento visual."
-            " Para 40s espera-se 10-15 prompts. Para 60s, 15-25. Para 90s, 25-35."
+            " Gere EXATAMENTE " + str(n_prompts) + " prompts."
             " FORMATO: [descricao fisica ESPECIFICA do animal] + [acao EXATA descrita no script] + [angulo] + [iluminacao] + [movimento]."
             " Defina as caracteristicas fisicas do animal no primeiro prompt e repita em TODOS os outros desse animal."
             " Angulos: wide shot para apresentacao, close-up para tensao, extreme close-up para twist."
@@ -827,19 +860,14 @@ def gerar_prompts():
             " Os prompts devem ser em INGLES."
             ' Retorne JSON valido sem markdown: {"prompts": ["prompt1", "prompt2"]}'
         )
-    user_msg = "Script:\n\n" + script + "\n\nGere um prompt em ingles por momento narrativo."
+        user_msg = "Script:\n\n" + script + "\n\nGere " + str(n_prompts) + " prompts em ingles — um por momento narrativo."
 
     try:
         text = chamar_claude(system, user_msg, max_tokens=4000, modelo="claude-sonnet-4-6")
-        print("GERAR-PROMPTS resposta chars=" + str(len(text)))
-        text = re.sub(r"```json|```", "", text).strip()
-        text = re.sub(r',[ \t\n]*([}\]])', r'\1', text)
-        d = json.loads(text)
+        d = parse_json_robusto(text)
         prompts = d.get('prompts', [])
-        print("GERAR-PROMPTS total=" + str(len(prompts)))
         return jsonify({'prompts': prompts, 'total': len(prompts)})
     except Exception as e:
-        print("GERAR-PROMPTS erro=" + str(e))
         return jsonify({'erro': str(e)}), 500
 
 
