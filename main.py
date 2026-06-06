@@ -395,9 +395,16 @@ def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-6")
                 json={"model": modelo, "max_tokens": max_tokens, "system": system, "messages": [{"role": "user", "content": user_msg}]},
                 timeout=300
             )
-            text = r.json()["content"][0]["text"]
+            resp = r.json()
+            # Detecta erro da API antes de tentar acessar content
+            if "error" in resp:
+                tipo = resp["error"].get("type", "unknown")
+                msg = resp["error"].get("message", str(resp["error"]))
+                raise Exception(f"API error [{tipo}]: {msg}")
+            if "content" not in resp:
+                raise Exception(f"Resposta inesperada da API: {str(resp)[:200]}")
+            text = resp["content"][0]["text"]
             text = re.sub(r"```json|```", "", text).strip()
-            # Remove trailing commas antes de fechar arrays/objetos
             text = re.sub(r',\s*([}\]])', r'\1', text)
             return text
         except Exception as e:
