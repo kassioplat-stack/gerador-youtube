@@ -108,7 +108,7 @@ def build_system_mente(duracao_s, total_palavras):
 
         "CAMADA 2 — O MECANISMO (" + str(frases_por_camada) + " frases):\n"
         "Revela a engrenagem psicologica por tras do comportamento.\n"
-        "Baseado em ciencia real: nome do fenomeno, pesquisador, universidade, ano.\n"
+        "Explique o fenomeno de forma clara e perturbadora — sem necessidade de citar estudos formais.\n"
         "O espectador comeca a se desconfortar porque entende que nao e acidente.\n"
         "Nao e falha de carater — e arquitetura cerebral. Isso e ainda mais perturbador.\n\n"
 
@@ -118,10 +118,26 @@ def build_system_mente(duracao_s, total_palavras):
         "O espectador percebe a implicacao nas suas escolhas, relacoes ou identidade.\n"
         "Nao tem como negar. Nao da para desligar depois.\n\n"
 
+        "EMOCAO-ANCORA:\n"
+        "Defina UMA emocao que atravessa as 3 camadas e conecta o comportamento ao espectador de forma pessoal.\n"
+        "Nao e a emocao sobre o tema — e o que o ESPECTADOR vai sentir ao se reconhecer.\n"
+        "Exemplos: desconforto de se ver, vergonha silenciosa, admiracao perturbadora, reconhecimento culpado.\n\n"
+
+        "PERGUNTA INVISIVEL:\n"
+        "Uma pergunta que o video responde sem nunca fazer em voz alta.\n"
+        "Ela e plantada no gancho, cresce nas camadas e explode na ferida.\n"
+        "So e revelada indiretamente na frase final.\n"
+        "Exemplos: Sera que tenho controle sobre minhas proprias escolhas? / O que chamo de decisao e apenas automatismo?\n\n"
+
+        "MICRO-PROMESSA entre camada 2 e 3:\n"
+        "Frase unica que promete algo ainda mais pessoal e inescapavel.\n"
+        "NUNCA use: O proximo passo e... / Agora veja... / Mas ha mais...\n"
+        "Use algo que aprofunda: Mas o que isso faz com suas escolhas e pior do que parece. / E quando voce entender a terceira parte, nao vai conseguir ignorar.\n\n"
+
         "GANCHO — PRIMEIRA FRASE DO VIDEO:\n"
         "Afirmacao direta em segunda pessoa que planta divida emocional.\n"
         "Vai direto — zero apresentacao, zero contexto.\n"
-        "Gera a pergunta: isso e sobre mim?\n\n"
+        "Gera a pergunta imediata: isso e sobre mim?\n\n"
 
         "FRASE FINAL (" + str(frases_final) + " frases):\n"
         "Lenta. Filosofica. Nao resolve — aprofunda.\n"
@@ -130,42 +146,31 @@ def build_system_mente(duracao_s, total_palavras):
         "REGRAS ABSOLUTAS:\n"
         "1. Segunda pessoa direta em TODA a narracao — Voce, Sua mente, Seu cerebro\n"
         "2. NUNCA julgue — explique o mecanismo, o espectador se julga sozinho\n"
-        "3. Realismo psicologico — estudos reais, nomes, universidades, anos\n"
-        "4. Frases completas — sujeito, verbo, sentido. Nunca cortadas\n"
-        "5. Ritmo cinematografico — curtas de impacto alternando com medias descritivas\n"
+        "3. Frases completas — sujeito, verbo, sentido. Nunca cortadas\n"
+        "4. Ritmo cinematografico — curtas de impacto alternando com medias descritivas\n"
+        "5. Ferida aberta no final — sem resolucao, sem conselho\n"
         "6. Total: aproximadamente " + str(total_palavras) + " palavras\n\n"
-
-        "PROMPTS DE IMAGEM:\n"
-        "Personagem FIXO em TODOS os prompts: blue matte rubber 3D figure, genderless, faceless,\n"
-        "smooth surface, two black dot eyes, rounded head, white absolute background.\n"
-        "4 direcoes visuais — escolha a mais adequada para cada momento:\n"
-        "1. SOMBRA REVELADORA: personagem pequeno, sombra grande revelando verdade oculta\n"
-        "2. CABECA ABERTA: cabeca aberta mostrando metafora do que controla a mente\n"
-        "3. DUPLO EU: duas versoes do personagem em conflito interno\n"
-        "4. PSICOLOGIA SURREALISTA: personagem com objeto impossivel representando verdade\n"
-        "Fundo branco absoluto, composicao centralizada, sem texto, sem outros personagens.\n\n"
 
         "Responda SOMENTE em JSON valido sem markdown:\n"
         "{\n"
         '  "comportamento": "nome do comportamento revelado",\n'
-        '  "mecanismo": "nome do fenomeno psicologico (ex: vies de confirmacao)",\n'
+        '  "mecanismo": "nome do fenomeno psicologico",\n'
+        '  "pergunta_invisivel": "pergunta que o video responde sem dizer em voz alta",\n'
+        '  "emocao_ancora": "emocao central que conecta tudo ao espectador",\n'
         '  "gancho_principal": "primeira frase — segunda pessoa, impacto imediato",\n'
         '  "gancho_opcoes": ["variacao2", "variacao3", "variacao4"],\n'
         '  "camada1": {"titulo": "O ESPELHO", "descricao": "o que o espectador faz", "twist": "o detalhe que perturba"},\n'
-        '  "camada2": {"titulo": "O MECANISMO", "descricao": "a engrenagem psicologica", "pesquisa": "estudo real citado"},\n'
+        '  "camada2": {"titulo": "O MECANISMO", "descricao": "a engrenagem psicologica", "twist": "por que isso e perturbador"},\n'
         '  "camada3": {"titulo": "A FERIDA", "descricao": "a implicacao pessoal", "twist": "o que nao da para negar"},\n'
+        '  "micro_promessa": "frase entre camada 2 e 3 que aprofunda — nunca transicao mecanica",\n'
         '  "narracao_camada1": ["' + str(frases_por_camada) + ' frases em portugues — segunda pessoa, espelho sem julgamento"],\n'
-        '  "narracao_camada2": ["' + str(frases_por_camada) + ' frases em portugues — mecanismo psicologico com ciencia real"],\n'
+        '  "narracao_camada2": ["' + str(frases_por_camada) + ' frases em portugues — mecanismo psicologico perturbador"],\n'
         '  "narracao_camada3": ["' + str(frases_por_camada) + ' frases em portugues — implicacao pessoal inescapavel"],\n'
         '  "narracao_final": ["' + str(frases_final) + ' frases em portugues — filosofica, sem resolucao"],\n'
         '  "frase_final_principal": "frase filosofica lenta que fica na cabeca",\n'
         '  "frase_final_opcoes": ["variacao2", "variacao3", "variacao4"],\n'
         '  "pergunta_divisora_principal": "divide entre quem aceita e quem resiste",\n'
-        '  "pergunta_divisora_opcoes": ["variacao2", "variacao3", "variacao4"],\n'
-        '  "prompts_camada1": ["' + str(frases_por_camada) + ' prompts em ingles — personagem azul 3D, direcao visual escolhida"],\n'
-        '  "prompts_camada2": ["' + str(frases_por_camada) + ' prompts em ingles — personagem azul 3D"],\n'
-        '  "prompts_camada3": ["' + str(frases_por_camada) + ' prompts em ingles — personagem azul 3D"],\n'
-        '  "prompts_final": ["' + str(frases_final) + ' prompts em ingles — personagem azul 3D"]\n'
+        '  "pergunta_divisora_opcoes": ["variacao2", "variacao3", "variacao4"]\n'
         "}"
     )
 
@@ -926,30 +931,65 @@ def score_viral():
 def corrigir_dimensao():
     data = request.json
     roteiro = data.get('roteiro', {})
+    modelo = data.get('modelo', 'animais')
     dimensao = data.get('dimensao', '')
     justificativa = data.get('justificativa', '')
     sugestao = data.get('sugestao', '')
-    campos_map = {
-        'FORCA DO GANCHO': 'gancho_principal, gancho_opcoes',
-        'ESCALADA EMOCIONAL': 'caso3, micro_promessa',
-        'QUALIDADE DO TWIST': 'caso3, narracao_caso3',
-        'PERGUNTA DIVISORA': 'pergunta_divisora_principal, pergunta_divisora_opcoes',
-        'CONGRUENCIA NARRATIVA': 'narracao_caso3, narracao_final, frase_final_principal',
-    }
-    campos = campos_map.get(dimensao.upper(), 'campos relevantes')
+
+    if modelo == 'mente':
+        campos_map = {
+            'FORCA DO GANCHO': 'gancho_principal, gancho_opcoes',
+            'ESCALADA EMOCIONAL': 'camada3, narracao_camada3, micro_promessa',
+            'QUALIDADE DA FERIDA': 'camada3, narracao_camada3',
+            'PERGUNTA DIVISORA': 'pergunta_divisora_principal, pergunta_divisora_opcoes',
+            'CONGRUENCIA NARRATIVA': 'narracao_camada1, narracao_camada2, narracao_camada3, narracao_final',
+        }
+        campos_retorno = (
+            "gancho_principal, gancho_opcoes, camada1, camada2, camada3, "
+            "micro_promessa, narracao_camada1, narracao_camada2, narracao_camada3, "
+            "narracao_final, frase_final_principal, frase_final_opcoes, "
+            "pergunta_divisora_principal, pergunta_divisora_opcoes"
+        )
+        contexto_modelo = (
+            "Este e um roteiro do modelo MENTE — psicologia e comportamento humano.\n"
+            "Narracao em segunda pessoa direta. 3 camadas: O Espelho, O Mecanismo, A Ferida.\n"
+            "Sem citacoes cientificas formais. Ferida aberta no final — sem resolucao.\n"
+        )
+    else:
+        campos_map = {
+            'FORCA DO GANCHO': 'gancho_principal, gancho_opcoes',
+            'ESCALADA EMOCIONAL': 'caso3, micro_promessa',
+            'QUALIDADE DO TWIST': 'caso3, narracao_caso3',
+            'PERGUNTA DIVISORA': 'pergunta_divisora_principal, pergunta_divisora_opcoes',
+            'CONGRUENCIA NARRATIVA': 'narracao_caso3, narracao_final, frase_final_principal',
+        }
+        campos_retorno = (
+            "gancho_principal, gancho_opcoes, caso3, micro_promessa, narracao_caso3, "
+            "narracao_final, frase_final_principal, frase_final_opcoes, "
+            "pergunta_divisora_principal, pergunta_divisora_opcoes"
+        )
+        contexto_modelo = (
+            "Este e um roteiro do modelo ANIMAL — comportamento animal em escalada.\n"
+            "Narracao em terceira pessoa. 3 casos: Interessante, Surpreendente, Chocante.\n"
+        )
+
+    campos = campos_map.get(dimensao.upper(), campos_retorno)
+
     system = (
-        "Voce e especialista em roteiros virais para YouTube."
-        " Recebera um roteiro e um problema especifico. Corrija APENAS os campos necessarios."
-        " NAO altere o que nao foi solicitado. Preserve o estilo e estrutura geral."
-        " Retorne JSON apenas com os campos corrigidos. Sem campos que nao mudaram."
-        " Campos: gancho_principal, gancho_opcoes, caso3, micro_promessa, narracao_caso3,"
-        " frase_final_principal, frase_final_opcoes, pergunta_divisora_principal, pergunta_divisora_opcoes, narracao_final."
-        " Retorne JSON valido sem markdown."
+        "Voce e especialista em roteiros virais para YouTube.\n"
+        + contexto_modelo +
+        "Recebera um roteiro e um problema especifico. Corrija APENAS os campos necessarios.\n"
+        "NAO altere o que nao foi solicitado. Preserve o estilo e estrutura geral.\n"
+        "Retorne JSON apenas com os campos corrigidos, sem campos que nao mudaram.\n"
+        "Campos disponiveis: " + campos_retorno + ".\n"
+        "Retorne JSON valido sem markdown."
     )
     user_msg = (
         "ROTEIRO:\n" + json.dumps(roteiro, ensure_ascii=False)[:2000] +
-        "\n\nDIMENSAO: " + dimensao + "\nPROBLEMA: " + justificativa +
-        "\nSUGESTAO: " + sugestao + "\nCAMPOS: " + campos +
+        "\n\nDIMENSAO: " + dimensao +
+        "\nPROBLEMA: " + justificativa +
+        "\nSUGESTAO: " + sugestao +
+        "\nCAMPOS A CORRIGIR: " + campos +
         "\n\nCorrija apenas o necessario."
     )
     try:
