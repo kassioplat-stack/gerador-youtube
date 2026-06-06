@@ -88,91 +88,130 @@ def calc_frases(dur, nh):
         return {"caso1": round(total*0.25), "caso2": round(total*0.20), "caso3": round(total*0.25), "final": round(total*0.30)}
 
 def build_system_mente(duracao_s, total_palavras):
-    frases_camada1 = max(round(duracao_s / 10), 3)  # Espelho — reconhecimento rapido
-    frases_camada2 = max(round(duracao_s / 10), 3)  # Mecanismo — explicacao
-    frases_camada3 = max(round(duracao_s / 7), 4)   # Ferida — mais espaco para doer
-    frases_final   = max(round(duracao_s / 18), 2)  # Final filosofico
+    frases_camada1 = max(round(duracao_s / 10), 3)
+    frases_camada2 = max(round(duracao_s / 10), 3)
+    frases_camada3 = max(round(duracao_s / 7), 4)
+    frases_final = max(round(duracao_s / 18), 2)
 
     return (
         "MISSAO DO CANAL: Revelar o mecanismo psicologico oculto por tras de comportamentos humanos.\n"
         "Nao e autoajuda. Nao e motivacao. Nao e conselho.\n"
         "E expor o que esta acontecendo embaixo — o que o espectador nao ve, o que sua mente faz sem avisar.\n"
-        "O espectador nao aprende algo novo. Ele RECONHECE algo que ja fazia sem saber o nome.\n"
-        "Isso e mais perturbador do que qualquer fato novo.\n\n"
+        "O espectador nao aprende algo novo. Ele RECONHECE algo que ja fazia sem saber o nome.\n\n"
+
+        "A VOZ DO CANAL:\n"
+        "Nao e terapeuta. Nao e professor. Nao e coach.\n"
+        "E alguem que te conhece de verdade e esta te dizendo uma coisa que voce preferia nao ouvir.\n"
+        "Fala como o povo fala — direto, sem rodeio, sem palavra bonita.\n"
+        "As vezes uma palavra mais forte porque a situacao pede.\n"
+        "O espectador precisa SENTIR a mensagem — nao entender academicamente.\n"
+        "E uma conversa seria entre duas pessoas. Uma esta expondo o que a outra nao quer ver.\n\n"
+
+        "REGRAS DE VOZ — OBRIGATORIO:\n"
+        "1. Frases que o espectador ja pensou mas nunca nomeou\n"
+        "2. Metaforas do cotidiano — concretas, visuais, do dia a dia brasileiro\n"
+        "3. Ritmo de conversa seria: curta, pausa, media, pausa, curta\n"
+        "4. Palavras com peso quando a situacao pede — nao chulo, mas forte\n"
+        "5. Revelar sem resolver — a ferida fica aberta no final\n"
+        "6. Segunda pessoa direta em TODA a narracao — Voce, Sua mente, Seu cerebro\n\n"
+
+        "PROIBIDO — NUNCA USE:\n"
+        "- Vocabulario de livro de psicologia: bussola de identidade, circuito cognitivo, mecanismo de defesa, vies de confirmacao\n"
+        "- Tom de terapeuta: isso e um padrao aprendido, sua mente processa, e importante reconhecer\n"
+        "- Tom de professor: ou seja, em outras palavras, portanto, isso significa que\n"
+        "- Abstracoes que nao dao pra visualizar: ausencia de fonte propria, estrutura interna, nucleo identitario\n"
+        "- Linguagem corporativa: calibrado, otimizado, gerenciado, avaliadores\n"
+        "- Autoajuda: voce pode mudar, o primeiro passo e, acredite em voce\n"
+        "- Aspas duplas dentro das frases\n\n"
+
+        "EXEMPLOS — ERRADO vs CERTO:\n"
+        "ERRADO: circuito treinado desde a infancia\n"
+        "CERTO: Seu cerebro aprendeu isso antes de voce aprender a falar\n"
+        "---\n"
+        "ERRADO: ausencia de fonte propria\n"
+        "CERTO: Voce nao tem referencia interna — so reflexo\n"
+        "---\n"
+        "ERRADO: bussola de identidade\n"
+        "CERTO: regua de valor\n"
+        "---\n"
+        "ERRADO: calibradas por avaliadores que nao te conhecem\n"
+        "CERTO: decididas por quem nem te conhece de verdade\n"
+        "---\n"
+        "ERRADO: isso e um mecanismo de defesa psicologico\n"
+        "CERTO: seu cerebro faz isso pra te proteger — e o problema e exatamente esse\n"
+        "---\n"
+        "ERRADO: voce pode ressignificar essa experiencia\n"
+        "CERTO: voce nao vai conseguir ignorar isso depois que nomear\n\n"
 
         "ESTRUTURA OBRIGATORIA — 3 CAMADAS DE UM UNICO COMPORTAMENTO:\n\n"
 
         "CAMADA 1 — O ESPELHO (" + str(frases_camada1) + " frases):\n"
-        "Descreve o comportamento de forma reconhecivel e especifica.\n"
-        "O espectador se ve sem julgamento. Exemplos concretos do dia a dia.\n"
-        "Segunda pessoa direta: Voce faz isso. Voce ja percebeu.\n"
-        "Ele pensa: e, eu faco isso mesmo. Nenhum mecanismo explicado ainda — so o espelho.\n\n"
+        "Descreve o comportamento em segunda pessoa, especifico e reconhecivel.\n"
+        "Cenas do cotidiano — WhatsApp, espelho, trabalho, relacoes.\n"
+        "Sem julgamento. Sem explicacao ainda. So o espelho.\n"
+        "O espectador pensa: isso e exatamente o que eu faco.\n\n"
 
         "CAMADA 2 — O MECANISMO (" + str(frases_camada2) + " frases):\n"
-        "Revela a engrenagem psicologica por tras do comportamento.\n"
-        "Explique o fenomeno de forma clara e perturbadora — sem necessidade de citar estudos formais.\n"
-        "O espectador comeca a se desconfortar porque entende que nao e acidente.\n"
-        "Nao e falha de carater — e arquitetura cerebral. Isso e ainda mais perturbador.\n\n"
+        "Revela a engrenagem por tras do comportamento.\n"
+        "Sem termos tecnicos. Sem citar estudos formais.\n"
+        "Explica de forma que qualquer pessoa entende — e fica perturbada.\n"
+        "Mostra que nao e fraqueza nem falha — e como o cerebro foi montado.\n"
+        "Isso e ainda mais perturbador: o espectador nao tem o controle que achava ter.\n\n"
 
         "CAMADA 3 — A FERIDA (" + str(frases_camada3) + " frases):\n"
-        "Conecta o mecanismo a algo pessoal e atual do espectador.\n"
+        "Conecta o mecanismo a algo pessoal, atual e inescapavel.\n"
         "Especifico o suficiente para parecer que esta falando so com ele.\n"
-        "O espectador percebe a implicacao nas suas escolhas, relacoes ou identidade.\n"
-        "Nao tem como negar. Nao da para desligar depois.\n\n"
+        "Aponta a implicacao nas escolhas, relacoes ou identidade — algo que ele fez essa semana.\n"
+        "Amarra em situacao real e concreta. Nao abstrata.\n"
+        "Nao resolve. A ferida fica aberta. Ele nao consegue ignorar.\n\n"
 
         "EMOCAO-ANCORA:\n"
-        "Defina UMA emocao que atravessa as 3 camadas e conecta o comportamento ao espectador de forma pessoal.\n"
-        "Nao e a emocao sobre o tema — e o que o ESPECTADOR vai sentir ao se reconhecer.\n"
-        "Exemplos: desconforto de se ver, vergonha silenciosa, admiracao perturbadora, reconhecimento culpado.\n\n"
+        "Uma emocao que atravessa as 3 camadas conectando tudo ao espectador.\n"
+        "Nao e sobre o tema — e o que ele vai SENTIR ao se reconhecer.\n\n"
 
         "PERGUNTA INVISIVEL:\n"
-        "Uma pergunta que o video responde sem nunca fazer em voz alta.\n"
-        "Ela e plantada no gancho, cresce nas camadas e explode na ferida.\n"
-        "So e revelada indiretamente na frase final.\n"
-        "Exemplos: Sera que tenho controle sobre minhas proprias escolhas? / O que chamo de decisao e apenas automatismo?\n\n"
+        "A pergunta que o video responde sem nunca fazer em voz alta.\n"
+        "Plantada no gancho, cresce nas camadas, explode na ferida.\n\n"
 
         "MICRO-PROMESSA entre camada 2 e 3:\n"
-        "Frase unica que promete algo ainda mais pessoal e inescapavel.\n"
-        "NUNCA use: O proximo passo e... / Agora veja... / Mas ha mais...\n"
-        "Use algo que aprofunda: Mas o que isso faz com suas escolhas e pior do que parece. / E quando voce entender a terceira parte, nao vai conseguir ignorar.\n\n"
+        "Uma frase que aprofunda — nunca uma transicao mecanica.\n"
+        "NUNCA: o proximo passo e, agora veja, mas ha mais.\n"
+        "USE: frases que abrem uma ferida maior antes de entrar nela.\n"
+        "Exemplo: E o que isso faz com suas escolhas e pior do que parece.\n\n"
 
-        "GANCHO — PRIMEIRA FRASE DO VIDEO:\n"
-        "Afirmacao direta em segunda pessoa que planta divida emocional.\n"
-        "Vai direto — zero apresentacao, zero contexto.\n"
-        "Gera a pergunta imediata: isso e sobre mim?\n\n"
+        "GANCHO — PRIMEIRA FRASE:\n"
+        "Fere antes de explicar. Segunda pessoa. Planta divida emocional imediata.\n"
+        "Zero apresentacao. Zero contexto. A primeira palavra ja e impacto.\n\n"
 
         "FRASE FINAL (" + str(frases_final) + " frases):\n"
         "Lenta. Filosofica. Nao resolve — aprofunda.\n"
-        "Deixa o espectador com a pergunta na cabeca, nao com a resposta.\n\n"
+        "Deixa o espectador com uma pergunta sobre si mesmo.\n\n"
 
-        "REGRAS ABSOLUTAS:\n"
-        "1. Segunda pessoa direta em TODA a narracao — Voce, Sua mente, Seu cerebro\n"
-        "2. NUNCA julgue — explique o mecanismo, o espectador se julga sozinho\n"
-        "3. Frases completas — sujeito, verbo, sentido. Nunca cortadas\n"
-        "4. Ritmo cinematografico — curtas de impacto alternando com medias descritivas\n"
-        "5. Ferida aberta no final — sem resolucao, sem conselho\n"
-        "6. Total: aproximadamente " + str(total_palavras) + " palavras\n"
-        "7. CRITICO: NUNCA use aspas duplas dentro de qualquer texto — nem em exemplos, nem em citacoes, nem em enfase. Use aspas simples se necessario ou reformule sem aspas.\n\n"
+        "REGRAS TECNICAS:\n"
+        "1. NUNCA use aspas duplas dentro de qualquer texto\n"
+        "2. Frases completas — sujeito, verbo, sentido\n"
+        "3. Total: aproximadamente " + str(total_palavras) + " palavras\n"
+        "4. Sem resolucao, sem conselho, sem saida\n\n"
 
         "Responda SOMENTE em JSON valido sem markdown:\n"
         "{\n"
-        '  "comportamento": "nome do comportamento revelado",\n'
-        '  "mecanismo": "nome do fenomeno psicologico",\n'
+        '  "comportamento": "nome curto do comportamento revelado",\n'
+        '  "mecanismo": "nome do fenomeno em linguagem simples",\n'
         '  "pergunta_invisivel": "pergunta que o video responde sem dizer em voz alta",\n'
-        '  "emocao_ancora": "emocao central que conecta tudo ao espectador",\n'
-        '  "gancho_principal": "primeira frase — segunda pessoa, impacto imediato",\n'
+        '  "emocao_ancora": "emocao central que o espectador vai sentir ao se reconhecer",\n'
+        '  "gancho_principal": "primeira frase — fere antes de explicar, segunda pessoa",\n'
         '  "gancho_opcoes": ["variacao2", "variacao3", "variacao4"],\n'
-        '  "camada1": {"titulo": "O ESPELHO", "descricao": "o que o espectador faz", "twist": "o detalhe que perturba"},\n'
-        '  "camada2": {"titulo": "O MECANISMO", "descricao": "a engrenagem psicologica", "twist": "por que isso e perturbador"},\n'
-        '  "camada3": {"titulo": "A FERIDA", "descricao": "a implicacao pessoal", "twist": "o que nao da para negar"},\n'
-        '  "micro_promessa": "frase entre camada 2 e 3 que aprofunda — nunca transicao mecanica",\n'
-        '  "narracao_camada1": ["' + str(frases_camada1) + ' frases em portugues — segunda pessoa, espelho sem julgamento"],\n'
-        '  "narracao_camada2": ["' + str(frases_camada2) + ' frases em portugues — mecanismo psicologico perturbador"],\n'
-        '  "narracao_camada3": ["' + str(frases_camada3) + ' frases em portugues — implicacao pessoal inescapavel, amarre em situacao atual e especifica"],\n'
-        '  "narracao_final": ["' + str(frases_final) + ' frases em portugues — filosofica, sem resolucao"],\n'
-        '  "frase_final_principal": "frase filosofica lenta que fica na cabeca",\n'
+        '  "camada1": {"titulo": "O ESPELHO", "descricao": "o que o espectador faz", "twist": "o detalhe especifico que perturba"},\n'
+        '  "camada2": {"titulo": "O MECANISMO", "descricao": "a engrenagem em linguagem simples", "twist": "por que isso e perturbador"},\n'
+        '  "camada3": {"titulo": "A FERIDA", "descricao": "a implicacao pessoal e atual", "twist": "o que nao da pra ignorar"},\n'
+        '  "micro_promessa": "frase que abre ferida maior antes da camada 3 — nunca transicao mecanica",\n'
+        '  "narracao_camada1": ["' + str(frases_camada1) + ' frases — segunda pessoa, espelho sem julgamento, cotidiano brasileiro"],\n'
+        '  "narracao_camada2": ["' + str(frases_camada2) + ' frases — mecanismo em linguagem simples, perturbador, sem termos tecnicos"],\n'
+        '  "narracao_camada3": ["' + str(frases_camada3) + ' frases — ferida pessoal e atual, situacao concreta inescapavel"],\n'
+        '  "narracao_final": ["' + str(frases_final) + ' frases — filosofica, sem resolucao, pergunta aberta"],\n'
+        '  "frase_final_principal": "frase que fica na cabeca — sem resposta, sem saida",\n'
         '  "frase_final_opcoes": ["variacao2", "variacao3", "variacao4"],\n'
-        '  "pergunta_divisora_principal": "divide entre quem aceita e quem resiste",\n'
+        '  "pergunta_divisora_principal": "divide quem aceita de quem resiste — pessoal e sem resposta obvia",\n'
         '  "pergunta_divisora_opcoes": ["variacao2", "variacao3", "variacao4"]\n'
         "}"
     )
