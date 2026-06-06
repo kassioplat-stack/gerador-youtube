@@ -672,24 +672,25 @@ async function gerarNarracao() {
   setBtnLoading('btn-narracao', false, '2. Gerar Narracao');
 }
 
+function renderOpts(containerId, items, grp) {
+  var c = document.getElementById(containerId);
+  c.innerHTML = '';
+  var editId = grp + '-edit';
+  items.forEach(function(text, i) {
+    var el = document.createElement('div');
+    el.className = 'gancho-opt' + (i === 0 ? ' sel' : '');
+    el.textContent = text || '';
+    el.onclick = function() {
+      selOpt(this, grp);
+      var editEl = document.getElementById(editId);
+      if(editEl) editEl.value = this.textContent.trim();
+      atualizarScriptFinal();
+    };
+    c.appendChild(el);
+  });
+}
+
 function renderRoteiro(d) {
-  function renderOpts(containerId, items, grp) {
-    var c = document.getElementById(containerId);
-    c.innerHTML = '';
-    var editId = grp + '-edit';
-    items.forEach(function(text, i) {
-      var el = document.createElement('div');
-      el.className = 'gancho-opt' + (i === 0 ? ' sel' : '');
-      el.textContent = text || '';
-      el.onclick = function() {
-        selOpt(this, grp);
-        var editEl = document.getElementById(editId);
-        if(editEl) editEl.value = this.textContent.trim();
-        atualizarScriptFinal();
-      };
-      c.appendChild(el);
-    });
-  }
   renderOpts('gancho-opts', [d.gancho_principal].concat(d.gancho_opcoes || []), 'gancho');
   renderOpts('frase-opts', [d.frase_final_principal].concat(d.frase_final_opcoes || []), 'frase');
   renderOpts('pergunta-opts', [d.pergunta_divisora_principal].concat(d.pergunta_divisora_opcoes || []), 'pergunta');
