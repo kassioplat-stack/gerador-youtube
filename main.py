@@ -937,64 +937,80 @@ def corrigir_dimensao():
     sugestao = data.get('sugestao', '')
 
     if modelo == 'mente':
-        campos_map = {
-            'FORCA DO GANCHO': 'gancho_principal, gancho_opcoes',
-            'ESCALADA EMOCIONAL': 'camada3, narracao_camada3, micro_promessa',
-            'QUALIDADE DA FERIDA': 'camada3, narracao_camada3',
-            'PERGUNTA DIVISORA': 'pergunta_divisora_principal, pergunta_divisora_opcoes',
-            'CONGRUENCIA NARRATIVA': 'narracao_camada1, narracao_camada2, narracao_camada3, narracao_final',
-        }
-        campos_retorno = (
+        contexto_modelo = (
+            "Este e um roteiro do modelo MENTE — psicologia e comportamento humano.\n"
+            "Narracao em segunda pessoa direta. 3 camadas: O Espelho, O Mecanismo, A Ferida.\n"
+            "Sem citacoes cientificas formais. Ferida aberta no final sem resolucao.\n"
+        )
+        campos_disponiveis = (
             "gancho_principal, gancho_opcoes, camada1, camada2, camada3, "
             "micro_promessa, narracao_camada1, narracao_camada2, narracao_camada3, "
             "narracao_final, frase_final_principal, frase_final_opcoes, "
             "pergunta_divisora_principal, pergunta_divisora_opcoes"
         )
-        contexto_modelo = (
-            "Este e um roteiro do modelo MENTE — psicologia e comportamento humano.\n"
-            "Narracao em segunda pessoa direta. 3 camadas: O Espelho, O Mecanismo, A Ferida.\n"
-            "Sem citacoes cientificas formais. Ferida aberta no final — sem resolucao.\n"
-        )
     else:
-        campos_map = {
-            'FORCA DO GANCHO': 'gancho_principal, gancho_opcoes',
-            'ESCALADA EMOCIONAL': 'caso3, micro_promessa',
-            'QUALIDADE DO TWIST': 'caso3, narracao_caso3',
-            'PERGUNTA DIVISORA': 'pergunta_divisora_principal, pergunta_divisora_opcoes',
-            'CONGRUENCIA NARRATIVA': 'narracao_caso3, narracao_final, frase_final_principal',
-        }
-        campos_retorno = (
-            "gancho_principal, gancho_opcoes, caso3, micro_promessa, narracao_caso3, "
-            "narracao_final, frase_final_principal, frase_final_opcoes, "
-            "pergunta_divisora_principal, pergunta_divisora_opcoes"
-        )
         contexto_modelo = (
             "Este e um roteiro do modelo ANIMAL — comportamento animal em escalada.\n"
             "Narracao em terceira pessoa. 3 casos: Interessante, Surpreendente, Chocante.\n"
         )
-
-    campos = campos_map.get(dimensao.upper(), campos_retorno)
+        campos_disponiveis = (
+            "gancho_principal, gancho_opcoes, caso3, micro_promessa, narracao_caso3, "
+            "narracao_final, frase_final_principal, frase_final_opcoes, "
+            "pergunta_divisora_principal, pergunta_divisora_opcoes"
+        )
 
     system = (
         "Voce e especialista em roteiros virais para YouTube.\n"
         + contexto_modelo +
         "Recebera um roteiro e um problema especifico. Corrija APENAS os campos necessarios.\n"
         "NAO altere o que nao foi solicitado. Preserve o estilo e estrutura geral.\n"
-        "Retorne JSON apenas com os campos corrigidos, sem campos que nao mudaram.\n"
-        "Campos disponiveis: " + campos_retorno + ".\n"
-        "Retorne JSON valido sem markdown."
+        "Campos disponiveis: " + campos_disponiveis + ".\n\n"
+        "FORMATO DE RESPOSTA OBRIGATORIO — retorne APENAS linhas no formato:\n"
+        "CAMPO:valor\n"
+        "Para arrays (listas), use pipe como separador: CAMPO:item1|item2|item3\n"
+        "Para objetos (camada1, caso3), use JSON simples em uma linha.\n"
+        "NAO use aspas duplas fora do JSON de objetos.\n"
+        "Exemplo:\n"
+        "gancho_principal:Voce faz isso toda vez sem perceber\n"
+        "gancho_opcoes:Sua mente te engana agora|Isso que voce chama de escolha nao e sua|Voce repete o mesmo erro de forma diferente\n"
+        "camada3:{titulo:A FERIDA,descricao:A implicacao pessoal,twist:O que nao da pra negar}\n"
+        "narracao_camada3:Voce sabe que faz isso.|E nao e fraqueza.|E o mecanismo que te protege de algo maior.\n"
     )
     user_msg = (
         "ROTEIRO:\n" + json.dumps(roteiro, ensure_ascii=False)[:2000] +
         "\n\nDIMENSAO: " + dimensao +
         "\nPROBLEMA: " + justificativa +
         "\nSUGESTAO: " + sugestao +
-        "\nCAMPOS A CORRIGIR: " + campos +
-        "\n\nCorrija apenas o necessario."
+        "\n\nCorrija apenas o necessario. Retorne so os campos que mudaram."
     )
     try:
         text = chamar_claude(system, user_msg, max_tokens=2000, modelo="claude-sonnet-4-6")
-        return jsonify(parse_json_robusto(text))
+        # Parse linha por linha
+        result = {}
+        for line in text.strip().split('\n'):
+            line = line.strip()
+            if ':' not in line:
+                continue
+            campo, _, valor = line.partition(':')
+            campo = campo.strip()
+            valor = valor.strip()
+            if not campo or not valor:
+                continue
+            # Arrays separados por pipe
+            if '|' in valor and not valor.startswith('{'):
+                result[campo] = [v.strip() for v in valor.split('|') if v.strip()]
+            # Objetos JSON
+            elif valor.startswith('{'):
+                try:
+                    result[campo] = parse_json_robusto(valor)
+                except:
+                    result[campo] = valor
+            # Narracao como array (campo comeca com narracao_)
+            elif campo.startswith('narracao_'):
+                result[campo] = [v.strip() for v in valor.split('|') if v.strip()]
+            else:
+                result[campo] = valor
+        return jsonify(result)
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
 
