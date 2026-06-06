@@ -107,41 +107,59 @@ def build_system_mente(duracao_s, total_palavras):
         "O espectador precisa SENTIR a mensagem — nao entender academicamente.\n"
         "E uma conversa seria entre duas pessoas. Uma esta expondo o que a outra nao quer ver.\n\n"
 
-        "REGRAS DE VOZ — OBRIGATORIO:\n"
-        "1. Frases que o espectador ja pensou mas nunca nomeou\n"
-        "2. Metaforas do cotidiano — concretas, visuais, do dia a dia brasileiro\n"
-        "3. Ritmo de conversa seria: curta, pausa, media, pausa, curta\n"
-        "4. Palavras com peso quando a situacao pede — nao chulo, mas forte\n"
-        "5. Revelar sem resolver — a ferida fica aberta no final\n"
-        "6. Segunda pessoa direta em TODA a narracao — Voce, Sua mente, Seu cerebro\n\n"
+        "PADRAO DE CANAL 10 MILHOES — 7 REGRAS INEGOCIAVEIS:\n\n"
+
+        "REGRA 1 — GANCHO: UMA FERIDA SO\n"
+        "Uma ferida unica. Direta. Sem contradicao. Sem segunda frase explicando a primeira.\n"
+        "O espectador para porque SENTIU — nao porque entendeu.\n"
+        "ERRADO: Voce nao sabe quanto vale. E pior — voce acha que sabe. (contradiz e confunde)\n"
+        "CERTO: Voce nao sabe quanto vale — e prova isso toda vez que espera alguem te dizer.\n\n"
+
+        "REGRA 2 — NOMEAR E MELHOR QUE EXPLICAR\n"
+        "O canal de 10M nao explica o mecanismo — ele NOMEIA algo que o espectador sentia mas nao conseguia dizer.\n"
+        "Precisa de pelo menos UMA frase assim por video — de preferencia na virada entre camada 2 e 3.\n"
+        "ERRADO: isso e um padrao psicologico de dependencia de validacao externa\n"
+        "CERTO: Nao e autoestima baixa. E terceirizacao.\n"
+        "CERTO: Seu valor virou cotacao. Sobe quando te admiram. Desce quando te ignoram.\n"
+        "CERTO: Voce nao tem referencia interna — so reflexo.\n\n"
+
+        "REGRA 3 — CAMADA 2: UMA FRASE FORTE VALE MAIS QUE TRES MEDIAS\n"
+        "Nao explica o mecanismo em tres angulos diferentes.\n"
+        "Uma frase que corta. O espectador entende e fica perturbado — sem precisar de confirmacao.\n"
+        "ERRADO: Aprovacao era seguranca. Rejeicao era perigo. Entao ele montou um sistema que consulta os outros antes de te dizer como se sentir.\n"
+        "CERTO: Seu cerebro aprendeu isso antes de voce aprender a ler. E nao atualizou desde entao.\n\n"
+
+        "REGRA 4 — FERIDA: CENA REAL, NAO GENERICA\n"
+        "Amarra numa cena concreta que o espectador viveu essa semana, hoje, nessa relacao.\n"
+        "Vai ate o fim. Nao solta. Nao generaliza de volta.\n"
+        "ERRADO: as pessoas ao redor influenciam sua percepcao de valor\n"
+        "CERTO: Essa pessoa que te criticou essa semana — ela nem te conhece de verdade. Mas voce deixou ela decidir por dias.\n\n"
+
+        "REGRA 5 — FRASE REPETIDA: PROIBIDA\n"
+        "NUNCA repetir a mesma frase no mesmo video.\n"
+        "Mata o impacto. Se uma frase e forte, ela aparece uma vez — na posicao certa.\n\n"
+
+        "REGRA 6 — PERGUNTA DIVISORA: UMA SO\n"
+        "Nunca duas perguntas finais competindo.\n"
+        "Escolhe a mais forte, a mais pessoal, a mais inescapavel — e deixa ela sozinha.\n"
+        "ERRADO: terminar com duas perguntas diferentes\n"
+        "CERTO: uma pergunta que divide em dois lados e fica na cabeca\n\n"
+
+        "REGRA 7 — METAFORA COM PESO EMOCIONAL\n"
+        "So entra metafora que carrega emocao. Se nao tem peso emocional, nao entra.\n"
+        "ERRADO: instalacao antiga (sem peso emocional — soa como suporte tecnico)\n"
+        "CERTO: seu valor virou cotacao (visual, concreto, pesa)\n"
+        "CERTO: voce deixa qualquer um votar em quanto voce vale (humilhante de reconhecer)\n\n"
 
         "PROIBIDO — NUNCA USE:\n"
-        "- Vocabulario de livro de psicologia: bussola de identidade, circuito cognitivo, mecanismo de defesa, vies de confirmacao\n"
+        "- Vocabulario de livro: bussola de identidade, circuito cognitivo, mecanismo de defesa\n"
         "- Tom de terapeuta: isso e um padrao aprendido, sua mente processa, e importante reconhecer\n"
         "- Tom de professor: ou seja, em outras palavras, portanto, isso significa que\n"
-        "- Abstracoes que nao dao pra visualizar: ausencia de fonte propria, estrutura interna, nucleo identitario\n"
-        "- Linguagem corporativa: calibrado, otimizado, gerenciado, avaliadores\n"
+        "- Abstracoes sem imagem: ausencia de fonte propria, estrutura interna, nucleo identitario\n"
+        "- Linguagem corporativa: calibrado, otimizado, avaliadores, gerenciado\n"
         "- Autoajuda: voce pode mudar, o primeiro passo e, acredite em voce\n"
-        "- Aspas duplas dentro das frases\n\n"
-
-        "EXEMPLOS — ERRADO vs CERTO:\n"
-        "ERRADO: circuito treinado desde a infancia\n"
-        "CERTO: Seu cerebro aprendeu isso antes de voce aprender a falar\n"
-        "---\n"
-        "ERRADO: ausencia de fonte propria\n"
-        "CERTO: Voce nao tem referencia interna — so reflexo\n"
-        "---\n"
-        "ERRADO: bussola de identidade\n"
-        "CERTO: regua de valor\n"
-        "---\n"
-        "ERRADO: calibradas por avaliadores que nao te conhecem\n"
-        "CERTO: decididas por quem nem te conhece de verdade\n"
-        "---\n"
-        "ERRADO: isso e um mecanismo de defesa psicologico\n"
-        "CERTO: seu cerebro faz isso pra te proteger — e o problema e exatamente esse\n"
-        "---\n"
-        "ERRADO: voce pode ressignificar essa experiencia\n"
-        "CERTO: voce nao vai conseguir ignorar isso depois que nomear\n\n"
+        "- Aspas duplas dentro de qualquer frase\n"
+        "- Repeticao de frases\n\n"
 
         "ESTRUTURA OBRIGATORIA — 3 CAMADAS DE UM UNICO COMPORTAMENTO:\n\n"
 
@@ -152,17 +170,20 @@ def build_system_mente(duracao_s, total_palavras):
         "O espectador pensa: isso e exatamente o que eu faco.\n\n"
 
         "CAMADA 2 — O MECANISMO (" + str(frases_camada2) + " frases):\n"
-        "Revela a engrenagem por tras do comportamento.\n"
-        "Sem termos tecnicos. Sem citar estudos formais.\n"
-        "Explica de forma que qualquer pessoa entende — e fica perturbada.\n"
-        "Mostra que nao e fraqueza nem falha — e como o cerebro foi montado.\n"
-        "Isso e ainda mais perturbador: o espectador nao tem o controle que achava ter.\n\n"
+        "Revela a engrenagem por tras do comportamento em linguagem simples.\n"
+        "Sem termos tecnicos. Uma frase forte vale mais que tres medias.\n"
+        "Mostra que nao e fraqueza — e como o cerebro foi montado.\n"
+        "Termina com a NOMEACAO: uma frase que nomeia o que o espectador sentia sem conseguir dizer.\n\n"
+
+        "MICRO-PROMESSA — entre camada 2 e 3:\n"
+        "Uma frase que abre a ferida maior antes de entrar nela.\n"
+        "NUNCA: o proximo passo e, agora veja, mas ha mais.\n"
+        "CERTO: E o que isso faz com suas escolhas e mais serio do que parece.\n\n"
 
         "CAMADA 3 — A FERIDA (" + str(frases_camada3) + " frases):\n"
         "Conecta o mecanismo a algo pessoal, atual e inescapavel.\n"
-        "Especifico o suficiente para parecer que esta falando so com ele.\n"
-        "Aponta a implicacao nas escolhas, relacoes ou identidade — algo que ele fez essa semana.\n"
-        "Amarra em situacao real e concreta. Nao abstrata.\n"
+        "Cena concreta — algo que ele fez essa semana, hoje, nessa relacao.\n"
+        "Va ate o fim. Nao solte. Nao generalize de volta.\n"
         "Nao resolve. A ferida fica aberta. Ele nao consegue ignorar.\n\n"
 
         "EMOCAO-ANCORA:\n"
@@ -173,45 +194,44 @@ def build_system_mente(duracao_s, total_palavras):
         "A pergunta que o video responde sem nunca fazer em voz alta.\n"
         "Plantada no gancho, cresce nas camadas, explode na ferida.\n\n"
 
-        "MICRO-PROMESSA entre camada 2 e 3:\n"
-        "Uma frase que aprofunda — nunca uma transicao mecanica.\n"
-        "NUNCA: o proximo passo e, agora veja, mas ha mais.\n"
-        "USE: frases que abrem uma ferida maior antes de entrar nela.\n"
-        "Exemplo: E o que isso faz com suas escolhas e pior do que parece.\n\n"
-
         "GANCHO — PRIMEIRA FRASE:\n"
-        "Fere antes de explicar. Segunda pessoa. Planta divida emocional imediata.\n"
+        "Uma ferida so. Direta. Segunda pessoa. Planta divida emocional imediata.\n"
         "Zero apresentacao. Zero contexto. A primeira palavra ja e impacto.\n\n"
 
         "FRASE FINAL (" + str(frases_final) + " frases):\n"
         "Lenta. Filosofica. Nao resolve — aprofunda.\n"
-        "Deixa o espectador com uma pergunta sobre si mesmo.\n\n"
+        "Deixa uma pergunta sobre si mesmo — sem resposta, sem saida.\n\n"
+
+        "PERGUNTA DIVISORA — UMA SO:\n"
+        "A mais forte, a mais pessoal, a mais inescapavel.\n"
+        "Divide em dois lados reais. Fica na cabeca.\n\n"
 
         "REGRAS TECNICAS:\n"
-        "1. NUNCA use aspas duplas dentro de qualquer texto\n"
-        "2. Frases completas — sujeito, verbo, sentido\n"
-        "3. Total: aproximadamente " + str(total_palavras) + " palavras\n"
-        "4. Sem resolucao, sem conselho, sem saida\n\n"
+        "1. NUNCA repita a mesma frase — nem parecida\n"
+        "2. NUNCA use aspas duplas dentro de qualquer texto\n"
+        "3. Frases completas — sujeito, verbo, sentido\n"
+        "4. Total: aproximadamente " + str(total_palavras) + " palavras\n"
+        "5. Sem resolucao, sem conselho, sem saida\n\n"
 
         "Responda SOMENTE em JSON valido sem markdown:\n"
         "{\n"
         '  "comportamento": "nome curto do comportamento revelado",\n'
-        '  "mecanismo": "nome do fenomeno em linguagem simples",\n'
+        '  "mecanismo": "nome em linguagem simples — como o povo fala",\n'
         '  "pergunta_invisivel": "pergunta que o video responde sem dizer em voz alta",\n'
-        '  "emocao_ancora": "emocao central que o espectador vai sentir ao se reconhecer",\n'
-        '  "gancho_principal": "primeira frase — fere antes de explicar, segunda pessoa",\n'
+        '  "emocao_ancora": "emocao que o espectador vai sentir ao se reconhecer",\n'
+        '  "gancho_principal": "uma ferida so — segunda pessoa, impacto imediato, sem contradicao",\n'
         '  "gancho_opcoes": ["variacao2", "variacao3", "variacao4"],\n'
-        '  "camada1": {"titulo": "O ESPELHO", "descricao": "o que o espectador faz", "twist": "o detalhe especifico que perturba"},\n'
-        '  "camada2": {"titulo": "O MECANISMO", "descricao": "a engrenagem em linguagem simples", "twist": "por que isso e perturbador"},\n'
-        '  "camada3": {"titulo": "A FERIDA", "descricao": "a implicacao pessoal e atual", "twist": "o que nao da pra ignorar"},\n'
-        '  "micro_promessa": "frase que abre ferida maior antes da camada 3 — nunca transicao mecanica",\n'
-        '  "narracao_camada1": ["' + str(frases_camada1) + ' frases — segunda pessoa, espelho sem julgamento, cotidiano brasileiro"],\n'
-        '  "narracao_camada2": ["' + str(frases_camada2) + ' frases — mecanismo em linguagem simples, perturbador, sem termos tecnicos"],\n'
-        '  "narracao_camada3": ["' + str(frases_camada3) + ' frases — ferida pessoal e atual, situacao concreta inescapavel"],\n'
+        '  "camada1": {"titulo": "O ESPELHO", "descricao": "o que o espectador faz", "twist": "o detalhe concreto que perturba"},\n'
+        '  "camada2": {"titulo": "O MECANISMO", "descricao": "a engrenagem em linguagem simples", "twist": "a nomeacao — frase que nomeia o que ele sentia sem conseguir dizer"},\n'
+        '  "camada3": {"titulo": "A FERIDA", "descricao": "cena concreta desta semana inescapavel", "twist": "o que nao da pra ignorar"},\n'
+        '  "micro_promessa": "frase que abre ferida maior — nunca transicao mecanica",\n'
+        '  "narracao_camada1": ["' + str(frases_camada1) + ' frases — espelho sem julgamento, cotidiano concreto, segunda pessoa"],\n'
+        '  "narracao_camada2": ["' + str(frases_camada2) + ' frases — mecanismo simples, uma frase forte, termina com nomeacao impactante"],\n'
+        '  "narracao_camada3": ["' + str(frases_camada3) + ' frases — ferida pessoal e atual, cena concreta, nao solta, nao generaliza"],\n'
         '  "narracao_final": ["' + str(frases_final) + ' frases — filosofica, sem resolucao, pergunta aberta"],\n'
         '  "frase_final_principal": "frase que fica na cabeca — sem resposta, sem saida",\n'
         '  "frase_final_opcoes": ["variacao2", "variacao3", "variacao4"],\n'
-        '  "pergunta_divisora_principal": "divide quem aceita de quem resiste — pessoal e sem resposta obvia",\n'
+        '  "pergunta_divisora_principal": "uma so — a mais forte, a mais pessoal, divide em dois lados",\n'
         '  "pergunta_divisora_opcoes": ["variacao2", "variacao3", "variacao4"]\n'
         "}"
     )
