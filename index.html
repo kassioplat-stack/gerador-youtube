@@ -738,13 +738,13 @@ function renderRoteiro(d) {
         + '</div>';
     });
     // Comportamento e mecanismo no topo
-    if(d.comportamento || d.mecanismo) {
-      var tagsMente = '<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">';
-      if(d.comportamento) tagsMente += '<span style="background:#1a2a3a;color:#5b9bd5;border-radius:4px;padding:3px 8px;font-size:11px">🧠 ' + esc(d.comportamento) + '</span>';
-      if(d.mecanismo) tagsMente += '<span style="background:#1a1a2a;color:#9b7bd5;border-radius:4px;padding:3px 8px;font-size:11px">⚙ ' + esc(d.mecanismo) + '</span>';
-      tagsMente += '</div>';
-      resumoMente = tagsMente + resumoMente;
-    }
+    var tagsMente = '<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">';
+    if(d.comportamento) tagsMente += '<span style="background:#1a2a3a;color:#5b9bd5;border-radius:4px;padding:3px 8px;font-size:11px">🧠 ' + esc(d.comportamento) + '</span>';
+    if(d.mecanismo) tagsMente += '<span style="background:#1a1a2a;color:#9b7bd5;border-radius:4px;padding:3px 8px;font-size:11px">⚙ ' + esc(d.mecanismo) + '</span>';
+    if(d.emocao_ancora) tagsMente += '<span style="background:#1a1a0a;color:#d4a017;border-radius:4px;padding:3px 8px;font-size:11px">❤ ' + esc(d.emocao_ancora) + '</span>';
+    if(d.pergunta_invisivel) tagsMente += '<span style="background:#0a1a1a;color:#4dd4c1;border-radius:4px;padding:3px 8px;font-size:11px">❓ ' + esc(d.pergunta_invisivel) + '</span>';
+    tagsMente += '</div>';
+    resumoMente = tagsMente + resumoMente;
     var resumoEl = document.getElementById('casos-resumo');
     if(resumoEl) resumoEl.innerHTML = resumoMente;
   } else {
@@ -776,6 +776,13 @@ function renderRoteiro(d) {
     if(d.micro_promessa) {
       resumoAnimal += '<div style="font-size:11px;color:#888;font-style:italic;padding:6px 10px;background:#0a0a0a;border-radius:6px;margin-bottom:8px">↳ ' + esc(d.micro_promessa) + '</div>';
     }
+    // Tags de alma do video
+    var tagsAlma = '<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">';
+    if(d.emocao_ancora) tagsAlma += '<span style="background:#1a1a0a;color:#d4a017;border-radius:4px;padding:3px 8px;font-size:11px" title="Emocao-ancora">❤ ' + esc(d.emocao_ancora) + '</span>';
+    if(d.tipo_gancho) tagsAlma += '<span style="background:#1a0a1a;color:#c17bd4;border-radius:4px;padding:3px 8px;font-size:11px" title="Tipo de gancho">⚡ ' + esc(d.tipo_gancho) + '</span>';
+    if(d.pergunta_invisivel) tagsAlma += '<span style="background:#0a1a1a;color:#4dd4c1;border-radius:4px;padding:3px 8px;font-size:11px" title="Pergunta invisivel">❓ ' + esc(d.pergunta_invisivel) + '</span>';
+    tagsAlma += '</div>';
+    resumoAnimal = tagsAlma + resumoAnimal;
     var resumoEl = document.getElementById('casos-resumo');
     if(resumoEl) resumoEl.innerHTML = resumoAnimal;
   }
@@ -915,60 +922,6 @@ async function corrigirPontoFraco() {
   btn.disabled = false;
 }
 
-async function corrigirDimensao(idx) {
-  if(!state.roteiro || !state.scoreData) return;
-  var dim = state.scoreData.dimensoes[idx];
-  var sugestao = state.scoreData.sugestao || '';
-  var btn = document.getElementById('btn-corrigir-' + idx);
-  btn.textContent = '⏳';
-  btn.disabled = true;
-
-  try {
-    var r = await fetch('/corrigir-dimensao', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        roteiro: state.roteiro,
-        dimensao: dim.nome,
-        justificativa: dim.justificativa,
-        sugestao: sugestao
-      })
-    });
-    var d = await r.json();
-    if(d.erro) throw new Error(d.erro);
-
-    // Aplica as correções ao roteiro
-    var rot = state.roteiro;
-    if(d.gancho_principal) {
-      rot.gancho_principal = d.gancho_principal;
-      rot.gancho_opcoes = d.gancho_opcoes || rot.gancho_opcoes;
-    }
-    if(d.caso3) rot.caso3 = Object.assign(rot.caso3, d.caso3);
-    if(d.micro_promessa) rot.micro_promessa = d.micro_promessa;
-    if(d.narracao_caso3) rot.narracao_caso3 = d.narracao_caso3;
-    if(d.frase_final_principal) {
-      rot.frase_final_principal = d.frase_final_principal;
-      rot.frase_final_opcoes = d.frase_final_opcoes || rot.frase_final_opcoes;
-    }
-    if(d.pergunta_divisora_principal) {
-      rot.pergunta_divisora_principal = d.pergunta_divisora_principal;
-      rot.pergunta_divisora_opcoes = d.pergunta_divisora_opcoes || rot.pergunta_divisora_opcoes;
-    }
-    if(d.narracao_final) rot.narracao_final = d.narracao_final;
-
-    // Re-renderiza o roteiro com as correções
-    state.roteiro = rot;
-    renderRoteiro(rot);
-
-    // Recalcula o score automaticamente
-    await calcularScore(rot);
-
-  } catch(e) { alert('Erro ao corrigir: ' + e.message); }
-  if(document.getElementById('btn-corrigir-' + idx)) {
-    document.getElementById('btn-corrigir-' + idx).textContent = 'Corrigir';
-    document.getElementById('btn-corrigir-' + idx).disabled = false;
-  }
-}
 
 async function gerarContexto() {
   var titulo = document.getElementById('titulo').value.trim();
@@ -1322,21 +1275,29 @@ async function traduzirPrompt(idx) {
   } catch(e) {}
 }
 
-async function regenPrompt(idx) {
-  var ta = document.getElementById('pt'+idx);
-  if(ta) state.prompts[idx] = ta.value;
+async function regenPrompt(i) {
+  var ta = document.getElementById('pt'+i);
+  if(!ta) return;
+  var prompt_atual = ta.value;
+  var btn = ta.parentElement.querySelector('button:last-of-type');
+  if(btn) { btn.textContent = '...'; btn.disabled = true; }
   try {
-    var r = await fetch('/regenerar-imagem', {
+    var r = await fetch('/regenerar-prompt', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({session_id: state.sessionId, idx: idx, prompt: state.prompts[idx], estilo: state.estilo, formato: state.formato})
+      body: JSON.stringify({prompt_atual: prompt_atual, modelo: state.modelo})
     });
     var d = await r.json();
-    if(d.ok) {
-      var img = document.querySelector('#cell'+idx+' img');
-      if(img) img.src = '/imagem/'+state.sessionId+'/'+idx+'?t='+Date.now();
-    }
-  } catch(e) {}
+    if(d.erro) throw new Error(d.erro);
+    ta.value = d.prompt;
+    state.prompts[i] = d.prompt;
+    salvarEstado();
+    // Gera imagem automaticamente com novo prompt
+    await gerarImagemUnica(i, d.prompt);
+  } catch(e) {
+    alert('Erro ao regenerar: ' + e.message);
+  }
+  if(btn) { btn.textContent = 'Regenerar'; btn.disabled = false; }
 }
 
 async function regenerarOpcoes(tipo) {
@@ -1587,15 +1548,6 @@ function renderGrid(total) {
 }
 
 
-function addCalendario() {
-  var titulo = document.getElementById('cal-titulo').value.trim();
-  var data = document.getElementById('cal-data').value;
-  if(!titulo) return;
-  state.calendarioItems.push({titulo: titulo, data: data || '', status: 'Planejado'});
-  try { localStorage.setItem('calendario', JSON.stringify(state.calendarioItems)); } catch(e) {}
-  document.getElementById('cal-titulo').value = '';
-  renderCalendario();
-}
 
 function renderCalendario() {
   var html = '';
