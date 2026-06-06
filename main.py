@@ -840,48 +840,101 @@ def gerar_contexto():
 def score_viral():
     data = request.json
     roteiro = data.get('roteiro', {})
-    gancho = roteiro.get('gancho_principal', '')
-    emocao = roteiro.get('emocao_ancora', '')
-    pergunta_inv = roteiro.get('pergunta_invisivel', '')
-    micro = roteiro.get('micro_promessa', '')
-    caso1 = roteiro.get('caso1', {})
-    caso2 = roteiro.get('caso2', {})
-    caso3 = roteiro.get('caso3', {})
-    frase_final = roteiro.get('frase_final_principal', '')
-    pergunta_div = roteiro.get('pergunta_divisora_principal', '')
-    narracao = ' '.join(
-        roteiro.get('narracao_caso1', []) + roteiro.get('narracao_caso2', []) +
-        roteiro.get('narracao_caso3', []) + roteiro.get('narracao_final', [])
-    )
+    modelo = roteiro.get('_modelo', data.get('modelo', 'animais'))
 
-    system = (
-        "Voce e especialista em canais virais do YouTube."
-        " Avalie o roteiro em 5 dimensoes de 0 a 20 pontos."
-        " Retorne EXATAMENTE neste formato, sem desvios, sem markdown, sem aspas extras:\n"
-        "TOTAL:XX\n"
-        "D1:XX:justificativa em uma frase\n"
-        "D2:XX:justificativa em uma frase\n"
-        "D3:XX:justificativa em uma frase\n"
-        "D4:XX:justificativa em uma frase\n"
-        "D5:XX:justificativa em uma frase\n"
-        "FRACO:nome da dimensao mais fraca\n"
-        "SUGESTAO:sugestao especifica de melhoria\n"
-        "Dimensoes: D1=FORCA DO GANCHO D2=ESCALADA EMOCIONAL D3=QUALIDADE DO TWIST D4=PERGUNTA DIVISORA D5=CONGRUENCIA NARRATIVA"
-    )
-    user_msg = (
-        "GANCHO: " + gancho[:200] + "\n"
-        "EMOCAO: " + emocao + "\n"
-        "PERGUNTA INVISIVEL: " + pergunta_inv + "\n"
-        "CASO1: " + caso1.get('animal','') + " twist: " + caso1.get('twist','')[:100] + "\n"
-        "CASO2: " + caso2.get('animal','') + " twist: " + caso2.get('twist','')[:100] + "\n"
-        "CASO3: " + caso3.get('animal','') + " twist: " + caso3.get('twist','')[:100] + "\n"
-        "MICRO-PROMESSA: " + micro[:100] + "\n"
-        "FRASE FINAL: " + frase_final[:150] + "\n"
-        "PERGUNTA DIVISORA: " + pergunta_div[:150] + "\n"
-        "NARRACAO: " + narracao[:600]
-    )
+    if modelo == 'mente':
+        # Score especifico para MENTE — 5 dimensoes corretas
+        gancho = roteiro.get('gancho_principal', '')
+        camada1 = roteiro.get('camada1', {})
+        camada2 = roteiro.get('camada2', {})
+        camada3 = roteiro.get('camada3', {})
+        micro = roteiro.get('micro_promessa', '')
+        frase_final = roteiro.get('frase_final_principal', '')
+        pergunta_div = roteiro.get('pergunta_divisora_principal', '')
+        narracao = ' '.join(
+            roteiro.get('narracao_camada1', []) +
+            roteiro.get('narracao_camada2', []) +
+            roteiro.get('narracao_camada3', []) +
+            roteiro.get('narracao_final', [])
+        )
+        system = (
+            "Voce e especialista em canais virais de psicologia e comportamento humano no YouTube."
+            " Avalie o roteiro em 5 dimensoes de 0 a 20 pontos. Seja rigoroso e especifico."
+            " DIMENSOES:"
+            " D1=FORCA DO GANCHO: planta divida emocional imediata? segunda pessoa direta? gera pergunta sobre si mesmo?"
+            " D2=PROFUNDIDADE DO ESPELHO: espectador se reconhece na camada 1? e especifico ou generico? sem julgamento?"
+            " D3=IMPACTO DO MECANISMO: camada 2 perturba e explica sem julgar? revela arquitetura cerebral? inescapavel?"
+            " D4=INTENSIDADE DA FERIDA: camada 3 e pessoal e atual? especifico o suficiente? nao da pra negar?"
+            " D5=PERGUNTA DIVISORA: divide em dois lados reais? pessoal? sem resposta obvia?"
+            " Retorne EXATAMENTE neste formato sem desvios:"
+            " TOTAL:XX"
+            " D1:XX:justificativa em uma frase sem aspas duplas"
+            " D2:XX:justificativa em uma frase sem aspas duplas"
+            " D3:XX:justificativa em uma frase sem aspas duplas"
+            " D4:XX:justificativa em uma frase sem aspas duplas"
+            " D5:XX:justificativa em uma frase sem aspas duplas"
+            " FRACO:nome da dimensao mais fraca"
+            " SUGESTAO:sugestao especifica de melhoria sem aspas duplas"
+        )
+        nomes = ["FORCA DO GANCHO","PROFUNDIDADE DO ESPELHO","IMPACTO DO MECANISMO","INTENSIDADE DA FERIDA","PERGUNTA DIVISORA"]
+        user_msg = (
+            "GANCHO: " + gancho[:200] + "\n"
+            "CAMADA 1 (ESPELHO): " + camada1.get('descricao','') + " twist: " + camada1.get('twist','') + "\n"
+            "CAMADA 2 (MECANISMO): " + camada2.get('descricao','') + "\n"
+            "CAMADA 3 (FERIDA): " + camada3.get('descricao','') + " twist: " + camada3.get('twist','') + "\n"
+            "MICRO-PROMESSA: " + micro[:100] + "\n"
+            "FRASE FINAL: " + frase_final[:150] + "\n"
+            "PERGUNTA DIVISORA: " + pergunta_div[:150] + "\n"
+            "NARRACAO: " + narracao[:600]
+        )
+    else:
+        # Score Animal — dimensoes originais
+        gancho = roteiro.get('gancho_principal', '')
+        emocao = roteiro.get('emocao_ancora', '')
+        pergunta_inv = roteiro.get('pergunta_invisivel', '')
+        micro = roteiro.get('micro_promessa', '')
+        caso1 = roteiro.get('caso1', {})
+        caso2 = roteiro.get('caso2', {})
+        caso3 = roteiro.get('caso3', {})
+        frase_final = roteiro.get('frase_final_principal', '')
+        pergunta_div = roteiro.get('pergunta_divisora_principal', '')
+        narracao = ' '.join(
+            roteiro.get('narracao_caso1', []) + roteiro.get('narracao_caso2', []) +
+            roteiro.get('narracao_caso3', []) + roteiro.get('narracao_final', [])
+        )
+        system = (
+            "Voce e especialista em canais virais do YouTube."
+            " Avalie o roteiro em 5 dimensoes de 0 a 20 pontos. Seja rigoroso."
+            " DIMENSOES:"
+            " D1=FORCA DO GANCHO: vai direto sem apresentacao? gera pergunta imediata? tipo certo?"
+            " D2=ESCALADA EMOCIONAL: caso1 menor que caso2 menor que caso3 em intensidade real? micro-promessa funciona?"
+            " D3=QUALIDADE DO TWIST: impossivel de prever? chega em rafagas curtas? muda a percepcao?"
+            " D4=PERGUNTA DIVISORA: divide em dois lados reais? pessoal? gera comentarios polarizados?"
+            " D5=CONGRUENCIA NARRATIVA: pergunta invisivel plantada e respondida? emocao-ancora nos 3 casos?"
+            " Retorne EXATAMENTE neste formato sem desvios:"
+            " TOTAL:XX"
+            " D1:XX:justificativa em uma frase sem aspas duplas"
+            " D2:XX:justificativa em uma frase sem aspas duplas"
+            " D3:XX:justificativa em uma frase sem aspas duplas"
+            " D4:XX:justificativa em uma frase sem aspas duplas"
+            " D5:XX:justificativa em uma frase sem aspas duplas"
+            " FRACO:nome da dimensao mais fraca"
+            " SUGESTAO:sugestao especifica de melhoria sem aspas duplas"
+        )
+        nomes = ["FORCA DO GANCHO","ESCALADA EMOCIONAL","QUALIDADE DO TWIST","PERGUNTA DIVISORA","CONGRUENCIA NARRATIVA"]
+        user_msg = (
+            "GANCHO: " + gancho[:200] + "\n"
+            "EMOCAO: " + emocao + "\n"
+            "PERGUNTA INVISIVEL: " + pergunta_inv + "\n"
+            "CASO1: " + caso1.get('animal','') + " twist: " + caso1.get('twist','')[:100] + "\n"
+            "CASO2: " + caso2.get('animal','') + " twist: " + caso2.get('twist','')[:100] + "\n"
+            "CASO3: " + caso3.get('animal','') + " twist: " + caso3.get('twist','')[:100] + "\n"
+            "MICRO-PROMESSA: " + micro[:100] + "\n"
+            "FRASE FINAL: " + frase_final[:150] + "\n"
+            "PERGUNTA DIVISORA: " + pergunta_div[:150] + "\n"
+            "NARRACAO: " + narracao[:600]
+        )
 
-    nomes = ["FORCA DO GANCHO","ESCALADA EMOCIONAL","QUALIDADE DO TWIST","PERGUNTA DIVISORA","CONGRUENCIA NARRATIVA"]
     try:
         text = chamar_claude(system, user_msg, max_tokens=600, modelo="claude-sonnet-4-6")
         lines = [l.strip() for l in text.strip().split('\n') if l.strip()]
