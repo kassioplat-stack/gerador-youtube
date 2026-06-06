@@ -87,25 +87,96 @@ def calc_frases(dur, nh):
     else:
         return {"caso1": round(total*0.25), "caso2": round(total*0.20), "caso3": round(total*0.25), "final": round(total*0.30)}
 
+def build_system_mente(duracao_s, total_palavras):
+    """System prompt para o modelo MENTE — 3 camadas de um unico comportamento."""
+    frases_por_camada = max(round(duracao_s / 9), 3)
+    frases_final = max(round(duracao_s / 18), 2)
+
+    return (
+        "MISSAO DO CANAL: Revelar o mecanismo psicologico oculto por tras de comportamentos humanos.\n"
+        "Nao e autoajuda. Nao e motivacao. Nao e conselho.\n"
+        "E expor o que esta acontecendo embaixo — o que o espectador nao ve, o que sua mente faz sem avisar.\n"
+        "O espectador nao aprende algo novo. Ele RECONHECE algo que ja fazia sem saber o nome.\n"
+        "Isso e mais perturbador do que qualquer fato novo.\n\n"
+
+        "ESTRUTURA OBRIGATORIA — 3 CAMADAS DE UM UNICO COMPORTAMENTO:\n\n"
+
+        "CAMADA 1 — O ESPELHO (" + str(frases_por_camada) + " frases):\n"
+        "Descreve o comportamento de forma reconhecivel e especifica.\n"
+        "O espectador se ve sem julgamento. Exemplos concretos do dia a dia.\n"
+        "Segunda pessoa direta: Voce faz isso. Voce ja percebeu.\n"
+        "Ele pensa: e, eu faco isso mesmo. Nenhum mecanismo explicado ainda — so o espelho.\n\n"
+
+        "CAMADA 2 — O MECANISMO (" + str(frases_por_camada) + " frases):\n"
+        "Revela a engrenagem psicologica por tras do comportamento.\n"
+        "Baseado em ciencia real: nome do fenomeno, pesquisador, universidade, ano.\n"
+        "O espectador começa a se desconfortar porque entende que nao e acidente.\n"
+        "Nao e falha de carater — e arquitetura cerebral. Isso e ainda mais perturbador.\n\n"
+
+        "CAMADA 3 — A FERIDA (" + str(frases_por_camada) + " frases):\n"
+        "Conecta o mecanismo a algo pessoal e atual do espectador.\n"
+        "Especifico o suficiente para parecer que esta falando so com ele.\n"
+        "O espectador percebe a implicacao nas suas escolhas, relacoes ou identidade.\n"
+        "Nao tem como negar. Nao da para desligar depois.\n\n"
+
+        "GANCHO — PRIMEIRA FRASE DO VIDEO:\n"
+        "Afirmacao direta em segunda pessoa que planta divida emocional.\n"
+        "Vai direto — zero apresentacao, zero contexto.\n"
+        "Gera a pergunta: isso e sobre mim?\n\n"
+
+        "FRASE FINAL (" + str(frases_final) + " frases):\n"
+        "Lenta. Filosofica. Nao resolve — aprofunda.\n"
+        "Deixa o espectador com a pergunta na cabeca, nao com a resposta.\n\n"
+
+        "REGRAS ABSOLUTAS:\n"
+        "1. Segunda pessoa direta em TODA a narracao — Voce, Sua mente, Seu cerebro\n"
+        "2. NUNCA julgue — explique o mecanismo, o espectador se julga sozinho\n"
+        "3. Realismo psicologico — estudos reais, nomes, universidades, anos\n"
+        "4. Frases completas — sujeito, verbo, sentido. Nunca cortadas\n"
+        "5. Ritmo cinematografico — curtas de impacto alternando com medias descritivas\n"
+        "6. Total: aproximadamente " + str(total_palavras) + " palavras\n\n"
+
+        "PROMPTS DE IMAGEM:\n"
+        "Personagem FIXO em TODOS os prompts: blue matte rubber 3D figure, genderless, faceless,\n"
+        "smooth surface, two black dot eyes, rounded head, white absolute background.\n"
+        "4 direcoes visuais — escolha a mais adequada para cada momento:\n"
+        "1. SOMBRA REVELADORA: personagem pequeno, sombra grande revelando verdade oculta\n"
+        "2. CABECA ABERTA: cabeca aberta mostrando metafora do que controla a mente\n"
+        "3. DUPLO EU: duas versoes do personagem em conflito interno\n"
+        "4. PSICOLOGIA SURREALISTA: personagem com objeto impossivel representando verdade\n"
+        "Fundo branco absoluto, composicao centralizada, sem texto, sem outros personagens.\n\n"
+
+        "Responda SOMENTE em JSON valido sem markdown:\n"
+        "{\n"
+        '  "comportamento": "nome do comportamento revelado",\n'
+        '  "mecanismo": "nome do fenomeno psicologico (ex: vies de confirmacao)",\n'
+        '  "gancho_principal": "primeira frase — segunda pessoa, impacto imediato",\n'
+        '  "gancho_opcoes": ["variacao2", "variacao3", "variacao4"],\n'
+        '  "camada1": {"titulo": "O ESPELHO", "descricao": "o que o espectador faz", "twist": "o detalhe que perturba"},\n'
+        '  "camada2": {"titulo": "O MECANISMO", "descricao": "a engrenagem psicologica", "pesquisa": "estudo real citado"},\n'
+        '  "camada3": {"titulo": "A FERIDA", "descricao": "a implicacao pessoal", "twist": "o que nao da para negar"},\n'
+        '  "narracao_camada1": ["' + str(frases_por_camada) + ' frases em portugues — segunda pessoa, espelho sem julgamento"],\n'
+        '  "narracao_camada2": ["' + str(frases_por_camada) + ' frases em portugues — mecanismo psicologico com ciencia real"],\n'
+        '  "narracao_camada3": ["' + str(frases_por_camada) + ' frases em portugues — implicacao pessoal inescapavel"],\n'
+        '  "narracao_final": ["' + str(frases_final) + ' frases em portugues — filosofica, sem resolucao"],\n'
+        '  "frase_final_principal": "frase filosofica lenta que fica na cabeca",\n'
+        '  "frase_final_opcoes": ["variacao2", "variacao3", "variacao4"],\n'
+        '  "pergunta_divisora_principal": "divide entre quem aceita e quem resiste",\n'
+        '  "pergunta_divisora_opcoes": ["variacao2", "variacao3", "variacao4"],\n'
+        '  "prompts_camada1": ["' + str(frases_por_camada) + ' prompts em ingles — personagem azul 3D, direcao visual escolhida"],\n'
+        '  "prompts_camada2": ["' + str(frases_por_camada) + ' prompts em ingles — personagem azul 3D"],\n'
+        '  "prompts_camada3": ["' + str(frases_por_camada) + ' prompts em ingles — personagem azul 3D"],\n'
+        '  "prompts_final": ["' + str(frases_final) + ' prompts em ingles — personagem azul 3D"]\n'
+        "}"
+    )
+
+
 def build_system(modelo, nh, dist, total_palavras):
     restricao = animais_recentes()
     restr = "Animais usados nos ultimos 7 dias - NAO repita: " + ", ".join(restricao) + "." if restricao else "Sem restricao de animais."
 
-    if modelo == "psicologia":
-        ctx = (
-            "Voce cria roteiros virais de psicologia humana para YouTube. "
-            "Os casos sao comportamentos humanos em escalada: comum, surpreendente, perturbador. "
-            "Narracao em segunda pessoa direta: Voce faz isso, Voce ja percebeu. "
-            "Prompts mostram HUMANOS em situacoes cotidianas reconheciveis."
-        )
-    elif modelo == "fatos":
-        ctx = (
-            "Voce cria roteiros virais de ciencia para YouTube. "
-            "Os casos contradizem crencas populares: surpreendente, chocante, muda tudo. "
-            "A narracao comeca contradizendo uma crenca forte. "
-            "Prompts mostram ciencia, natureza, descobertas."
-        )
-    else:
+    # Modelo animais — unico modelo desta funcao (mente usa build_system_mente)
+    if True:
         ctx = (
             "Voce cria roteiros virais de comportamento animal para YouTube. " + restr + "\n"
             "BANCO DE ANIMAIS:\n"
@@ -415,54 +486,31 @@ def roteiro():
     titulo = data.get('titulo', '').strip()
     contexto = data.get('contexto', '').strip()
     modelo = data.get('modelo', 'animais')
-    nh = 3  # fixo em 3 historias — estrutura definida pelo titulo e contexto
     duracao = str(data.get('duracao', '40'))
-    dist = calc_frases(duracao, nh)
     total_palavras = PALAVRAS.get(duracao, 130)
     duracao_s = {"40":40,"60":60,"90":90,"120":120,"180":180,"240":240,"300":300}.get(duracao, 60)
-    system = build_system(modelo, nh, dist, total_palavras)
     chars_limite = duracao_s * 13
+
+    # MENTE tem estrutura e system prompt próprios
+    if modelo == 'mente':
+        system = build_system_mente(duracao_s, total_palavras)
+    else:
+        nh = 3
+        dist = calc_frases(duracao, nh)
+        system = build_system(modelo, nh, dist, total_palavras)
     user_msg = f"Titulo: {titulo}\n\nLIMITE ABSOLUTO: a narracao completa deve ter NO MAXIMO {chars_limite} caracteres totais (equivale a {duracao_s} segundos de audio a 13 chars/segundo). Respeite rigorosamente."
     if contexto:
         user_msg += f"\nContexto: {contexto}"
     try:
         text = chamar_claude(system, user_msg)
-        d = json.loads(text)
-        # Valida tamanho da narracao — margem de 30s
-        print(f'NARRACAO GERADA: {sum(len(f) for campo in ["narracao_caso1","narracao_caso2","narracao_caso3","narracao_final"] for f in d.get(campo, []))} chars, limite={(duracao_s+30)*13} chars')
-        chars_por_segundo = 13
-        duracao_s = {"40":40,"60":60,"90":90,"120":120,"180":180,"240":240,"300":300}.get(duracao, 60)
-        limite_chars = (duracao_s + 30) * chars_por_segundo
-        campos = ['narracao_caso1','narracao_caso2','narracao_caso3','narracao_final']
-        total_chars = sum(len(f) for campo in campos for f in d.get(campo, []))
-        if total_chars > limite_chars:
-            # Pede ao Claude para resumir mantendo a essencia
-            narr_linhas = []
-            for campo in campos:
-                narr_linhas.extend(d.get(campo, []))
-            sys_resumo = (
-                "Voce e um editor de narracao para YouTube. "
-                "Resuma as frases abaixo para caber em no maximo " + str(limite_chars) + " caracteres totais. "
-                "REGRAS: mantenha o mesmo numero de frases. Preserve a emocao, o nome dos animais e os detalhes especificos. "
-                "Torne cada frase mais concisa sem perder o impacto. "
-                "Retorne apenas as frases, uma por linha, sem numeracao."
-            )
-            usr_resumo = "Frases (" + str(total_chars) + " chars, limite " + str(limite_chars) + "):\n" + "\n".join(narr_linhas)
-            try:
-                resultado = chamar_claude(sys_resumo, usr_resumo, max_tokens=2000, modelo="claude-haiku-4-5-20251001")
-                novas = [f.strip() for f in resultado.strip().split("\n") if f.strip()]
-                if len(novas) >= len(narr_linhas):
-                    idx = 0
-                    for campo in campos:
-                        qtd = len(d.get(campo, []))
-                        if qtd > 0:
-                            d[campo] = novas[idx:idx+qtd]
-                            idx += qtd
-            except:
-                pass
-        animais = [d.get(k, {}).get('animal', '') for k in ['caso1', 'caso2', 'caso3'] if d.get(k, {}).get('animal')]
-        if animais:
-            salvar_historico(titulo, animais)
+        d = parse_json_robusto(text)
+        # Salva historico — animais para Animal, comportamento para MENTE
+        if modelo == 'mente':
+            d['_modelo'] = 'mente'  # marca para o frontend
+        else:
+            animais = [d.get(k, {}).get('animal', '') for k in ['caso1', 'caso2', 'caso3'] if d.get(k, {}).get('animal')]
+            if animais:
+                salvar_historico(titulo, animais)
         return jsonify(d)
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
