@@ -1230,6 +1230,12 @@ async function regenPrompt(idx) {
 
 async function regenerarOpcoes(tipo) {
   var titulo = document.getElementById('titulo').value.trim();
+  if(!titulo) { alert('Digite um titulo primeiro'); return; }
+  var btnMap = {gancho: 'Regenerar ganchos', frase: 'Regenerar frases', pergunta: 'Regenerar perguntas'};
+  var btns = document.querySelectorAll('.regen-opts-btn');
+  var btn = null;
+  btns.forEach(function(b){ if(b.textContent.toLowerCase().indexOf(tipo) > -1) btn = b; });
+  if(btn) { btn.textContent = '⏳ Gerando...'; btn.disabled = true; }
   try {
     var r = await fetch('/regenerar-opcoes', {
       method: 'POST',
@@ -1237,13 +1243,14 @@ async function regenerarOpcoes(tipo) {
       body: JSON.stringify({titulo: titulo, tipo: tipo, modelo: state.modelo})
     });
     var d = await r.json();
+    if(d.erro) throw new Error(d.erro);
     var containerId = tipo === 'gancho' ? 'gancho-opts' : tipo === 'frase' ? 'frase-opts' : 'pergunta-opts';
     renderOpts(containerId, d.opcoes || [], tipo);
-    var editId = tipo + '-edit';
-    var editEl = document.getElementById(editId);
+    var editEl = document.getElementById(tipo + '-edit');
     if(editEl && d.opcoes && d.opcoes[0]) editEl.value = d.opcoes[0];
     atualizarScriptFinal();
-  } catch(e) {}
+  } catch(e) { alert('Erro ao regenerar: ' + e.message); }
+  if(btn) { btn.textContent = btnMap[tipo] || 'Regenerar'; btn.disabled = false; }
 }
 
 async function gerarImagens() {
