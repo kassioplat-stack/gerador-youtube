@@ -305,6 +305,7 @@ textarea{height:60px;resize:none}
           <div id="score-dims" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
           <div id="score-fraco" style="display:none;background:#1a0a0a;border:1px solid #5a1a1a;border-radius:8px;padding:10px;font-size:12px;color:#ff6b6b"></div>
           <div id="score-sugestao" style="display:none;background:#0a1a0a;border:1px solid #1a5a1a;border-radius:8px;padding:10px;font-size:12px;color:#6bff6b;margin-top:6px"></div>
+          <button id="btn-corrigir-score" onclick="corrigirPontoFraco()" style="display:none;width:100%;margin-top:10px;background:#E8593C;border:none;border-radius:8px;padding:9px;font-size:12px;color:#fff;cursor:pointer;font-family:inherit;font-weight:700">🔧 Corrigir ponto mais fraco</button>
         </div>
       </div>
     </div>
@@ -865,7 +866,7 @@ async function calcularScore(roteiro) {
 
 async function corrigirPontoFraco() {
   if(!state.roteiro || !state.scoreData) return;
-  var pontoFraco = state.scoreData.ponto_fraco || '';
+  var ehMente = state.roteiro._modelo === 'mente';
   var sugestao = state.scoreData.sugestao || '';
   var dimFraca = state.scoreData.dimensoes.reduce(function(a, b) { return a.score < b.score ? a : b; });
   var btn = document.getElementById('btn-corrigir-score');
@@ -877,6 +878,7 @@ async function corrigirPontoFraco() {
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         roteiro: state.roteiro,
+        modelo: ehMente ? 'mente' : 'animais',
         dimensao: dimFraca.nome,
         justificativa: dimFraca.justificativa,
         sugestao: sugestao
@@ -885,13 +887,25 @@ async function corrigirPontoFraco() {
     var d = await r.json();
     if(d.erro) throw new Error(d.erro);
     var rot = state.roteiro;
+    // Campos comuns
     if(d.gancho_principal) { rot.gancho_principal = d.gancho_principal; rot.gancho_opcoes = d.gancho_opcoes || rot.gancho_opcoes; }
-    if(d.caso3) rot.caso3 = Object.assign(rot.caso3, d.caso3);
-    if(d.micro_promessa) rot.micro_promessa = d.micro_promessa;
-    if(d.narracao_caso3) rot.narracao_caso3 = d.narracao_caso3;
     if(d.frase_final_principal) { rot.frase_final_principal = d.frase_final_principal; rot.frase_final_opcoes = d.frase_final_opcoes || rot.frase_final_opcoes; }
     if(d.pergunta_divisora_principal) { rot.pergunta_divisora_principal = d.pergunta_divisora_principal; rot.pergunta_divisora_opcoes = d.pergunta_divisora_opcoes || rot.pergunta_divisora_opcoes; }
     if(d.narracao_final) rot.narracao_final = d.narracao_final;
+    if(d.micro_promessa) rot.micro_promessa = d.micro_promessa;
+    if(ehMente) {
+      // Campos do MENTE
+      if(d.camada1) rot.camada1 = Object.assign(rot.camada1 || {}, d.camada1);
+      if(d.camada2) rot.camada2 = Object.assign(rot.camada2 || {}, d.camada2);
+      if(d.camada3) rot.camada3 = Object.assign(rot.camada3 || {}, d.camada3);
+      if(d.narracao_camada1) rot.narracao_camada1 = d.narracao_camada1;
+      if(d.narracao_camada2) rot.narracao_camada2 = d.narracao_camada2;
+      if(d.narracao_camada3) rot.narracao_camada3 = d.narracao_camada3;
+    } else {
+      // Campos do Animal
+      if(d.caso3) rot.caso3 = Object.assign(rot.caso3, d.caso3);
+      if(d.narracao_caso3) rot.narracao_caso3 = d.narracao_caso3;
+    }
     state.roteiro = rot;
     renderRoteiro(rot);
     await calcularScore(rot);
