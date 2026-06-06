@@ -276,6 +276,7 @@ def build_system(modelo, nh, dist, total_palavras):
 
 def parse_json_robusto(text):
     import re as _re, json as _json
+    # Limpa markdown
     text = _re.sub(r"```json|```", "", text).strip()
     # Remove trailing commas
     text = _re.sub(r",\s*([}\]])", r"\1", text)
@@ -286,17 +287,28 @@ def parse_json_robusto(text):
     # Tenta parse direto
     try:
         return _json.loads(text)
-    except _json.JSONDecodeError:
-        # Remove caracteres de controle problemáticos
-        text = _re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", text)
-        # Remove newlines dentro de strings JSON
-        text = _re.sub(r'(?<=:)\s*"([^"]*?)\n([^"]*?)"', lambda m: ': "' + m.group(1).replace("\n", " ") + m.group(2) + '"', text)
+    except _json.JSONDecodeError as e:
+        # Estrategia: substitui aspas duplas dentro de valores string por aspas simples
+        # Encontra strings JSON e sanitiza o conteudo interno
+        def sanitizar_string(match):
+            inner = match.group(1)
+            # Remove aspas duplas do interior da string
+            inner = inner.replace('\\"', '__ESCAPED_QUOTE__')
+            inner = inner.replace('"'  , "'")
+            inner = inner.replace('__ESCAPED_QUOTE__', '\\"')
+            return '"' + inner + '"'
+        text2 = _re.sub(r'"((?:[^"\\]|\\.)*)"', sanitizar_string, text)
         try:
-            return _json.loads(text)
+            return _json.loads(text2)
         except:
-            # Última tentativa: usa json5 approach - converte aspas simples
-            text = text.replace("'", '"')
-            return _json.loads(text)
+            # Ultimo recurso: remove tudo apos o ultimo } valido
+            last = text.rfind("}")
+            if last > 0:
+                try:
+                    return _json.loads(text[:last+1])
+                except:
+                    pass
+            raise
 
 def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-6"):
     for tentativa in range(3):
@@ -784,15 +796,18 @@ def score_viral():
         roteiro.get('narracao_caso3', []) + roteiro.get('narracao_final', [])
     )
     system = (
-        "Voce e o maior especialista em crescimento de canais faceless no YouTube em 2026."
-        " Avalie o roteiro em 5 dimensoes de 0 a 20 pontos cada. Seja RIGOROSO."
+        "Voce e especialista em canais virais do YouTube."
+        " Avalie o roteiro em 5 dimensoes de 0 a 20 pontos cada. Seja rigoroso."
+        " IMPORTANTE: nas justificativas, use apenas aspas simples, nunca aspas duplas."
         " DIMENSOES:"
-        " 1. FORCA DO GANCHO (0-20): vai direto sem apresentacao? gera pergunta imediata? e do tipo certo?"
-        " 2. ESCALADA EMOCIONAL (0-20): caso1 menor que caso2 menor que caso3 em intensidade real? micro-promessa funciona?"
-        " 3. QUALIDADE DO TWIST (0-20): e impossivel de prever? chega em rafagas curtas? muda a percepcao?"
-        " 4. PERGUNTA DIVISORA (0-20): divide em dois lados reais? e pessoal? vai gerar comentarios polarizados?"
-        " 5. CONGRUENCIA NARRATIVA (0-20): pergunta invisivel plantada e respondida? emocao-ancora nos 3 casos? fio condutor?"
-        ' Retorne JSON: {"total": 0-100, "dimensoes": [{"nome": "string", "score": 0-20, "justificativa": "string"}], "ponto_fraco": "string", "sugestao": "string"}'
+        " 1. FORCA DO GANCHO (0-20)"
+        " 2. ESCALADA EMOCIONAL (0-20)"
+        " 3. QUALIDADE DO TWIST (0-20)"
+        " 4. PERGUNTA DIVISORA (0-20)"
+        " 5. CONGRUENCIA NARRATIVA (0-20)"
+        " Retorne APENAS JSON valido sem markdown, sem aspas duplas dentro de strings."
+        " Use este formato exato: {total: NUMBER, dimensoes: [{nome: STRING, score: NUMBER, justificativa: STRING}], ponto_fraco: STRING, sugestao: STRING}"
+        " Substitua aspas duplas dentro de justificativas por aspas simples."
     )
     user_msg = (
         "GANCHO: " + gancho + "\nTIPO: " + tipo_gancho + "\nEMOCAO: " + emocao +
