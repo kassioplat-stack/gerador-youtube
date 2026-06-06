@@ -782,7 +782,6 @@ def score_viral():
     data = request.json
     roteiro = data.get('roteiro', {})
     gancho = roteiro.get('gancho_principal', '')
-    tipo_gancho = roteiro.get('tipo_gancho', '')
     emocao = roteiro.get('emocao_ancora', '')
     pergunta_inv = roteiro.get('pergunta_invisivel', '')
     micro = roteiro.get('micro_promessa', '')
@@ -795,36 +794,63 @@ def score_viral():
         roteiro.get('narracao_caso1', []) + roteiro.get('narracao_caso2', []) +
         roteiro.get('narracao_caso3', []) + roteiro.get('narracao_final', [])
     )
+
     system = (
         "Voce e especialista em canais virais do YouTube."
-        " Avalie o roteiro em 5 dimensoes de 0 a 20 pontos cada. Seja rigoroso."
-        " IMPORTANTE: nas justificativas, use apenas aspas simples, nunca aspas duplas."
-        " DIMENSOES:"
-        " 1. FORCA DO GANCHO (0-20)"
-        " 2. ESCALADA EMOCIONAL (0-20)"
-        " 3. QUALIDADE DO TWIST (0-20)"
-        " 4. PERGUNTA DIVISORA (0-20)"
-        " 5. CONGRUENCIA NARRATIVA (0-20)"
-        " Retorne APENAS JSON valido sem markdown, sem aspas duplas dentro de strings."
-        " Use este formato exato: {total: NUMBER, dimensoes: [{nome: STRING, score: NUMBER, justificativa: STRING}], ponto_fraco: STRING, sugestao: STRING}"
-        " Substitua aspas duplas dentro de justificativas por aspas simples."
+        " Avalie o roteiro em 5 dimensoes de 0 a 20 pontos."
+        " Retorne EXATAMENTE neste formato, sem desvios, sem markdown, sem aspas extras:\n"
+        "TOTAL:XX\n"
+        "D1:XX:justificativa em uma frase\n"
+        "D2:XX:justificativa em uma frase\n"
+        "D3:XX:justificativa em uma frase\n"
+        "D4:XX:justificativa em uma frase\n"
+        "D5:XX:justificativa em uma frase\n"
+        "FRACO:nome da dimensao mais fraca\n"
+        "SUGESTAO:sugestao especifica de melhoria\n"
+        "Dimensoes: D1=FORCA DO GANCHO D2=ESCALADA EMOCIONAL D3=QUALIDADE DO TWIST D4=PERGUNTA DIVISORA D5=CONGRUENCIA NARRATIVA"
     )
     user_msg = (
-        "GANCHO: " + gancho + "\nTIPO: " + tipo_gancho + "\nEMOCAO: " + emocao +
-        "\nPERGUNTA INVISIVEL: " + pergunta_inv +
-        "\nCASO1: " + caso1.get('animal','') + " twist: " + caso1.get('twist','') +
-        "\nCASO2: " + caso2.get('animal','') + " twist: " + caso2.get('twist','') +
-        "\nCASO3: " + caso3.get('animal','') + " twist: " + caso3.get('twist','') +
-        "\nMICRO-PROMESSA: " + micro + "\nFRASE FINAL: " + frase_final +
-        "\nPERGUNTA DIVISORA: " + pergunta_div +
-        "\nNARRACAO: " + narracao[:800]
+        "GANCHO: " + gancho[:200] + "\n"
+        "EMOCAO: " + emocao + "\n"
+        "PERGUNTA INVISIVEL: " + pergunta_inv + "\n"
+        "CASO1: " + caso1.get('animal','') + " twist: " + caso1.get('twist','')[:100] + "\n"
+        "CASO2: " + caso2.get('animal','') + " twist: " + caso2.get('twist','')[:100] + "\n"
+        "CASO3: " + caso3.get('animal','') + " twist: " + caso3.get('twist','')[:100] + "\n"
+        "MICRO-PROMESSA: " + micro[:100] + "\n"
+        "FRASE FINAL: " + frase_final[:150] + "\n"
+        "PERGUNTA DIVISORA: " + pergunta_div[:150] + "\n"
+        "NARRACAO: " + narracao[:600]
     )
+
+    nomes = ["FORCA DO GANCHO","ESCALADA EMOCIONAL","QUALIDADE DO TWIST","PERGUNTA DIVISORA","CONGRUENCIA NARRATIVA"]
     try:
-        text = chamar_claude(system, user_msg, max_tokens=1000, modelo="claude-sonnet-4-6")
-        d = parse_json_robusto(text)
-        if 'dimensoes' in d:
-            d['total'] = sum(dim.get('score', 0) for dim in d['dimensoes'])
-        return jsonify(d)
+        text = chamar_claude(system, user_msg, max_tokens=600, modelo="claude-sonnet-4-6")
+        lines = [l.strip() for l in text.strip().split('\n') if l.strip()]
+        total = 0
+        dimensoes = []
+        ponto_fraco = ''
+        sugestao = ''
+        for line in lines:
+            if line.startswith('TOTAL:'):
+                try: total = int(line.split(':')[1].strip())
+                except: pass
+            elif line.startswith('D') and ':' in line:
+                parts = line.split(':', 2)
+                if len(parts) == 3:
+                    idx_d = int(parts[0][1:]) - 1
+                    score = 0
+                    try: score = int(parts[1].strip())
+                    except: pass
+                    justificativa = parts[2].strip()
+                    nome = nomes[idx_d] if 0 <= idx_d < len(nomes) else parts[0]
+                    dimensoes.append({'nome': nome, 'score': score, 'justificativa': justificativa})
+            elif line.startswith('FRACO:'):
+                ponto_fraco = line[6:].strip()
+            elif line.startswith('SUGESTAO:'):
+                sugestao = line[9:].strip()
+        if not total and dimensoes:
+            total = sum(d['score'] for d in dimensoes)
+        return jsonify({'total': total, 'dimensoes': dimensoes, 'ponto_fraco': ponto_fraco, 'sugestao': sugestao})
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
 
