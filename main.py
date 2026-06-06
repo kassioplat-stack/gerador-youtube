@@ -149,7 +149,8 @@ def build_system_mente(duracao_s, total_palavras):
         "3. Frases completas — sujeito, verbo, sentido. Nunca cortadas\n"
         "4. Ritmo cinematografico — curtas de impacto alternando com medias descritivas\n"
         "5. Ferida aberta no final — sem resolucao, sem conselho\n"
-        "6. Total: aproximadamente " + str(total_palavras) + " palavras\n\n"
+        "6. Total: aproximadamente " + str(total_palavras) + " palavras\n"
+        "7. CRITICO: NUNCA use aspas duplas dentro de qualquer texto — nem em exemplos, nem em citacoes, nem em enfase. Use aspas simples se necessario ou reformule sem aspas.\n\n"
 
         "Responda SOMENTE em JSON valido sem markdown:\n"
         "{\n"
