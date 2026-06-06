@@ -98,6 +98,7 @@ textarea{height:60px;resize:none}
   <div class="logo">Pipeline YouTube</div>
   <h1>Gerador de Videos</h1>
   <p class="sub">Escolha o modelo, configure e clique em gerar</p>
+  <button onclick="novoVideo()" style="position:absolute;top:16px;right:16px;background:transparent;border:1px solid #333;border-radius:6px;padding:5px 14px;font-size:11px;color:#555;cursor:pointer;font-family:inherit;transition:all .15s" onmouseover="this.style.borderColor='#E8593C';this.style.color='#E8593C'" onmouseout="this.style.borderColor='#333';this.style.color='#555'">+ Novo Vídeo</button>
 
   <div class="tabs">
     <button class="tab active" id="tab-btn-gerar" onclick="showTab('gerar',this)">Gerar</button>
@@ -334,7 +335,7 @@ textarea{height:60px;resize:none}
       </div>
       <div class="card">
         <span class="slbl">Script Final — texto que sera narrado</span>
-        <textarea id="script-final" style="height:220px;background:#0a0a0a;border-color:#E8593C;color:#fff;font-size:13px;line-height:1.7" oninput="atualizarContador()"></textarea>
+        <textarea id="script-final" style="height:220px;background:#0a0a0a;border-color:#E8593C;color:#fff;font-size:13px;line-height:1.7" oninput="atualizarContador();salvarEstado()"></textarea>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
           <div style="font-size:11px;color:#444">Resultado de: Gancho + Texto principal + Frase final + Pergunta divisora. Edite se precisar de ajuste fino.</div>
           <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;margin-left:8px">
@@ -402,6 +403,102 @@ var state = {
 };
 
 try { state.calendarioItems = JSON.parse(localStorage.getItem('calendario') || '[]'); } catch(e) {}
+
+// Restaura estado salvo
+function salvarEstado() {
+  try {
+    var salvo = {
+      titulo: (document.getElementById('titulo') || {}).value || '',
+      contexto: (document.getElementById('contexto') || {}).value || '',
+      modelo: state.modelo,
+      estilo: state.estilo,
+      formato: state.formato,
+      duracao: state.duracao,
+      roteiro: state.roteiro,
+      prompts: state.prompts,
+      narracao_session_id: state.narracao_session_id,
+      script_final: (document.getElementById('script-final') || {}).value || '',
+      gancho_edit: (document.getElementById('gancho-edit') || {}).value || '',
+      frase_edit: (document.getElementById('frase-edit') || {}).value || '',
+      pergunta_edit: (document.getElementById('pergunta-edit') || {}).value || '',
+      narracao_edit: (document.getElementById('narracao-edit') || {}).value || ''
+    };
+    localStorage.setItem('gerador_state', JSON.stringify(salvo));
+  } catch(e) {}
+}
+
+function restaurarEstado() {
+  try {
+    var salvo = JSON.parse(localStorage.getItem('gerador_state') || 'null');
+    if(!salvo) return;
+    // Restaura campos de texto
+    if(salvo.titulo) document.getElementById('titulo').value = salvo.titulo;
+    if(salvo.contexto) document.getElementById('contexto').value = salvo.contexto;
+    // Restaura chips
+    if(salvo.duracao) selChip('duracao', salvo.duracao);
+    if(salvo.modelo) selModel(salvo.modelo);
+    if(salvo.estilo) selStyle(salvo.estilo);
+    if(salvo.formato) selChip('formato', salvo.formato);
+    // Restaura roteiro
+    if(salvo.roteiro) {
+      state.roteiro = salvo.roteiro;
+      state.prompts = salvo.prompts || [];
+      state.narracao_session_id = salvo.narracao_session_id || null;
+      renderRoteiro(salvo.roteiro);
+      document.getElementById('roteiro-preview').style.display = 'block';
+      // Restaura edições manuais
+      if(salvo.gancho_edit) document.getElementById('gancho-edit').value = salvo.gancho_edit;
+      if(salvo.frase_edit) document.getElementById('frase-edit').value = salvo.frase_edit;
+      if(salvo.pergunta_edit) document.getElementById('pergunta-edit').value = salvo.pergunta_edit;
+      if(salvo.narracao_edit) document.getElementById('narracao-edit').value = salvo.narracao_edit;
+      if(salvo.script_final) document.getElementById('script-final').value = salvo.script_final;
+      // Habilita botões
+      var btnN = document.getElementById('btn-narracao');
+      if(btnN) { btnN.disabled = false; btnN.style.opacity = '1'; }
+      // Restaura prompts
+      if(salvo.prompts && salvo.prompts.length) {
+        renderPrompts(salvo.prompts);
+        document.getElementById('result-card').style.display = 'block';
+        document.getElementById('section-prompts').style.display = 'block';
+        var btnI = document.getElementById('btn-imagens');
+        if(btnI) { btnI.disabled = false; btnI.style.opacity = '1'; }
+      }
+      // Score
+      calcularScore(salvo.roteiro);
+    }
+  } catch(e) { console.log('Erro ao restaurar:', e); }
+}
+
+function novoVideo() {
+  if(!confirm('Começar um novo vídeo? O progresso atual será perdido.')) return;
+  localStorage.removeItem('gerador_state');
+  // Limpa state
+  state.roteiro = null;
+  state.prompts = [];
+  state.sessionId = null;
+  state.narracao_session_id = null;
+  state.narracao_gerada = '';
+  state.zipPath = null;
+  state.scoreData = null;
+  // Limpa campos
+  document.getElementById('titulo').value = '';
+  document.getElementById('contexto').value = '';
+  var ids = ['gancho-edit','frase-edit','pergunta-edit','narracao-edit','script-final'];
+  ids.forEach(function(id){ var el = document.getElementById(id); if(el) el.value = ''; });
+  // Esconde seções
+  document.getElementById('roteiro-preview').style.display = 'none';
+  document.getElementById('score-panel').style.display = 'none';
+  document.getElementById('result-card').style.display = 'none';
+  // Reseta botões
+  ['btn-narracao','btn-prompts','btn-imagens','btn-thumbnails'].forEach(function(id){
+    var btn = document.getElementById(id);
+    if(btn) { btn.disabled = true; btn.style.opacity = '0.4'; }
+  });
+  // Limpa grids
+  var ids2 = ['gancho-opts','frase-opts','pergunta-opts','prompts-list','img-grid','thumbnails-grid'];
+  ids2.forEach(function(id){ var el = document.getElementById(id); if(el) el.innerHTML = ''; });
+  updatePreviewInfo();
+}
 
 function showTab(id, btn) {
   document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
@@ -484,6 +581,7 @@ async function sugerirTitulos() {
 
 
 updatePreviewInfo();
+window.addEventListener('load', function() { restaurarEstado(); });
 
 function setStep(n, status, msg) {
   var dot = document.getElementById('d'+n);
@@ -521,6 +619,7 @@ async function gerarRoteiro() {
     state.prompts = [];
     renderRoteiro(data);
     calcularScore(data);
+    salvarEstado();
     var btnNarr = document.getElementById('btn-narracao');
     btnNarr.disabled = false;
     btnNarr.style.opacity = '1';
@@ -1091,6 +1190,7 @@ async function gerarPrompts() {
     if(d.erro) throw new Error(d.erro);
     state.prompts = d.prompts;
     renderPrompts(d.prompts);
+    salvarEstado();
     document.getElementById('result-card').style.display = 'block';
     document.getElementById('section-prompts').style.display = 'block';
     document.getElementById('btn-imagens').disabled = false;
