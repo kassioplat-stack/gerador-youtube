@@ -936,8 +936,13 @@ def score_viral():
     try:
         text = chamar_claude(system, user_msg, max_tokens=1000, modelo="claude-sonnet-4-6")
         text = re.sub(r"```json|```", "", text).strip()
+        # Remove trailing commas
+        text = re.sub(r',\s*([}\]])', r'', text)
+        # Extrai apenas o primeiro JSON valido
+        m = re.search(r'\{.*\}', text, re.DOTALL)
+        if m:
+            text = m.group()
         d = json.loads(text)
-        # Garante total correto
         if 'dimensoes' in d:
             d['total'] = sum(dim.get('score', 0) for dim in d['dimensoes'])
         return jsonify(d)
