@@ -88,8 +88,10 @@ def calc_frases(dur, nh):
         return {"caso1": round(total*0.25), "caso2": round(total*0.20), "caso3": round(total*0.25), "final": round(total*0.30)}
 
 def build_system_mente(duracao_s, total_palavras):
-    frases_por_camada = max(round(duracao_s / 9), 3)
-    frases_final = max(round(duracao_s / 18), 2)
+    frases_camada1 = max(round(duracao_s / 10), 3)  # Espelho — reconhecimento rapido
+    frases_camada2 = max(round(duracao_s / 10), 3)  # Mecanismo — explicacao
+    frases_camada3 = max(round(duracao_s / 7), 4)   # Ferida — mais espaco para doer
+    frases_final   = max(round(duracao_s / 18), 2)  # Final filosofico
 
     return (
         "MISSAO DO CANAL: Revelar o mecanismo psicologico oculto por tras de comportamentos humanos.\n"
@@ -100,19 +102,19 @@ def build_system_mente(duracao_s, total_palavras):
 
         "ESTRUTURA OBRIGATORIA — 3 CAMADAS DE UM UNICO COMPORTAMENTO:\n\n"
 
-        "CAMADA 1 — O ESPELHO (" + str(frases_por_camada) + " frases):\n"
+        "CAMADA 1 — O ESPELHO (" + str(frases_camada1) + " frases):\n"
         "Descreve o comportamento de forma reconhecivel e especifica.\n"
         "O espectador se ve sem julgamento. Exemplos concretos do dia a dia.\n"
         "Segunda pessoa direta: Voce faz isso. Voce ja percebeu.\n"
         "Ele pensa: e, eu faco isso mesmo. Nenhum mecanismo explicado ainda — so o espelho.\n\n"
 
-        "CAMADA 2 — O MECANISMO (" + str(frases_por_camada) + " frases):\n"
+        "CAMADA 2 — O MECANISMO (" + str(frases_camada2) + " frases):\n"
         "Revela a engrenagem psicologica por tras do comportamento.\n"
         "Explique o fenomeno de forma clara e perturbadora — sem necessidade de citar estudos formais.\n"
         "O espectador comeca a se desconfortar porque entende que nao e acidente.\n"
         "Nao e falha de carater — e arquitetura cerebral. Isso e ainda mais perturbador.\n\n"
 
-        "CAMADA 3 — A FERIDA (" + str(frases_por_camada) + " frases):\n"
+        "CAMADA 3 — A FERIDA (" + str(frases_camada3) + " frases):\n"
         "Conecta o mecanismo a algo pessoal e atual do espectador.\n"
         "Especifico o suficiente para parecer que esta falando so com ele.\n"
         "O espectador percebe a implicacao nas suas escolhas, relacoes ou identidade.\n"
@@ -164,9 +166,9 @@ def build_system_mente(duracao_s, total_palavras):
         '  "camada2": {"titulo": "O MECANISMO", "descricao": "a engrenagem psicologica", "twist": "por que isso e perturbador"},\n'
         '  "camada3": {"titulo": "A FERIDA", "descricao": "a implicacao pessoal", "twist": "o que nao da para negar"},\n'
         '  "micro_promessa": "frase entre camada 2 e 3 que aprofunda — nunca transicao mecanica",\n'
-        '  "narracao_camada1": ["' + str(frases_por_camada) + ' frases em portugues — segunda pessoa, espelho sem julgamento"],\n'
-        '  "narracao_camada2": ["' + str(frases_por_camada) + ' frases em portugues — mecanismo psicologico perturbador"],\n'
-        '  "narracao_camada3": ["' + str(frases_por_camada) + ' frases em portugues — implicacao pessoal inescapavel"],\n'
+        '  "narracao_camada1": ["' + str(frases_camada1) + ' frases em portugues — segunda pessoa, espelho sem julgamento"],\n'
+        '  "narracao_camada2": ["' + str(frases_camada2) + ' frases em portugues — mecanismo psicologico perturbador"],\n'
+        '  "narracao_camada3": ["' + str(frases_camada3) + ' frases em portugues — implicacao pessoal inescapavel, amarre em situacao atual e especifica"],\n'
         '  "narracao_final": ["' + str(frases_final) + ' frases em portugues — filosofica, sem resolucao"],\n'
         '  "frase_final_principal": "frase filosofica lenta que fica na cabeca",\n'
         '  "frase_final_opcoes": ["variacao2", "variacao3", "variacao4"],\n'
@@ -859,13 +861,14 @@ def score_viral():
         )
         system = (
             "Voce e especialista em canais virais de psicologia e comportamento humano no YouTube."
-            " Avalie o roteiro em 5 dimensoes de 0 a 20 pontos. Seja rigoroso e especifico."
+            " Avalie o roteiro em 6 dimensoes de 0 a 20 pontos. Seja rigoroso e especifico."
             " DIMENSOES:"
             " D1=FORCA DO GANCHO: planta divida emocional imediata? segunda pessoa direta? gera pergunta sobre si mesmo?"
             " D2=PROFUNDIDADE DO ESPELHO: espectador se reconhece na camada 1? e especifico ou generico? sem julgamento?"
             " D3=IMPACTO DO MECANISMO: camada 2 perturba e explica sem julgar? revela arquitetura cerebral? inescapavel?"
-            " D4=INTENSIDADE DA FERIDA: camada 3 e pessoal e atual? especifico o suficiente? nao da pra negar?"
+            " D4=INTENSIDADE DA FERIDA: camada 3 e pessoal e atual? amarra em situacao especifica inegavel? nao da pra negar?"
             " D5=PERGUNTA DIVISORA: divide em dois lados reais? pessoal? sem resposta obvia?"
+            " D6=IMPACTO DA FRASE FINAL: e filosofica e lenta? deixa pergunta aberta sem resolver? fica na cabeca?"
             " Retorne EXATAMENTE neste formato sem desvios:"
             " TOTAL:XX"
             " D1:XX:justificativa em uma frase sem aspas duplas"
@@ -873,10 +876,11 @@ def score_viral():
             " D3:XX:justificativa em uma frase sem aspas duplas"
             " D4:XX:justificativa em uma frase sem aspas duplas"
             " D5:XX:justificativa em uma frase sem aspas duplas"
+            " D6:XX:justificativa em uma frase sem aspas duplas"
             " FRACO:nome da dimensao mais fraca"
             " SUGESTAO:sugestao especifica de melhoria sem aspas duplas"
         )
-        nomes = ["FORCA DO GANCHO","PROFUNDIDADE DO ESPELHO","IMPACTO DO MECANISMO","INTENSIDADE DA FERIDA","PERGUNTA DIVISORA"]
+        nomes = ["FORCA DO GANCHO","PROFUNDIDADE DO ESPELHO","IMPACTO DO MECANISMO","INTENSIDADE DA FERIDA","PERGUNTA DIVISORA","IMPACTO DA FRASE FINAL"]
         user_msg = (
             "GANCHO: " + gancho[:200] + "\n"
             "CAMADA 1 (ESPELHO): " + camada1.get('descricao','') + " twist: " + camada1.get('twist','') + "\n"
@@ -936,7 +940,7 @@ def score_viral():
         )
 
     try:
-        text = chamar_claude(system, user_msg, max_tokens=600, modelo="claude-sonnet-4-6")
+        text = chamar_claude(system, user_msg, max_tokens=800, modelo="claude-sonnet-4-6")
         lines = [l.strip() for l in text.strip().split('\n') if l.strip()]
         total = 0
         dimensoes = []
