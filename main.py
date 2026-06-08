@@ -1301,6 +1301,25 @@ def corrigir_dim_thumbnail():
         return jsonify({'erro': str(e)}), 500
 
 
+@app.route('/testar-elevenlabs')
+def testar_elevenlabs():
+    try:
+        r = requests.post(
+            f'https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE}',
+            headers={'xi-api-key': ELEVENLABS_KEY, 'content-type': 'application/json'},
+            json={'text': 'Teste de voz.', 'model_id': 'eleven_multilingual_v2'},
+            timeout=30
+        )
+        return jsonify({
+            'status': r.status_code,
+            'bytes': len(r.content),
+            'voice_id': ELEVENLABS_VOICE,
+            'key_preview': ELEVENLABS_KEY[:8] + '...' if ELEVENLABS_KEY else 'VAZIA',
+            'response_text': r.text[:300] if r.status_code != 200 else 'OK'
+        })
+    except Exception as e:
+        return jsonify({'erro': str(e)})
+
 @app.route('/testar-leonardo')
 def testar_leonardo():
     try:
