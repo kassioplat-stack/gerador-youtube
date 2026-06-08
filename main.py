@@ -641,6 +641,8 @@ def gerar():
 
     session_id = str(__import__('uuid').uuid4())
 
+    print(f'REQUEST: so_audio={so_audio}, narracao_txt_size={len(narracao_txt)}, prompts={len(prompts)}')
+
     def stream():
         print(f'STREAM: so_audio={so_audio}, prompts={len(prompts)}, narracao_session_id={narracao_session_id}')
         sessions[session_id] = {'imagens': {}, 'prompts': prompts, 'audio': None, 'created_at': __import__('time').time()}
