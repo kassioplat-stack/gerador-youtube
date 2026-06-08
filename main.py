@@ -473,8 +473,12 @@ def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-6")
                 raise Exception(f"Claude erro: {str(e)}")
             time.sleep(5)
 
-def leonardo_generate(prompt, formato="9:16", estilo="stylized_game"):
-    sufixo = ESTILOS.get(estilo, ESTILOS["stylized_game"])
+def leonardo_generate(prompt, formato="9:16", estilo="stylized_game", modelo="animais"):
+    if modelo == "mente":
+        # Personagem azul 3D — sufixo fixo, ignora estilo selecionado
+        sufixo = "3D render, matte blue rubber figure, minimalist, white background, studio lighting, clean composition, surreal psychology"
+    else:
+        sufixo = ESTILOS.get(estilo, ESTILOS["stylized_game"])
     dims = FORMATOS.get(formato, FORMATOS["9:16"])
     for tentativa in range(3):
         try:
@@ -642,7 +646,7 @@ def gerar():
         for i, prompt in enumerate(prompts):
             num = str(i + 1).zfill(2)
             try:
-                img = leonardo_generate(prompt, formato, estilo)
+                img = leonardo_generate(prompt, formato, estilo, modelo)
                 sessions[session_id]['imagens'][i] = img
                 img_path = f'/tmp/{session_id}_{i}.jpg'
                 with open(img_path, 'wb') as f_img:
@@ -758,7 +762,7 @@ def regenerar_imagem():
     estilo = data.get('estilo', 'stylized_game')
     formato = data.get('formato', '9:16')
     try:
-        img = leonardo_generate(prompt, formato, estilo)
+        img = leonardo_generate(prompt, formato, estilo, modelo)
         if session_id in sessions:
             sessions[session_id]['imagens'][idx] = img
         return jsonify({'ok': True})
@@ -1201,7 +1205,7 @@ def gerar_thumbnail_imagem():
     estilo = data.get('estilo', 'stylized_game')
     session_id = data.get('session_id', '')
     try:
-        img = leonardo_generate(prompt, formato, estilo)
+        img = leonardo_generate(prompt, formato, estilo, modelo)
         if session_id and session_id in sessions:
             if 'thumbnails' not in sessions[session_id]:
                 sessions[session_id]['thumbnails'] = {}
