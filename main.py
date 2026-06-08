@@ -483,9 +483,8 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game", modelo="an
             r = requests.post(
                 "https://cloud.leonardo.ai/api/rest/v1/generations",
                 headers={"authorization": f"Bearer {LEONARDO_KEY}", "content-type": "application/json"},
-                json={"prompt": prompt + ", " + sufixo, "modelId": "7b592283-e8a7-4c5a-9ba6-d18c31f258b9",
-                      "width": dims["width"], "height": dims["height"], "num_images": 1, "guidance_scale": 10,
-                      "negative_prompt": "blurry, low quality, distorted, ugly, watermark, text, humans, human hands, multiple animals, cartoon, anime, deformed", "guidance_scale": 7},
+                json={"prompt": prompt + ", " + sufixo, "modelId": "6b645e3a-d64f-4341-a6d8-7a3690fbf042",
+                      "width": dims["width"], "height": dims["height"], "num_images": 1, "negative_prompt": "blurry, low quality, distorted, ugly, watermark, text, humans, human hands, multiple animals, cartoon, anime, deformed", "guidance_scale": 7},
                 timeout=40
             )
             data = r.json()
