@@ -1400,7 +1400,7 @@ async function gerarImagens() {
   setStep(4,'','Aguardando...');
 
   try {
-    var resp = await fetch('/gerar', {
+    var resp = await fetch('/narracao', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(payload)
