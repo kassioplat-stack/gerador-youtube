@@ -629,6 +629,7 @@ def gerar():
     session_id = str(int(time.time()))
 
     def stream():
+        print(f'STREAM: so_audio={so_audio}, prompts={len(prompts)}, narracao_session_id={narracao_session_id}')
         sessions[session_id] = {'imagens': {}, 'prompts': prompts, 'audio': None}
         yield 'data:' + json.dumps({'session_id': session_id, 'imgs_total': len(prompts)}) + '\n\n'
         # Modo so_audio — pula imagens e gera apenas audio
