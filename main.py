@@ -1371,10 +1371,12 @@ def corrigir_dim_thumbnail():
 
 @app.route('/gerar-narracao-simples', methods=['POST'])
 def gerar_narracao_simples():
-    data = request.json
+    print(f"NARRACAO SIMPLES REQUEST: content_type={request.content_type}")
+    data = request.get_json(force=True, silent=True) or {}
+    print(f"NARRACAO SIMPLES DATA keys: {list(data.keys())}")
     narracao_txt = data.get('narracao_custom', '').strip()
     if not narracao_txt:
-        return jsonify({'erro': 'Texto vazio'}), 400
+        return jsonify({'erro': 'Texto vazio', 'data_recebido': str(data)[:200]}), 400
     print(f"NARRACAO SIMPLES: {len(narracao_txt)} chars, voice={ELEVENLABS_VOICE}")
     try:
         audio_data, audio_service = gerar_audio(narracao_txt, 'temp')
