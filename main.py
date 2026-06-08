@@ -13,13 +13,27 @@ sessions = {}
 
 def limpar_sessions_antigas():
     agora = time.time()
-    para_remover = [k for k in sessions if agora - float(k) > 7200]
+    para_remover = []
+    for k, v in list(sessions.items()):
+        created = v.get('created_at', 0) if isinstance(v, dict) else 0
+        if agora - created > 7200:
+            para_remover.append(k)
     for k in para_remover:
-        sessions.pop(k, None)
+        s = sessions.pop(k, {})
+        # Limpa arquivos /tmp/ associados
+        try:
+            import glob
+            for f in glob.glob(f'/tmp/{k}_*.jpg'):
+                os.remove(f)
+            zip_path = f'/tmp/video_{k}.zip'
+            if os.path.exists(zip_path):
+                os.remove(zip_path)
+        except: pass
 
 HISTORICO_FILE = "historico.json"
 
 _historico_cache = None
+_historico_lock = __import__('threading').Lock()
 
 def carregar_historico():
     global _historico_cache
@@ -461,9 +475,12 @@ def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-6")
                 tipo = resp["error"].get("type", "unknown")
                 msg = resp["error"].get("message", str(resp["error"]))
                 raise Exception(f"API error [{tipo}]: {msg}")
-            if "content" not in resp:
+            if not resp.get("content"):
                 raise Exception(f"Resposta inesperada da API: {str(resp)[:200]}")
-            text = resp["content"][0]["text"]
+            content_list = resp["content"]
+            if not content_list or "text" not in content_list[0]:
+                raise Exception(f"Content sem texto: {str(resp)[:200]}")
+            text = content_list[0]["text"]
             text = re.sub(r"```json|```", "", text).strip()
             text = re.sub(r',\s*([}\]])', r'\1', text)
             return text
@@ -486,6 +503,8 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game", modelo="an
                 json={"prompt": (prompt + ", " + sufixo)[:900], "width": dims["width"], "height": dims["height"], "num_images": 1, "negative_prompt": "blurry, low quality, distorted, ugly, watermark, text, humans, cartoon, anime, deformed", "guidance_scale": 7},
                 timeout=40
             )
+            if r.status_code != 200:
+                raise Exception(f"Leonardo HTTP {r.status_code}: {r.text[:200]}")
             data = r.json()
             if "sdGenerationJob" not in data:
                 raise Exception(f"Leonardo erro: {data}")
@@ -616,11 +635,11 @@ def gerar():
         data.get('prompts_final', [])
     )
 
-    session_id = str(int(time.time()))
+    session_id = str(__import__('uuid').uuid4())
 
     def stream():
         print(f'STREAM: so_audio={so_audio}, prompts={len(prompts)}, narracao_session_id={narracao_session_id}')
-        sessions[session_id] = {'imagens': {}, 'prompts': prompts, 'audio': None}
+        sessions[session_id] = {'imagens': {}, 'prompts': prompts, 'audio': None, 'created_at': __import__('time').time()}
         yield 'data:' + json.dumps({'session_id': session_id, 'imgs_total': len(prompts)}) + '\n\n'
         # Modo so_audio — pula imagens e gera apenas audio
         if so_audio:
@@ -638,21 +657,35 @@ def gerar():
 
         yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': 'Gerando imagens...', 'progress': 18}) + '\n\n'
         erros = []
-        for i, prompt in enumerate(prompts):
-            num = str(i + 1).zfill(2)
-            try:
-                img = leonardo_generate(prompt, formato, estilo, modelo)
-                sessions[session_id]['imagens'][i] = img
-                img_path = f'/tmp/{session_id}_{i}.jpg'
-                with open(img_path, 'wb') as f_img:
-                    f_img.write(img)
-                pct = 18 + int((i + 1) / max(len(prompts), 1) * 50)
-                yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num}/{len(prompts)} ok', 'progress': pct, 'img_idx': i, 'imgs_total': len(prompts)}) + '\n\n'
-            except Exception as e:
-                erros.append(num)
-                erro_msg = str(e)[:80]
-                print(f"ERRO IMAGEM {num}: {erro_msg}")
-                yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num} falhou: {erro_msg}', 'progress': 18 + int((i + 1) / max(len(prompts), 1) * 50)}) + '\n\n'
+        resultados = {}
+        # Geração paralela com ThreadPoolExecutor (máx 3 workers para não sobrecarregar API)
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        def gerar_uma(args):
+            i, prompt = args
+            return i, leonardo_generate(prompt, formato, estilo, modelo)
+
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            futures = {executor.submit(gerar_uma, (i, p)): i for i, p in enumerate(prompts)}
+            concluidos = 0
+            for future in as_completed(futures):
+                concluidos += 1
+                try:
+                    i, img = future.result()
+                    num = str(i + 1).zfill(2)
+                    sessions[session_id]['imagens'][i] = img
+                    img_path = f'/tmp/{session_id}_{i}.jpg'
+                    with open(img_path, 'wb') as f_img:
+                        f_img.write(img)
+                    pct = 18 + int(concluidos / max(len(prompts), 1) * 50)
+                    yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num}/{len(prompts)} ok', 'progress': pct, 'img_idx': i, 'imgs_total': len(prompts)}) + '\n\n'
+                except Exception as e:
+                    i = futures[future]
+                    num = str(i + 1).zfill(2)
+                    erros.append(num)
+                    erro_msg = str(e)[:80]
+                    print(f"ERRO IMAGEM {num}: {erro_msg}")
+                    pct = 18 + int(concluidos / max(len(prompts), 1) * 50)
+                    yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num} falhou: {erro_msg}', 'progress': pct}) + '\n\n'
 
         msg_imgs = f"{len(sessions[session_id]['imagens'])}/{len(prompts)} imagens geradas"
         if erros:
@@ -736,12 +769,21 @@ def download():
     session_id = request.args.get('session_id', '')
     f = request.args.get('file', '')
     if session_id:
+        # Valida session_id — aceita UUID e timestamp
+        import re as _re
+        if not _re.match(r'^[a-f0-9\-]{8,36}$', session_id):
+            return 'Session inválida', 400
         f = f'/tmp/video_{session_id}.zip'
-    if not f or not f.startswith('/tmp/'):
+    if not f:
         return 'Nao encontrado', 404
-    if not os.path.exists(f):
+    # Proteção contra path traversal
+    real = os.path.realpath(f)
+    allowed = os.path.realpath('/tmp')
+    if not real.startswith(allowed + os.sep) and real != allowed:
+        return 'Acesso negado', 403
+    if not os.path.exists(real):
         return 'Arquivo nao encontrado', 404
-    return send_file(f, as_attachment=True, download_name='projeto_youtube.zip')
+    return send_file(real, as_attachment=True, download_name='projeto_youtube.zip')
 
 @app.route('/traduzir', methods=['POST'])
 def traduzir():
@@ -760,6 +802,7 @@ def regenerar_imagem():
     prompt = data.get('prompt', '')
     estilo = data.get('estilo', 'stylized_game')
     formato = data.get('formato', '9:16')
+    modelo = data.get('modelo', 'animais')
     try:
         img = leonardo_generate(prompt, formato, estilo, modelo)
         if session_id in sessions:
@@ -1197,6 +1240,7 @@ def gerar_thumbnail_imagem():
     formato = data.get('formato', '9:16')
     estilo = data.get('estilo', 'stylized_game')
     session_id = data.get('session_id', '')
+    modelo = data.get('modelo', 'animais')
     try:
         img = leonardo_generate(prompt, formato, estilo, modelo)
         if session_id and session_id in sessions:
