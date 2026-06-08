@@ -7,17 +7,13 @@ app = Flask(__name__)
 CLAUDE_KEY     = os.environ.get("CLAUDE_API_KEY", "")
 LEONARDO_KEY   = os.environ.get("LEONARDO_API_KEY", "")
 ELEVENLABS_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
-ELEVENLABS_VOICE = os.environ.get("ELEVENLABS_VOICE_ID", "ArxqHrvFUTpvtCvw3KVh")
+ELEVENLABS_VOICE = os.environ.get("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
 
 sessions = {}
 
 def limpar_sessions_antigas():
     agora = time.time()
-    para_remover = []
-    for k, v in list(sessions.items()):
-        created = v.get('created_at', agora) if isinstance(v, dict) else agora
-        if agora - created > 7200:
-            para_remover.append(k)
+    para_remover = [k for k in sessions if agora - float(k) > 7200]
     for k in para_remover:
         sessions.pop(k, None)
 
@@ -530,7 +526,7 @@ def gerar_audio(narracao_txt, session_id):
             r = requests.post(
                 f'https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE}',
                 headers={'xi-api-key': ELEVENLABS_KEY, 'content-type': 'application/json'},
-                json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.75, 'similarity_boost': 0.75, 'style': 0.0, 'use_speaker_boost': True}},
+                json={'text': narracao_txt, 'model_id': 'eleven_turbo_v2_5', 'voice_settings': {'stability': 0.75, 'similarity_boost': 0.75, 'style': 0.0, 'use_speaker_boost': True}},
                 timeout=60
             )
             if r.status_code == 200 and len(r.content) > 100:
@@ -610,9 +606,7 @@ def roteiro():
 @app.route('/narracao', methods=['POST'])
 
 def gerar():
-    try:
-        limpar_sessions_antigas()
-    except: pass
+    limpar_sessions_antigas()
     data = request.json
     estilo = data.get('estilo', 'stylized_game')
     formato = data.get('formato', '9:16')
@@ -1316,33 +1310,6 @@ def corrigir_dim_thumbnail():
         text = chamar_claude(system, user_msg, max_tokens=500, modelo="claude-sonnet-4-6")
         return jsonify({'prompt_atualizado': text.strip().strip('"')})
     except Exception as e:
-        return jsonify({'erro': str(e)}), 500
-
-
-@app.route('/gerar-narracao-simples', methods=['POST'])
-def gerar_narracao_simples():
-    try:
-        data = request.get_json(force=True, silent=True) or {}
-        narracao_txt = data.get('narracao_custom', '').strip()
-        if not narracao_txt:
-            return jsonify({'erro': 'Texto vazio'}), 400
-        import uuid as _uuid2
-        session_id = str(_uuid2.uuid4())
-        sessions[session_id] = {'audio': None, 'imagens': {}, 'prompts': [], 'created_at': time.time()}
-        print(f"NARRACAO: voice={ELEVENLABS_VOICE} chars={len(narracao_txt)}")
-        audio_data, audio_service = gerar_audio(narracao_txt, session_id)
-        if not audio_data:
-            return jsonify({'erro': 'ElevenLabs nao retornou audio'}), 500
-        sessions[session_id]['audio'] = audio_data
-        try:
-            with open(f'/tmp/narracao_{session_id}.mp3', 'wb') as f:
-                f.write(audio_data)
-        except: pass
-        print(f"NARRACAO: OK session={session_id} bytes={len(audio_data)}")
-        return jsonify({'ok': True, 'session_id': session_id, 'audio_url': f'/audio/{session_id}'})
-    except Exception as e:
-        import traceback
-        print(f"NARRACAO ERRO: {traceback.format_exc()}")
         return jsonify({'erro': str(e)}), 500
 
 
