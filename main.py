@@ -703,7 +703,7 @@ def gerar():
         msg_audio = f'Narracao via {audio_service}' if audio_data else 'Erro na narracao'
         yield 'data:' + json.dumps({'step': 3, 'status': status_audio, 'msg': msg_audio, 'progress': 88}) + '\n\n'
         if audio_data:
-            yield 'data:' + json.dumps({'audio_url': f'/audio/{session_id}'}) + '\n\n'
+            yield 'data:' + json.dumps({'audio_ok': True, 'narracao_ok': True, 'audio_url': f'/audio/{session_id}'}) + '\n\n'
 
         yield 'data:' + json.dumps({'step': 4, 'status': 'active', 'msg': 'Criando ZIP...', 'progress': 92}) + '\n\n'
         try:
@@ -750,9 +750,14 @@ def imagem(session_id, idx):
 
 @app.route('/download')
 def download():
+    session_id = request.args.get('session_id', '')
     f = request.args.get('file', '')
+    if session_id:
+        f = f'/tmp/video_{session_id}.zip'
     if not f or not f.startswith('/tmp/'):
         return 'Nao encontrado', 404
+    if not os.path.exists(f):
+        return 'Arquivo nao encontrado', 404
     return send_file(f, as_attachment=True, download_name='projeto_youtube.zip')
 
 @app.route('/traduzir', methods=['POST'])
