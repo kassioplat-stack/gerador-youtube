@@ -7,7 +7,7 @@ app = Flask(__name__)
 CLAUDE_KEY     = os.environ.get("CLAUDE_API_KEY", "")
 LEONARDO_KEY   = os.environ.get("LEONARDO_API_KEY", "")
 ELEVENLABS_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
-ELEVENLABS_VOICE = os.environ.get("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
+ELEVENLABS_VOICE = os.environ.get("ELEVENLABS_VOICE_ID", "ArxqHrvFUTpvtCvw3KVh")
 
 sessions = {}
 
