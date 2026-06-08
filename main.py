@@ -4,6 +4,20 @@ from flask import Flask, request, jsonify, send_file, Response
 
 app = Flask(__name__)
 
+@app.errorhandler(500)
+def erro_500(e):
+    import traceback
+    tb = traceback.format_exc()
+    print(f"ERRO 500: {tb}")
+    return __import__('flask').jsonify({'erro': str(e), 'traceback': tb[-500:]}), 500
+
+@app.errorhandler(Exception)
+def erro_geral(e):
+    import traceback
+    tb = traceback.format_exc()
+    print(f"ERRO GERAL: {tb}")
+    return __import__('flask').jsonify({'erro': str(e)}), 500
+
 CLAUDE_KEY     = os.environ.get("CLAUDE_API_KEY", "")
 LEONARDO_KEY   = os.environ.get("LEONARDO_API_KEY", "")
 ELEVENLABS_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
