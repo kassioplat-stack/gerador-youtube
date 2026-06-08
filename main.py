@@ -1076,11 +1076,21 @@ def score_viral():
                     nome = nomes[idx_d] if 0 <= idx_d < len(nomes) else parts[0]
                     dimensoes.append({'nome': nome, 'score': score, 'justificativa': justificativa})
             elif line.startswith('FRACO:'):
-                ponto_fraco = line[6:].strip()
+                fraco_raw = line[6:].strip()
+                # Se Claude retornou D1/D2/etc em vez do nome, converte
+                import re as _re
+                m = _re.match(r'^D(\d+)$', fraco_raw)
+                if m and dimensoes:
+                    idx_fraco = int(m.group(1)) - 1
+                    fraco_raw = dimensoes[idx_fraco]['nome'] if 0 <= idx_fraco < len(dimensoes) else fraco_raw
+                ponto_fraco = fraco_raw
             elif line.startswith('SUGESTAO:'):
                 sugestao = line[9:].strip()
         if not total and dimensoes:
             total = sum(d['score'] for d in dimensoes)
+        # Se ponto_fraco ainda vazio, usa a dimensao com menor score
+        if not ponto_fraco and dimensoes:
+            ponto_fraco = min(dimensoes, key=lambda d: d['score'])['nome']
         return jsonify({'total': total, 'dimensoes': dimensoes, 'ponto_fraco': ponto_fraco, 'sugestao': sugestao})
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
