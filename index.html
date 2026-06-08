@@ -226,7 +226,10 @@ textarea{height:60px;resize:none}
 
     <!-- Script de narracao -->
     <div class="card">
-      <span class="slbl">Script de narração</span>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span class="slbl" style="margin:0">Script de narração</span>
+        <span id="char-count" style="font-size:11px;color:#555"></span>
+      </div>
       <textarea id="script-final" placeholder="Cole aqui o script completo do vídeo..." style="width:100%;background:#111;border:1px solid #333;border-radius:8px;padding:10px;font-size:13px;color:#ccc;font-family:inherit;resize:vertical;min-height:180px;margin-top:6px" oninput="atualizarInfoScript()"></textarea>
       <div id="script-info" style="font-size:11px;color:#555;margin-top:4px;text-align:right"></div>
     </div>
@@ -239,16 +242,18 @@ textarea{height:60px;resize:none}
     </div>
 
     <!-- Lista de prompts -->
-    <div id="prompts-card" class="card" style="display:none">
-      <span class="slbl">Prompts de imagem</span>
-      <div id="prompts-list" style="margin-top:8px"></div>
+    <div id="section-prompts" style="display:none">
+      <div id="prompts-card" class="card">
+        <span class="slbl">Prompts de imagem</span>
+        <div id="prompts-list" style="margin-top:8px"></div>
+      </div>
     </div>
 
     <!-- Steps -->
     <div id="steps-card" class="card" style="display:none">
       <div id="steps-list"></div>
       <div style="margin-top:8px;height:4px;background:#1a1a1a;border-radius:2px">
-        <div id="progress-bar" style="height:100%;width:0%;background:#E8593C;border-radius:2px;transition:width .4s ease"></div>
+        <div id="progress" style="height:100%;width:0%;background:#E8593C;border-radius:2px;transition:width .4s ease"></div>
       </div>
     </div>
 
