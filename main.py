@@ -1369,6 +1369,27 @@ def corrigir_dim_thumbnail():
         return jsonify({'erro': str(e)}), 500
 
 
+@app.route('/gerar-narracao-simples', methods=['POST'])
+def gerar_narracao_simples():
+    data = request.json
+    narracao_txt = data.get('narracao_custom', '').strip()
+    if not narracao_txt:
+        return jsonify({'erro': 'Texto vazio'}), 400
+    print(f"NARRACAO SIMPLES: {len(narracao_txt)} chars, voice={ELEVENLABS_VOICE}")
+    try:
+        audio_data, audio_service = gerar_audio(narracao_txt, 'temp')
+        if not audio_data:
+            return jsonify({'erro': 'ElevenLabs nao retornou audio'}), 500
+        session_id = str(__import__('uuid').uuid4())
+        sessions[session_id] = {'audio': audio_data, 'imagens': {}, 'prompts': [], 'created_at': time.time()}
+        with open(f'/tmp/narracao_{session_id}.mp3', 'wb') as f:
+            f.write(audio_data)
+        return jsonify({'ok': True, 'session_id': session_id, 'audio_url': f'/audio/{session_id}'})
+    except Exception as e:
+        import traceback
+        print(f"ERRO NARRACAO: {traceback.format_exc()}")
+        return jsonify({'erro': str(e)}), 500
+
 @app.route('/testar-elevenlabs')
 def testar_elevenlabs():
     try:
