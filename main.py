@@ -56,23 +56,10 @@ def animais_recentes():
     return recentes
 
 ESTILO_ANIMAL = (
-    "Hand-drawn wildlife field journal illustration, white background, clean negative space, "
-    "black ink sketch, loose pencil construction lines still visible, observational drawing style, "
-    "naturalist notebook aesthetic, imperfect human-made strokes, rough crosshatching, messy linework, "
-    "unfinished sketch areas, authentic pen-and-pencil texture. "
-    "COMPOSITION: Main scene in the center occupying 70% of the canvas, several small observational "
-    "studies around the borders, close-up animal face sketches, object studies, alternative poses, "
-    "visual arrows only, no text, no labels, no typography. "
-    "ART STYLE: looks like a researcher quickly documenting a strange animal behavior in a field notebook, "
-    "not polished, not commercial, not concept art, not digital painting, not comic book, not cartoon. "
-    "LINES: scratchy pen lines, visible sketch construction, overlapping strokes, anatomical corrections "
-    "visible, scribbles, exploration marks, human drawing mistakes. "
-    "COLOR: mostly black ink, selective muted watercolor accents, very limited color palette, white paper dominates. "
-    "MOOD: scientific curiosity, observed behavior, rare discovery, natural history illustration. "
-    "AVOID: AI-generated look, perfect anatomy, perfect perspective, symmetry, graphic design, typography, "
-    "photorealism, 3D rendering, smooth digital painting, corporate illustration. "
-    "KEYWORDS: field journal, naturalist sketchbook, wildlife observation, scientific notebook, "
-    "pen and ink, crosshatching, rough sketch, white background, behavioral observation, authentic hand-drawn illustration."
+    "hand-drawn naturalist field journal, black ink sketch, loose pencil lines, "
+    "rough crosshatching, white background, watercolor accents, "
+    "scientific notebook style, authentic hand-drawn illustration, "
+    "no text, no labels, no typography"
 )
 
 # Mantido para compatibilidade — nao usado
