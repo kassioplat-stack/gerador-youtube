@@ -610,7 +610,9 @@ def roteiro():
 @app.route('/narracao', methods=['POST'])
 
 def gerar():
-    limpar_sessions_antigas()
+    try:
+        limpar_sessions_antigas()
+    except: pass
     data = request.json
     estilo = data.get('estilo', 'stylized_game')
     formato = data.get('formato', '9:16')
@@ -1314,6 +1316,32 @@ def corrigir_dim_thumbnail():
         text = chamar_claude(system, user_msg, max_tokens=500, modelo="claude-sonnet-4-6")
         return jsonify({'prompt_atualizado': text.strip().strip('"')})
     except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
+@app.route('/gerar-narracao-simples', methods=['POST'])
+def gerar_narracao_simples():
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+        narracao_txt = data.get('narracao_custom', '').strip()
+        if not narracao_txt:
+            return jsonify({'erro': 'Texto vazio'}), 400
+        print(f"NARRACAO: voice={ELEVENLABS_VOICE} chars={len(narracao_txt)}")
+        audio_data, audio_service = gerar_audio(narracao_txt, 'nar')
+        if not audio_data:
+            return jsonify({'erro': 'ElevenLabs nao retornou audio'}), 500
+        import uuid as _uuid
+        session_id = str(_uuid.uuid4())
+        sessions[session_id] = {'audio': audio_data, 'imagens': {}, 'prompts': [], 'created_at': time.time()}
+        try:
+            with open(f'/tmp/narracao_{session_id}.mp3', 'wb') as f:
+                f.write(audio_data)
+        except: pass
+        print(f"NARRACAO: OK session={session_id} bytes={len(audio_data)}")
+        return jsonify({'ok': True, 'session_id': session_id, 'audio_url': f'/audio/{session_id}'})
+    except Exception as e:
+        import traceback
+        print(f"NARRACAO ERRO: {traceback.format_exc()}")
         return jsonify({'erro': str(e)}), 500
 
 
