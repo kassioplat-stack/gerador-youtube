@@ -386,7 +386,7 @@ textarea{height:60px;resize:none}
 <script>
 var state = {
   modelo: 'animais',
-  estilo: 'stylized_game',
+  estilo: 'field_journal',
   formato: '9:16',
   duracao: '40',
   roteiro: null,
@@ -526,12 +526,6 @@ function selModel(val) {
   updatePreviewInfo();
 }
 
-function selStyle(val) {
-  state.estilo = val;
-  document.querySelectorAll('.style-card').forEach(function(b){ b.classList.remove('sel'); });
-  var el = document.getElementById('s-'+val);
-  if(el) el.classList.add('sel');
-}
 
 function selChip(key, val) {
   state[key] = val;
