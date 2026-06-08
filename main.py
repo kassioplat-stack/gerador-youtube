@@ -745,7 +745,10 @@ def gerar():
         except Exception as e:
             yield 'data:' + json.dumps({'step': 4, 'status': 'error', 'msg': f'Erro ZIP: {str(e)}'}) + '\n\n'
 
-    return Response(stream(), mimetype='text/event-stream')
+    resp = Response(stream(), mimetype='text/event-stream')
+    resp.headers['Cache-Control'] = 'no-cache'
+    resp.headers['X-Accel-Buffering'] = 'no'
+    return resp
 
 @app.route('/audio/<session_id>')
 def audio(session_id):
