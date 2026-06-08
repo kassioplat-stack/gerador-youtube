@@ -622,7 +622,7 @@ def gerar():
 
     def stream():
         sessions[session_id] = {'imagens': {}, 'prompts': prompts, 'audio': None}
-        yield 'data:' + json.dumps({'session_id': session_id}) + '\n\n'
+        yield 'data:' + json.dumps({'session_id': session_id, 'imgs_total': len(prompts)}) + '\n\n'
         # Modo so_audio — pula imagens e gera apenas audio
         if so_audio:
             try:
@@ -659,7 +659,6 @@ def gerar():
         if erros:
             msg_imgs += f" (falharam: {', '.join(erros)})"
         yield 'data:' + json.dumps({'step': 2, 'status': 'done', 'msg': msg_imgs, 'progress': 70}) + '\n\n'
-        yield 'data:' + json.dumps({'imgs_total': len(prompts)}) + '\n\n'
 
         # Reutiliza áudio já gerado ou gera novo
         yield 'data:' + json.dumps({'step': 3, 'status': 'active', 'msg': 'Preparando narracao...', 'progress': 72}) + '\n\n'
