@@ -663,7 +663,7 @@ def gerar():
                 with open(img_path, 'wb') as f_img:
                     f_img.write(img)
                 pct = 18 + int((i + 1) / max(len(prompts), 1) * 50)
-                yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num}/{len(prompts)} ok', 'progress': pct}) + '\n\n'
+                yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num}/{len(prompts)} ok', 'progress': pct, 'img_idx': i, 'imgs_total': len(prompts)}) + '\n\n'
             except Exception as e:
                 erros.append(num)
                 erro_msg = str(e)[:80]
