@@ -369,6 +369,7 @@ async function gerarImagens() {
             if(ap && state.sessionId) ap.src='/audio/'+state.sessionId+'?t='+Date.now();
             document.getElementById('section-narracao').style.display='block';
           }
+          if(d.erro){ alert('Erro: '+d.erro); }
           if(d.zip||d.done){
             if(d.zip) state.zipPath = d.zip;
             document.getElementById('btn-download').style.display='block';
