@@ -196,1193 +196,335 @@ textarea{height:60px;resize:none}
   </div>
 
   <div class="tab-content active" id="tab-gerar">
+
+    <!-- Modelo de conteudo -->
+    <div class="card">
+      <span class="slbl">Modelo de conteudo</span>
+      <div class="model-grid">
+        <button class="model-card sel" id="m-animais" onclick="selModel('animais')">
+          <div class="mc-icon">🐾</div>
+          <div class="mc-name">Animal</div>
+          <div class="mc-desc">Campo naturalista</div>
+        </button>
+        <button class="model-card" id="m-mente" onclick="selModel('mente')">
+          <div class="mc-icon">🧠</div>
+          <div class="mc-name">Mente</div>
+          <div class="mc-desc">Psicologia</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Formato -->
+    <div class="card">
+      <span class="slbl">Formato</span>
+      <div class="chips-row">
+        <button class="chip sel" id="f916" onclick="selChip('formato','9:16','f916','f169','f11')">9:16</button>
+        <button class="chip" id="f169" onclick="selChip('formato','16:9','f916','f169','f11')">16:9</button>
+        <button class="chip" id="f11" onclick="selChip('formato','1:1','f916','f169','f11')">1:1</button>
+      </div>
+    </div>
+
+    <!-- Script de narracao -->
+    <div class="card">
+      <span class="slbl">Script de narração</span>
+      <textarea id="script-narracao" placeholder="Cole aqui o script completo do vídeo..." style="width:100%;background:#111;border:1px solid #333;border-radius:8px;padding:10px;font-size:13px;color:#ccc;font-family:inherit;resize:vertical;min-height:180px;margin-top:6px" oninput="atualizarInfoScript()"></textarea>
+      <div id="script-info" style="font-size:11px;color:#555;margin-top:4px;text-align:right"></div>
+    </div>
+
+    <!-- Botoes de acao -->
+    <div class="card">
+      <button class="btn" id="btn-prompts" onclick="gerarPrompts()">1. Gerar Prompts de Imagem</button>
+      <button class="btn btn-secondary" id="btn-narracao" onclick="gerarNarracao()" style="margin-top:8px">2. Gerar Narração</button>
+      <button class="btn btn-secondary" id="btn-imagens" onclick="gerarImagens()" style="margin-top:8px" disabled>3. Gerar Imagens</button>
+    </div>
+
+    <!-- Lista de prompts -->
+    <div id="prompts-card" class="card" style="display:none">
+      <span class="slbl">Prompts de imagem</span>
+      <div id="prompts-list" style="margin-top:8px"></div>
+    </div>
+
+    <!-- Steps -->
+    <div id="steps-card" class="card" style="display:none">
+      <div id="steps-list"></div>
+      <div style="margin-top:8px;height:4px;background:#1a1a1a;border-radius:2px">
+        <div id="progress-bar" style="height:100%;width:0%;background:#E8593C;border-radius:2px;transition:width .4s ease"></div>
+      </div>
+    </div>
+
+    <!-- Resultado -->
+    <div id="result-card" class="card" style="display:none">
+      <div id="section-narracao" style="display:none;margin-bottom:12px">
+        <span class="slbl">Narração gerada</span>
+        <audio id="audio-player" controls style="width:100%;margin-top:6px"></audio>
+      </div>
+      <div id="section-imagens" style="display:none">
+        <span class="slbl">Imagens geradas</span>
+        <div id="image-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px"></div>
+      </div>
+      <button id="btn-thumbnails" onclick="gerarThumbnails()" class="btn btn-secondary" style="margin-top:12px;display:none" disabled>Gerar Thumbnails</button>
+      <div id="thumb-result" style="margin-top:12px"></div>
+      <a id="btn-download" style="display:none;margin-top:12px" href="#" onclick="baixarProjeto()">
+        <button class="btn" style="width:100%">⬇ Baixar Projeto ZIP</button>
+      </a>
+    </div>
+
+  </div>
+
+
+</body>
+</html<div id="tab-gerar">
+
+    <!-- Seletor de Modelo -->
     <div class="card">
       <span class="slbl">Modelo de conteudo</span>
       <div class="model-grid">
         <button class="model-card sel" id="m-animais" onclick="selModel('animais')">
           <div class="mc-icon">🐾</div>
           <div class="mc-name">Comportamento Animal</div>
-          <div class="mc-desc">3 animais em escalada</div>
+          <div class="mc-desc">Field journal naturalista</div>
         </button>
         <button class="model-card" id="m-mente" onclick="selModel('mente')">
           <div class="mc-icon">🧠</div>
           <div class="mc-name">Mente</div>
-          <div class="mc-desc">Psicologia e comportamento humano</div>
+          <div class="mc-desc">Personagem azul 3D</div>
         </button>
       </div>
     </div>
 
+    <!-- Formato -->
     <div class="card">
-      <span class="slbl">Titulo do video</span>
-      <input type="text" id="titulo" placeholder="Ex: Narcisistas da Floresta" oninput="clearSugestoes()" />
-      <button onclick="sugerirTitulos()" style="background:transparent;border:1px solid #333;border-radius:6px;padding:5px 12px;font-size:12px;color:#555;cursor:pointer;font-family:inherit;margin-bottom:8px;transition:all .15s" id="btn-sugerir">💡 Sugerir títulos similares</button>
-      <div id="sugestoes-titulos" style="display:none;flex-direction:column;gap:6px;margin-bottom:8px"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-        <span class="slbl" style="margin:0">Contexto</span>
-        <div style="display:flex;gap:6px">
-          <button onclick="gerarContexto()" id="btn-contexto" style="background:transparent;border:1px solid #333;border-radius:4px;padding:2px 8px;font-size:11px;color:#555;cursor:pointer;font-family:inherit">✨ Gerar</button>
-          <button onclick="regenerarContexto()" id="btn-regen-contexto" style="background:transparent;border:1px solid #333;border-radius:4px;padding:2px 8px;font-size:11px;color:#555;cursor:pointer;font-family:inherit">🔄 Regenerar</button>
-        </div>
-      </div>
-      <textarea id="contexto" placeholder="Descreva o angulo, animais especificos, tom da historia... ou clique em Gerar"></textarea>
-    </div>
-
-        <div class="config-row">
-
-      <div class="config-block">
-        <span class="slbl">Formato</span>
-        <div class="chips-row">
-          <button class="chip sel" id="f916" onclick="selChip('formato','9:16','f916','f169','f11')">9:16</button>
-          <button class="chip" id="f169" onclick="selChip('formato','16:9','f916','f169','f11')">16:9</button>
-          <button class="chip" id="f11" onclick="selChip('formato','1:1','f916','f169','f11')">1:1</button>
-        </div>
+      <span class="slbl">Formato</span>
+      <div class="chips-row">
+        <button class="chip sel" id="f916" onclick="selChip('formato','9:16','f916','f169','f11')">9:16</button>
+        <button class="chip" id="f169" onclick="selChip('formato','16:9','f916','f169','f11')">16:9</button>
+        <button class="chip" id="f11" onclick="selChip('formato','1:1','f916','f169','f11')">1:1</button>
       </div>
     </div>
 
-    <div class="config-row">
-
-      <div class="config-block">
-        <span class="slbl">Duracao do video</span>
-        <div class="chips-row">
-          <button class="chip sel" id="d40" onclick="selChip('duracao','40','d40','d60','d90','d120','d180','d240','d300')">40s</button>
-          <button class="chip" id="d60" onclick="selChip('duracao','60','d40','d60','d90','d120','d180','d240','d300')">1min</button>
-          <button class="chip" id="d90" onclick="selChip('duracao','90','d40','d60','d90','d120','d180','d240','d300')">1min30s</button>
-          <button class="chip" id="d120" onclick="selChip('duracao','120','d40','d60','d90','d120','d180','d240','d300')">2min</button>
-          <button class="chip" id="d180" onclick="selChip('duracao','180','d40','d60','d90','d120','d180','d240','d300')">3min</button>
-          <button class="chip" id="d240" onclick="selChip('duracao','240','d40','d60','d90','d120','d180','d240','d300')">4min</button>
-          <button class="chip" id="d300" onclick="selChip('duracao','300','d40','d60','d90','d120','d180','d240','d300')">5min</button>
-        </div>
-      </div>
-
-    </div>
-
+    <!-- Script -->
     <div class="card">
-
-      <div id="preview-info" class="preview-info"></div>
-      <button class="btn btn-secondary" id="btn-roteiro" onclick="gerarRoteiro()" style="margin-top:4px">1. Gerar Roteiro</button>
-      <button class="btn" id="btn-narracao" onclick="gerarNarracao()" disabled style="margin-top:8px;opacity:.4;background:#7a4a9a;color:#fff">2. Gerar Narracao</button>
-      <button class="btn" id="btn-prompts" onclick="gerarPrompts()" disabled style="margin-top:8px;opacity:.4;background:#1a5c3a;color:#fff">3. Gerar Prompts de Imagem</button>
-      <button class="btn btn-primary" id="btn-imagens" onclick="gerarImagens()" disabled style="margin-top:8px;opacity:.4">4. Gerar Imagens</button>
-      <button class="btn" id="btn-thumbnails" onclick="gerarThumbnails()" disabled style="margin-top:8px;opacity:.4;background:#7a4a9a;color:#fff">5. Gerar Thumbnails</button>
-      <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span class="slbl" style="margin:0">Script de Narracao</span>
+        <span id="char-count" style="font-size:11px;color:#555"></span>
+      </div>
+      <textarea id="script-final" placeholder="Cole aqui o script completo da narracao..." style="min-height:180px" oninput="atualizarContador()"></textarea>
     </div>
 
-    <div class="steps-card" id="steps-card">
-      <div class="step"><div class="dot" id="d1">1</div><div><div class="step-title">Roteiro</div><div class="step-desc" id="s1">Aguardando...</div></div></div>
-      <div class="step"><div class="dot" id="d2">2</div><div><div class="step-title">Imagens - Leonardo</div><div class="step-desc" id="s2">Aguardando...</div></div></div>
-      <div class="step"><div class="dot" id="d3">3</div><div><div class="step-title">Narracao - ElevenLabs</div><div class="step-desc" id="s3">Aguardando...</div></div></div>
-      <div class="step"><div class="dot" id="d4">4</div><div><div class="step-title">ZIP</div><div class="step-desc" id="s4">Aguardando...</div></div></div>
-    </div>
+    <!-- Etapa 1: Prompts -->
+    <button class="btn" id="btn-prompts" onclick="gerarPrompts()">1. Gerar Prompts de Imagem</button>
 
-    <!-- SCORE VIRAL -->
-    <div id="score-panel" style="display:none;margin-bottom:16px">
-      <div class="card" style="border-color:#E8593C">
-        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleScore()">
-          <span class="slbl" style="margin:0">Score de Potencial Viral</span>
-          <div style="display:flex;align-items:center;gap:10px">
-            <div id="score-total" style="font-size:28px;font-weight:900;color:#E8593C">--</div>
-            <span id="score-toggle-icon" style="font-size:14px;color:#555">▼</span>
-          </div>
-        </div>
-        <div id="score-detalhe" style="display:none;margin-top:12px">
-          <div style="height:6px;background:#1a1a1a;border-radius:4px;margin-bottom:16px">
-            <div id="score-bar" style="height:100%;border-radius:4px;transition:width .8s ease;width:0%"></div>
-          </div>
-          <div id="score-dims" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
-          <div id="score-fraco" style="display:none;background:#1a0a0a;border:1px solid #5a1a1a;border-radius:8px;padding:10px;font-size:12px;color:#ff6b6b"></div>
-          <div id="score-sugestao" style="display:none;background:#0a1a0a;border:1px solid #1a5a1a;border-radius:8px;padding:10px;font-size:12px;color:#6bff6b;margin-top:6px"></div>
-          <button id="btn-corrigir-score" onclick="corrigirPontoFraco()" style="display:none;width:100%;margin-top:10px;background:#E8593C;border:none;border-radius:8px;padding:9px;font-size:12px;color:#fff;cursor:pointer;font-family:inherit;font-weight:700">🔧 Corrigir ponto mais fraco</button>
-        </div>
-      </div>
-    </div>
-
-    <div id="roteiro-preview" style="display:none">
+    <div id="section-prompts" style="display:none">
       <div class="card">
-        <span class="slbl">Gancho - escolha uma opcao ou edite</span>
-        <div class="gancho-opts" id="gancho-opts"></div>
-        <button class="regen-opts-btn" onclick="regenerarOpcoes('gancho')">Regenerar ganchos</button>
-        <textarea id="gancho-edit" style="margin-top:8px;height:50px;background:#0a0a0a;border:1px solid #444;color:#fff;font-size:13px" oninput="atualizarScriptFinal()" placeholder="Edite o gancho aqui..."></textarea>
-      </div>
-      <div class="card">
-        <span class="slbl" id="label-narracao-corpo">Corpo Elaborado</span>
-        <textarea id="narracao-edit" style="height:200px" oninput="atualizarScriptFinal()"></textarea>
-      </div>
-
-      <div class="card">
-        <span class="slbl">Frase final - escolha uma opcao ou edite</span>
-        <div class="gancho-opts" id="frase-opts"></div>
-        <button class="regen-opts-btn" onclick="regenerarOpcoes('frase')">Regenerar frases</button>
-        <textarea id="frase-edit" style="margin-top:8px;height:50px;background:#0a0a0a;border:1px solid #444;color:#fff;font-size:13px" oninput="atualizarScriptFinal()" placeholder="Edite a frase final aqui..."></textarea>
-      </div>
-      <div class="card">
-        <span class="slbl">Pergunta divisora</span>
-        <div class="gancho-opts" id="pergunta-opts"></div>
-        <button class="regen-opts-btn" onclick="regenerarOpcoes('pergunta')">Regenerar perguntas</button>
-        <textarea id="pergunta-edit" style="margin-top:8px;height:50px;background:#0a0a0a;border:1px solid #444;color:#fff;font-size:13px" oninput="atualizarScriptFinal()" placeholder="Edite a pergunta divisora aqui..."></textarea>
-      </div>
-      <div class="card">
-        <span class="slbl">Script Final — texto que sera narrado</span>
-        <textarea id="script-final" style="height:220px;background:#0a0a0a;border-color:#E8593C;color:#fff;font-size:13px;line-height:1.7" oninput="atualizarContador();salvarEstado()"></textarea>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-          <div style="font-size:11px;color:#444">Resultado de: Gancho + Texto principal + Frase final + Pergunta divisora. Edite se precisar de ajuste fino.</div>
-          <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;margin-left:8px">
-            <span id="script-contador" style="font-size:11px;color:#555">0 chars ≈ 0s</span>
-            <button onclick="copiarScript()" style="background:transparent;border:1px solid #333;border-radius:4px;padding:2px 8px;font-size:11px;color:#555;cursor:pointer;font-family:inherit" id="btn-copiar">📋 Copiar</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="result-card" id="result-card">
-
-      <!-- SEÇÃO 2: NARRAÇÃO -->
-      <div id="section-narracao" style="display:none;margin-bottom:20px">
-        <div style="font-size:11px;font-weight:700;color:#E8593C;letter-spacing:1px;margin-bottom:8px">2. NARRAÇÃO</div>
-        <audio id="audio-player" controls style="width:100%"></audio>
-      </div>
-
-      <!-- SEÇÃO 3: PROMPTS DE IMAGEM -->
-      <div id="section-prompts" style="display:none;margin-bottom:20px">
-        <div style="font-size:11px;font-weight:700;color:#1a5c3a;letter-spacing:1px;margin-bottom:8px">3. PROMPTS DE IMAGEM</div>
+        <span class="slbl">Prompts de imagem</span>
         <div id="prompts-list"></div>
       </div>
-
-      <!-- SEÇÃO 4: IMAGENS + DOWNLOAD -->
-      <div id="section-imagens" style="display:none">
-        <div style="font-size:11px;font-weight:700;color:#E8593C;letter-spacing:1px;margin-bottom:8px">4. IMAGENS GERADAS</div>
-        <div id="img-grid" class="img-grid"></div>
-      </div>
-
-      <div id="section-thumbnails" style="display:none;margin-bottom:20px">
-        <div style="font-size:11px;font-weight:700;color:#7a4a9a;letter-spacing:1px;margin-bottom:8px">5. THUMBNAILS</div>
-        <div id="thumbnails-grid" style="display:flex;flex-direction:column;gap:16px"></div>
-      </div>
-
-      <div id="section-download" style="display:none">
-        <button class="download-btn" id="dl-btn" style="margin-top:8px">⬇ Baixar Projeto</button>
-        <div class="info-box">ZIP contem: imagens numeradas + THUMB_01/02/03 + narracao.mp3 + roteiro.txt + prompts.txt</div>
-      </div>
-
+      <!-- Etapa 2: Imagens -->
+      <button class="btn" id="btn-imagens" onclick="gerarImagens()">2. Gerar Imagens</button>
     </div>
-  </div>
-    </div>
-  </div>
-</div>
 
-<script>
+    <!-- Progress -->
+    <div id="steps-card" style="display:none">
+      <div class="card">
+        <div style="height:4px;background:#1a1a1a;border-radius:2px;margin-bottom:12px"><div id="progress" style="height:100%;width:0%;background:#E8593C;border-radius:2px;transition:width .4s"></div></div>
+        <div id="d1" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #111">
+          <div id="s1" style="width:22px;height:22px;border-radius:50%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:11px;color:#555;flex-shrink:0">1</div>
+          <div><div style="font-size:12px;color:#ccc">Imagens - Leonardo</div><div id="msg1" style="font-size:11px;color:#555">Aguardando...</div></div>
+        </div>
+        <div id="d2" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #111">
+          <div id="s2" style="width:22px;height:22px;border-radius:50%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:11px;color:#555;flex-shrink:0">2</div>
+          <div><div style="font-size:12px;color:#ccc">Narracao - ElevenLabs</div><div id="msg2" style="font-size:11px;color:#555">Aguardando...</div></div>
+        </div>
+        <div id="d3" style="display:flex;align-items:center;gap:10px;padding:8px 0">
+          <div id="s3" style="width:22px;height:22px;border-radius:50%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:11px;color:#555;flex-shrink:0">3</div>
+          <div><div style="font-size:12px;color:#ccc">ZIP</div><div id="msg3" style="font-size:11px;color:#555">Aguardando...</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resultado -->
+    <div id="result-card" style="display:none">
+      <div id="section-narracao" style="display:none;margin-bottom:12px">
+        <div class="card">
+          <span class="slbl">Narracao gerada</span>
+          <audio id="audio-player" controls style="width:100%;margin-top:6px"></audio>
+        </div>
+      </div>
+      <div id="section-imagens" style="display:none;margin-bottom:12px">
+        <div class="card">
+          <span class="slbl">Imagens geradas</span>
+          <div id="image-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px"></div>
+        </div>
+      </div>
+      <button class="btn" id="btn-download" onclick="baixarZip()" style="display:none">Baixar Projeto (ZIP)</button>
+    </div>
+
+    <!-- Novo Video -->
+    <div style="margin-top:16px;text-align:center">
+      <button onclick="novoVideo()" style="background:transparent;border:1px solid #333;border-radius:8px;padding:8px 20px;font-size:12px;color:#555;cursor:pointer;font-family:inherit">+ Novo Video</button>
+    </div>
+
+><script>
+// Funcoes restauradas
+
 var state = {
   modelo: 'animais',
-  estilo: 'field_journal',
   formato: '9:16',
-  duracao: '40',
-  roteiro: null,
   prompts: [],
   sessionId: null,
   narracao_session_id: null,
-  narracao_gerada: '',
-  zipPath: null,
-  scoreData: null,
-  thumbnails: [],
-  calendarioItems: []
+  narracao_gerada: null,
+  zipPath: null
 };
 
-try { state.calendarioItems = JSON.parse(localStorage.getItem('calendario') || '[]'); } catch(e) {}
-
-// Restaura estado salvo
-function salvarEstado() {
-  try {
-    var salvo = {
-      titulo: (document.getElementById('titulo') || {}).value || '',
-      contexto: (document.getElementById('contexto') || {}).value || '',
-      modelo: state.modelo,
-      estilo: state.estilo,
-      formato: state.formato,
-      duracao: state.duracao,
-      roteiro: state.roteiro,
-      prompts: state.prompts,
-      narracao_session_id: state.narracao_session_id,
-      script_final: (document.getElementById('script-final') || {}).value || '',
-      gancho_edit: (document.getElementById('gancho-edit') || {}).value || '',
-      frase_edit: (document.getElementById('frase-edit') || {}).value || '',
-      pergunta_edit: (document.getElementById('pergunta-edit') || {}).value || '',
-      narracao_edit: (document.getElementById('narracao-edit') || {}).value || ''
-    };
-    localStorage.setItem('gerador_state', JSON.stringify(salvo));
-  } catch(e) {}
-}
-
-function restaurarEstado() {
-  try {
-    var salvo = JSON.parse(localStorage.getItem('gerador_state') || 'null');
-    if(!salvo) return;
-    // Restaura campos de texto
-    if(salvo.titulo) document.getElementById('titulo').value = salvo.titulo;
-    if(salvo.contexto) document.getElementById('contexto').value = salvo.contexto;
-    // Restaura chips — desmarca todos antes de marcar o correto
-    if(salvo.duracao) {
-      document.querySelectorAll('.chips-row .chip').forEach(function(c){ c.classList.remove('sel'); });
-      selChip('duracao', salvo.duracao);
-    }
-    if(salvo.modelo) selModel(salvo.modelo);
-    if(salvo.estilo) if(salvo.formato) selChip('formato', salvo.formato);
-    // Restaura roteiro
-    if(salvo.roteiro) {
-      state.roteiro = salvo.roteiro;
-      state.prompts = salvo.prompts || [];
-      state.sessionId = salvo.sessionId || null;
-      state.narracao_session_id = salvo.narracao_session_id || null;
-      state.narracao_gerada = salvo.narracao_gerada || '';
-      state.zipPath = salvo.zipPath || null;
-      renderRoteiro(salvo.roteiro);
-      document.getElementById('roteiro-preview').style.display = 'block';
-      // Restaura edições manuais
-      if(salvo.gancho_edit) document.getElementById('gancho-edit').value = salvo.gancho_edit;
-      if(salvo.frase_edit) document.getElementById('frase-edit').value = salvo.frase_edit;
-      if(salvo.pergunta_edit) document.getElementById('pergunta-edit').value = salvo.pergunta_edit;
-      if(salvo.narracao_edit) document.getElementById('narracao-edit').value = salvo.narracao_edit;
-      if(salvo.script_final) document.getElementById('script-final').value = salvo.script_final;
-      // Habilita botões
-      var btnN = document.getElementById('btn-narracao');
-      if(btnN) { btnN.disabled = false; btnN.style.opacity = '1'; }
-      var btnP = document.getElementById('btn-prompts');
-      if(btnP) { btnP.disabled = false; btnP.style.opacity = '1'; }
-      // Restaura prompts
-      if(salvo.prompts && salvo.prompts.length) {
-        renderPrompts(salvo.prompts);
-        document.getElementById('result-card').style.display = 'block';
-        document.getElementById('section-prompts').style.display = 'block';
-        var btnI = document.getElementById('btn-imagens');
-        if(btnI) { btnI.disabled = false; btnI.style.opacity = '1'; }
-      }
-      // Score
-      calcularScore(salvo.roteiro);
-    }
-  } catch(e) { console.log('Erro ao restaurar:', e); }
-}
-
-function novoVideo() {
-  if(!confirm('Começar um novo vídeo? O progresso atual será perdido.')) return;
-  localStorage.removeItem('gerador_state');
-  // Limpa state
-  state.roteiro = null;
-  state.prompts = [];
-  state.sessionId = null;
-  state.narracao_session_id = null;
-  state.narracao_gerada = '';
-  state.zipPath = null;
-  state.scoreData = null;
-  // Limpa campos
-  document.getElementById('titulo').value = '';
-  document.getElementById('contexto').value = '';
-  var ids = ['gancho-edit','frase-edit','pergunta-edit','narracao-edit','script-final'];
-  ids.forEach(function(id){ var el = document.getElementById(id); if(el) el.value = ''; });
-  // Esconde seções
-  document.getElementById('roteiro-preview').style.display = 'none';
-  document.getElementById('score-panel').style.display = 'none';
-  document.getElementById('result-card').style.display = 'none';
-  // Reseta botões
-  ['btn-narracao','btn-prompts','btn-imagens','btn-thumbnails'].forEach(function(id){
-    var btn = document.getElementById(id);
-    if(btn) { btn.disabled = true; btn.style.opacity = '0.4'; }
-  });
-  // Limpa grids
-  var ids2 = ['gancho-opts','frase-opts','pergunta-opts','prompts-list','img-grid','thumbnails-grid'];
-  ids2.forEach(function(id){ var el = document.getElementById(id); if(el) el.innerHTML = ''; });
-  updatePreviewInfo();
-}
-
-function showTab(id, btn) {
-  document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
-  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
-  document.getElementById('tab-'+id).classList.add('active');
-  btn.classList.add('active');
-  if(id === 'calendario') renderCalendario();
-}
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function selModel(val) {
   state.modelo = val;
   document.querySelectorAll('.model-card').forEach(function(b){ b.classList.remove('sel'); });
   var el = document.getElementById('m-'+val);
   if(el) el.classList.add('sel');
-  // Esconde estilo visual para MENTE — estilo fixo e intocavel
-  var styleSection = document.getElementById('style-section');
-  if(styleSection) styleSection.style.display = val === 'mente' ? 'none' : 'block';
-  if(val === 'mente') state.estilo = 'mente';
-  updatePreviewInfo();
 }
-
 
 function selChip(key, val) {
   state[key] = val;
-  var ids = Array.prototype.slice.call(arguments, 2);
-  ids.forEach(function(id){ var el=document.getElementById(id); if(el) el.classList.remove('sel'); });
-  var btnId = key === 'historias' ? 'h'+val : key === 'formato' ? 'f'+val.replace(/:/g,'') : key === 'duracao' ? 'd'+val : 'r'+val;
-  var btn = document.getElementById(btnId);
-  if(btn) btn.classList.add('sel');
-  updatePreviewInfo();
+  var chips = document.querySelectorAll('.chip[onclick*="' + key + '"]');
+  chips.forEach(function(c){ c.classList.remove('sel'); });
+  var chips2 = document.querySelectorAll('.chip');
+  chips2.forEach(function(c){ if(c.onclick && c.onclick.toString().includes("'" + val + "'")) c.classList.add('sel'); });
 }
 
-function updatePreviewInfo() {
-  var durMap = {'40':40,'60':60,'90':90,'120':120,'180':180,'240':240,'300':300};
-  var dur = durMap[String(state.duracao)] || 60;
-  document.getElementById('preview-info').textContent = 'Narracao de ~' + dur + 's — imagens definidas pelo roteiro';
+function setBtnLoading(id, loading, normalText, loadingText) {
+  var btn = document.getElementById(id);
+  if(!btn) return;
+  btn.disabled = loading;
+  btn.textContent = loading ? (loadingText || 'Aguardando...') : normalText;
 }
-
-function clearSugestoes() {
-  document.getElementById('sugestoes-titulos').style.display = 'none';
-}
-
-async function sugerirTitulos() {
-  var titulo = document.getElementById('titulo').value.trim();
-  if(!titulo) { alert('Digite um titulo primeiro'); return; }
-  var btn = document.getElementById('btn-sugerir');
-  btn.textContent = 'Gerando...';
-  btn.disabled = true;
-  try {
-    var resp = await fetch('/sugerir-titulos', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({titulo: titulo, modelo: state.modelo})
-    });
-    var d = await resp.json();
-    if(d.erro) throw new Error(d.erro);
-    var container = document.getElementById('sugestoes-titulos');
-    container.innerHTML = '';
-    (d.titulos || []).forEach(function(t) {
-      var el = document.createElement('div');
-      el.style.cssText = 'background:#111;border:1px solid #2a2a2a;border-radius:8px;padding:8px 12px;font-size:13px;color:#aaa;cursor:pointer;transition:all .15s';
-      el.textContent = t;
-      el.onmouseover = function(){ this.style.borderColor='#E8593C';this.style.color='#fff'; };
-      el.onmouseout = function(){ this.style.borderColor='#2a2a2a';this.style.color='#aaa'; };
-      el.onclick = function(){ document.getElementById('titulo').value = t; clearSugestoes(); };
-      container.appendChild(el);
-    });
-    container.style.display = 'flex';
-  } catch(e) { alert('Erro: ' + e.message); }
-  btn.textContent = '💡 Sugerir títulos similares';
-  btn.disabled = false;
-}
-
-
-
-updatePreviewInfo();
-window.addEventListener('load', function() { restaurarEstado(); });
 
 function setStep(n, status, msg) {
-  var dot = document.getElementById('d'+n);
-  var desc = document.getElementById('s'+n);
-  if(!dot || !desc) return;
-  dot.className = 'dot ' + status;
-  desc.className = 'step-desc ' + status;
-  desc.textContent = msg;
-  dot.textContent = status==='done'?'✓':status==='error'?'✗':status==='active'?'●':String(n);
-}
-function setP(v) { document.getElementById('progress').style.width = v+'%'; }
-
-async function gerarRoteiro() {
-  var titulo = document.getElementById('titulo').value.trim();
-  if(!titulo) { alert('Digite um titulo'); return; }
-  var btn = document.getElementById('btn-roteiro');
-  setBtnLoading('btn-roteiro', true, '1. Gerar Roteiro', 'Gerando roteiro...');
-  document.getElementById('roteiro-preview').style.display = 'none';
-  document.getElementById('btn-imagens').disabled = true;
-  document.getElementById('btn-imagens').style.opacity = '.4';
-  try {
-    var resp = await fetch('/roteiro', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        titulo: titulo,
-        contexto: document.getElementById('contexto').value,
-        modelo: state.modelo,
-        duracao: state.duracao
-      })
-    });
-    var data = await resp.json();
-    if(data.erro) throw new Error(data.erro);
-    state.roteiro = data;
-    state.prompts = [];
-    renderRoteiro(data);
-    calcularScore(data);
-    salvarEstado();
-    var btnNarr = document.getElementById('btn-narracao');
-    btnNarr.disabled = false;
-    btnNarr.style.opacity = '1';
-  } catch(e) { alert('Erro ao gerar roteiro: ' + e.message); }
-  setBtnLoading('btn-roteiro', false, '1. Gerar Roteiro');
-}
-
-async function gerarNarracao() {
-  if(!state.roteiro) { alert('Gere o roteiro primeiro'); return; }
-  var btn = document.getElementById('btn-narracao');
-  setBtnLoading('btn-narracao', true, '2. Gerar Narracao', 'Gerando narracao...');
-
-  var narracao_completa = (document.getElementById('script-final') || {}).value || '';
-  if(!narracao_completa) {
-    alert('Script final vazio. Gere o roteiro primeiro.');
-    setBtnLoading('btn-narracao', false, '2. Gerar Narracao');
-    return;
+  var s = document.getElementById('s'+n);
+  var m = document.getElementById('msg'+n);
+  if(s) {
+    s.style.background = status==='done' ? '#4caf50' : status==='active' ? '#E8593C' : status==='error' ? '#f44336' : '#1a1a1a';
+    s.style.color = status ? '#fff' : '#555';
+    s.innerHTML = status==='done' ? '✓' : String(n);
   }
-
-  state.narracao_gerada = narracao_completa;
-  state.narracao_session_id = null;
-
-  try {
-    var rot = state.roteiro || {};
-    var resp = await fetch('/narracao', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        narracao_custom: narracao_completa,
-        estilo: state.estilo,
-        formato: state.formato,
-        modelo: state.modelo,
-        so_audio: true
-      })
-    });
-
-    // /narracao retorna SSE — lê como stream
-    var reader = resp.body.getReader();
-    var dec = new TextDecoder();
-    var buf = '';
-    while(true) {
-      var res = await reader.read();
-      if(res.done) break;
-      buf += dec.decode(res.value, {stream: true});
-      var lines = buf.split('\n');
-      buf = lines.pop();
-      lines.forEach(function(line) {
-        line = line.trim();
-        if(line.indexOf('data:') !== 0) return;
-        try {
-          var d = JSON.parse(line.slice(5));
-          if(d.erro) throw new Error(d.erro);
-          if(d.session_id) {
-            state.narracao_session_id = d.session_id;
-            state.sessionId = d.session_id;
-          }
-          if(d.audio_ok) {
-            var ap = document.getElementById('audio-player');
-            if(ap) ap.src = '/audio/' + state.narracao_session_id + '?t=' + Date.now();
-            document.getElementById('result-card').style.display = 'block';
-            document.getElementById('section-narracao').style.display = 'block';
-            document.getElementById('btn-prompts').disabled = false;
-            document.getElementById('btn-prompts').style.opacity = '1';
-            salvarEstado();
-          }
-        } catch(ex) { console.log('SSE parse:', ex.message); }
-      });
-    }
-  } catch(e) { alert('Erro: ' + e.message); }
-  setBtnLoading('btn-narracao', false, '2. Gerar Narracao');
+  if(m && msg) m.textContent = msg;
 }
 
-function renderOpts(containerId, items, grp) {
-  var c = document.getElementById(containerId);
-  c.innerHTML = '';
-  var editId = grp + '-edit';
-  items.forEach(function(text, i) {
-    var el = document.createElement('div');
-    el.className = 'gancho-opt' + (i === 0 ? ' sel' : '');
-    el.textContent = text || '';
-    el.onclick = function() {
-      selOpt(this, grp);
-      var editEl = document.getElementById(editId);
-      if(editEl) editEl.value = this.textContent.trim();
-      atualizarScriptFinal();
-    };
-    c.appendChild(el);
-  });
-}
-
-function renderRoteiro(d) {
-  var ehMente = d._modelo === 'mente';
-
-  renderOpts('gancho-opts', [d.gancho_principal].concat(d.gancho_opcoes || []), 'gancho');
-  renderOpts('frase-opts', [d.frase_final_principal].concat(d.frase_final_opcoes || []), 'frase');
-  renderOpts('pergunta-opts', [d.pergunta_divisora_principal].concat(d.pergunta_divisora_opcoes || []), 'pergunta');
-  var ge = document.getElementById('gancho-edit');
-  if(ge && d.gancho_principal) ge.value = d.gancho_principal;
-  var fe = document.getElementById('frase-edit');
-  if(fe && d.frase_final_principal) fe.value = d.frase_final_principal;
-  var pe = document.getElementById('pergunta-edit');
-  if(pe && d.pergunta_divisora_principal) pe.value = d.pergunta_divisora_principal;
-
-  // Corpo da narração — diferente para MENTE e Animal
-  var narracao;
-  if(ehMente) {
-    // Corpo elaborado = APENAS as 3 camadas. Gancho, frase final e pergunta ficam separados.
-    narracao = []
-      .concat(d.narracao_camada1 || [])
-      .concat(d.narracao_camada2 || [])
-      .concat(d.narracao_camada3 || [])
-      .filter(Boolean).join(' ');
-    // Atualiza label
-    var labelNar = document.getElementById('label-narracao-corpo');
-    if(labelNar) labelNar.textContent = 'Corpo Elaborado';
-    // Prompts do MENTE já vêm no roteiro
-    state.prompts = []
-      .concat(d.prompts_camada1 || [])
-      .concat(d.prompts_camada2 || [])
-      .concat(d.prompts_camada3 || [])
-      .concat(d.prompts_final || []);
-    // Mostra resumo das camadas
-    var resumoMente = '';
-    var camadas = [
-      {key: 'camada1', label: 'O ESPELHO', cor: '#5b9bd5'},
-      {key: 'camada2', label: 'O MECANISMO', cor: '#ff9800'},
-      {key: 'camada3', label: 'A FERIDA', cor: '#E8593C'}
-    ];
-    camadas.forEach(function(c) {
-      var cam = d[c.key] || {};
-      if(!cam.titulo && !cam.descricao) return;
-      resumoMente += '<div style="margin-bottom:10px;padding:10px;background:#111;border-left:3px solid ' + c.cor + ';border-radius:0 6px 6px 0">'
-        + '<div style="font-size:10px;font-weight:700;color:' + c.cor + ';margin-bottom:4px;letter-spacing:1px">' + c.label + '</div>'
-        + '<div style="font-size:12px;color:#ccc">' + esc(cam.descricao || '') + '</div>'
-        + (cam.pesquisa ? '<div style="font-size:11px;color:#555;margin-top:4px;font-style:italic">📚 ' + esc(cam.pesquisa) + '</div>' : '')
-        + (cam.twist ? '<div style="font-size:11px;color:#aaa;margin-top:4px">↳ ' + esc(cam.twist) + '</div>' : '')
-        + '</div>';
-    });
-    // Comportamento e mecanismo no topo
-    var tagsMente = '<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">';
-    if(d.comportamento) tagsMente += '<span style="background:#1a2a3a;color:#5b9bd5;border-radius:4px;padding:3px 8px;font-size:11px">🧠 ' + esc(d.comportamento) + '</span>';
-    if(d.mecanismo) tagsMente += '<span style="background:#1a1a2a;color:#9b7bd5;border-radius:4px;padding:3px 8px;font-size:11px">⚙ ' + esc(d.mecanismo) + '</span>';
-    if(d.emocao_ancora) tagsMente += '<span style="background:#1a1a0a;color:#d4a017;border-radius:4px;padding:3px 8px;font-size:11px">❤ ' + esc(d.emocao_ancora) + '</span>';
-    if(d.pergunta_invisivel) tagsMente += '<span style="background:#0a1a1a;color:#4dd4c1;border-radius:4px;padding:3px 8px;font-size:11px">❓ ' + esc(d.pergunta_invisivel) + '</span>';
-    tagsMente += '</div>';
-    resumoMente = tagsMente + resumoMente;
-    var resumoEl = document.getElementById('casos-resumo');
-    if(resumoEl) resumoEl.innerHTML = resumoMente;
-  } else {
-    var labelNar = document.getElementById('label-narracao-corpo');
-    if(labelNar) labelNar.textContent = 'Narracao completa';
-    narracao = []
-      .concat(d.narracao_caso1 || [])
-      .concat(d.narracao_caso2 || [])
-      .concat(d.micro_promessa ? [d.micro_promessa] : [])
-      .concat(d.narracao_caso3 || [])
-      .concat(d.narracao_final || [])
-      .filter(Boolean).join(' ');
-    // Resumo Animal
-    var resumoAnimal = '';
-    var casos = [
-      {key: 'caso1', cor: '#4caf50'},
-      {key: 'caso2', cor: '#ff9800'},
-      {key: 'caso3', cor: '#E8593C'}
-    ];
-    casos.forEach(function(c) {
-      var caso = d[c.key] || {};
-      if(!caso.nome && !caso.animal) return;
-      resumoAnimal += '<div style="margin-bottom:8px;padding:8px;background:#111;border-left:3px solid ' + c.cor + ';border-radius:0 6px 6px 0">'
-        + '<div style="display:flex;gap:6px;align-items:center;margin-bottom:3px">'
-        + '<span style="font-size:10px;font-weight:700;color:' + c.cor + '">' + esc(caso.nivel || '') + '</span>'
-        + '<span style="font-size:12px;color:#ccc;font-weight:600">' + esc(caso.animal || '') + '</span>'
-        + '</div>'
-        + '<div style="font-size:11px;color:#666">' + esc(caso.twist || '') + '</div>'
-        + '</div>';
-    });
-    if(d.micro_promessa) {
-      resumoAnimal += '<div style="font-size:11px;color:#888;font-style:italic;padding:6px 10px;background:#0a0a0a;border-radius:6px;margin-bottom:8px">↳ ' + esc(d.micro_promessa) + '</div>';
-    }
-    // Tags de alma do video
-    var tagsAlma = '<div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap">';
-    if(d.emocao_ancora) tagsAlma += '<span style="background:#1a1a0a;color:#d4a017;border-radius:4px;padding:3px 8px;font-size:11px" title="Emocao-ancora">❤ ' + esc(d.emocao_ancora) + '</span>';
-    if(d.tipo_gancho) tagsAlma += '<span style="background:#1a0a1a;color:#c17bd4;border-radius:4px;padding:3px 8px;font-size:11px" title="Tipo de gancho">⚡ ' + esc(d.tipo_gancho) + '</span>';
-    if(d.pergunta_invisivel) tagsAlma += '<span style="background:#0a1a1a;color:#4dd4c1;border-radius:4px;padding:3px 8px;font-size:11px" title="Pergunta invisivel">❓ ' + esc(d.pergunta_invisivel) + '</span>';
-    tagsAlma += '</div>';
-    resumoAnimal = tagsAlma + resumoAnimal;
-    var resumoEl = document.getElementById('casos-resumo');
-    if(resumoEl) resumoEl.innerHTML = resumoAnimal;
-  }
-
-  document.getElementById('narracao-edit').value = narracao;
-  atualizarScriptFinal();
-
-  // Renderiza prompts
-  if(state.prompts && state.prompts.length) {
-    renderPrompts(state.prompts);
-  }
-  document.getElementById('roteiro-preview').style.display = 'block';
-}
-
-function selOpt(el, grp) {
-  el.closest('.gancho-opts').querySelectorAll('.gancho-opt').forEach(function(e){ e.classList.remove('sel'); });
-  el.classList.add('sel');
-  atualizarScriptFinal();
-}
-
-async function calcularScore(roteiro) {
-  var panel = document.getElementById('score-panel');
-  var dims = document.getElementById('score-dims');
-  var totalEl = document.getElementById('score-total');
-  var barEl = document.getElementById('score-bar');
-  var fracoEl = document.getElementById('score-fraco');
-  var sugestaoEl = document.getElementById('score-sugestao');
-
-  panel.style.display = 'block';
-  totalEl.textContent = '...';
-  var _detalhe = document.getElementById('score-detalhe');
-  if(_detalhe) _detalhe.style.display = 'none';
-  var _icon = document.getElementById('score-toggle-icon');
-  if(_icon) _icon.textContent = '▼';
-  dims.innerHTML = '<div style="color:#444;font-size:12px">Analisando roteiro...</div>';
-
-  try {
-    var r = await fetch('/score-viral', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({roteiro: roteiro})
-    });
-    var d = await r.json();
-    if(d.erro) throw new Error(d.erro);
-
-    var total = d.total;
-    var cor = total >= 75 ? '#4caf50' : total >= 50 ? '#ff9800' : '#f44336';
-    totalEl.textContent = total + '/100';
-    totalEl.style.color = cor;
-    barEl.style.width = total + '%';
-    barEl.style.background = cor;
-    // Abre detalhe automaticamente
-    var detalheEl = document.getElementById('score-detalhe');
-    if(detalheEl) detalheEl.style.display = 'block';
-    var iconEl = document.getElementById('score-toggle-icon');
-    if(iconEl) iconEl.textContent = '▲';
-
-    dims.innerHTML = '';
-    state.scoreData = d;
-    d.dimensoes.forEach(function(dim, i) {
-      var pct = (dim.score / 20) * 100;
-      var dcor = dim.score >= 15 ? '#4caf50' : dim.score >= 10 ? '#ff9800' : '#f44336';
-      dims.innerHTML += '<div style="margin-bottom:10px">'
-        + '<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
-        + '<span style="font-size:12px;color:#888">' + esc(dim.nome) + '</span>'
-        + '<span style="font-size:12px;font-weight:700;color:' + dcor + '">' + dim.score + '/20</span>'
-        + '</div>'
-        + '<div style="height:4px;background:#1a1a1a;border-radius:2px">'
-        + '<div style="height:100%;width:'+pct+'%;background:'+dcor+';border-radius:2px;transition:width .6s ease"></div>'
-        + '</div>'
-        + '<div style="font-size:11px;color:#555;margin-top:2px">' + esc(dim.justificativa) + '</div>'
-        + '</div>';
-    });
-    if(d.ponto_fraco) {
-      fracoEl.style.display = 'block';
-      fracoEl.innerHTML = '⚠ Ponto mais fraco: <strong>' + esc(d.ponto_fraco) + '</strong>';
-    }
-    if(d.sugestao) {
-      sugestaoEl.style.display = 'block';
-      sugestaoEl.innerHTML = '💡 ' + esc(d.sugestao);
-    }
-    var btnCorrigir = document.getElementById('btn-corrigir-score');
-    if(btnCorrigir) btnCorrigir.style.display = 'block';
-  } catch(e) {
-    dims.innerHTML = '<div style="color:#555;font-size:12px">Erro ao calcular score: ' + e.message + '</div>';
-  }
-}
-
-async function corrigirPontoFraco() {
-  if(!state.roteiro || !state.scoreData) return;
-  var ehMente = state.roteiro._modelo === 'mente';
-  var sugestao = state.scoreData.sugestao || '';
-  var dimFraca = state.scoreData.dimensoes.reduce(function(a, b) { return a.score < b.score ? a : b; });
-  var btn = document.getElementById('btn-corrigir-score');
-  btn.textContent = '⏳ Corrigindo...';
-  btn.disabled = true;
-  try {
-    var r = await fetch('/corrigir-dimensao', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        roteiro: state.roteiro,
-        modelo: ehMente ? 'mente' : 'animais',
-        dimensao: dimFraca.nome,
-        justificativa: dimFraca.justificativa,
-        sugestao: sugestao
-      })
-    });
-    var d = await r.json();
-    if(d.erro) throw new Error(d.erro);
-    var rot = state.roteiro;
-    // Campos comuns
-    if(d.gancho_principal) { rot.gancho_principal = d.gancho_principal; rot.gancho_opcoes = d.gancho_opcoes || rot.gancho_opcoes; }
-    if(d.frase_final_principal) { rot.frase_final_principal = d.frase_final_principal; rot.frase_final_opcoes = d.frase_final_opcoes || rot.frase_final_opcoes; }
-    if(d.pergunta_divisora_principal) { rot.pergunta_divisora_principal = d.pergunta_divisora_principal; rot.pergunta_divisora_opcoes = d.pergunta_divisora_opcoes || rot.pergunta_divisora_opcoes; }
-    if(d.narracao_final) rot.narracao_final = d.narracao_final;
-    if(d.micro_promessa) rot.micro_promessa = d.micro_promessa;
-    if(ehMente) {
-      // Campos do MENTE
-      if(d.camada1) rot.camada1 = Object.assign(rot.camada1 || {}, d.camada1);
-      if(d.camada2) rot.camada2 = Object.assign(rot.camada2 || {}, d.camada2);
-      if(d.camada3) rot.camada3 = Object.assign(rot.camada3 || {}, d.camada3);
-      if(d.narracao_camada1) rot.narracao_camada1 = d.narracao_camada1;
-      if(d.narracao_camada2) rot.narracao_camada2 = d.narracao_camada2;
-      if(d.narracao_camada3) rot.narracao_camada3 = d.narracao_camada3;
-    } else {
-      // Campos do Animal
-      if(d.caso3) rot.caso3 = Object.assign(rot.caso3, d.caso3);
-      if(d.narracao_caso3) rot.narracao_caso3 = d.narracao_caso3;
-    }
-    state.roteiro = rot;
-    renderRoteiro(rot);
-    await calcularScore(rot);
-    salvarEstado();
-  } catch(e) { alert('Erro ao corrigir: ' + e.message); }
-  btn.textContent = '🔧 Corrigir ponto mais fraco';
-  btn.disabled = false;
-}
-
-
-async function gerarContexto() {
-  var titulo = document.getElementById('titulo').value.trim();
-  if(!titulo) { alert('Digite um titulo primeiro'); return; }
-  var btn = document.getElementById('btn-contexto');
-  var btnR = document.getElementById('btn-regen-contexto');
-  btn.textContent = '⏳';
-  btn.disabled = true;
-  btnR.disabled = true;
-  try {
-    var r = await fetch('/gerar-contexto', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({titulo: titulo, modelo: state.modelo, duracao: state.duracao})
-    });
-    var d = await r.json();
-    if(d.erro) throw new Error(d.erro);
-    document.getElementById('contexto').value = d.contexto;
-  } catch(e) { alert('Erro: ' + e.message); }
-  btn.textContent = '✨ Gerar';
-  btn.disabled = false;
-  btnR.disabled = false;
-}
-
-async function regenerarContexto() {
-  var titulo = document.getElementById('titulo').value.trim();
-  var contextoAtual = document.getElementById('contexto').value.trim();
-  if(!titulo) { alert('Digite um titulo primeiro'); return; }
-  var btn = document.getElementById('btn-regen-contexto');
-  var btnG = document.getElementById('btn-contexto');
-  btn.textContent = '⏳';
-  btn.disabled = true;
-  btnG.disabled = true;
-  try {
-    var r = await fetch('/gerar-contexto', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({titulo: titulo, modelo: state.modelo, duracao: state.duracao, contexto_atual: contextoAtual})
-    });
-    var d = await r.json();
-    if(d.erro) throw new Error(d.erro);
-    document.getElementById('contexto').value = d.contexto;
-  } catch(e) { alert('Erro: ' + e.message); }
-  btn.textContent = '🔄 Regenerar';
-  btn.disabled = false;
-  btnG.disabled = false;
-}
-
-var thumbBase64 = null;
-var thumbAnalise = null;
-
-function previewThumb(input) {
-  var file = input.files[0];
-  if(!file) return;
-  processThumbFile(file);
-}
-
-function handleThumbDrop(e) {
-  e.preventDefault();
-  document.getElementById('thumb-upload-area').style.borderColor = '#2a2a2a';
-  var file = e.dataTransfer.files[0];
-  if(file && file.type.startsWith('image/')) processThumbFile(file);
-}
-
-function processThumbFile(file) {
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    thumbBase64 = e.target.result;
-    document.getElementById('thumb-preview-img').src = thumbBase64;
-    document.getElementById('thumb-original-compare').src = thumbBase64;
-    document.getElementById('thumb-upload-area').style.display = 'none';
-    document.getElementById('thumb-preview-area').style.display = 'block';
-    document.getElementById('thumb-score-area').style.display = 'none';
-  };
-  reader.readAsDataURL(file);
-}
-
-function resetThumb() {
-  thumbBase64 = null;
-  thumbAnalise = null;
-  document.getElementById('thumb-file-input').value = '';
-  document.getElementById('thumb-upload-area').style.display = 'block';
-  document.getElementById('thumb-preview-area').style.display = 'none';
-  document.getElementById('thumb-score-area').style.display = 'none';
-}
-
-async function avaliarThumbnail() {
-  if(!thumbBase64) { alert('Carregue uma imagem primeiro'); return; }
-  var btn = document.getElementById('btn-avaliar-thumb');
-  var canal = document.getElementById('thumb-canal').value;
-  setBtnLoading('btn-avaliar-thumb', true, '🔍 Analisar', '⏳ Analisando...');
-  document.getElementById('thumb-score-area').style.display = 'none';
-  try {
-    var r = await fetch('/avaliar-thumbnail', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({imagem: thumbBase64, canal: canal})
-    });
-    var d = await r.json();
-    if(d.erro) throw new Error(d.erro);
-    thumbAnalise = d;
-
-    // Score total
-    var total = d.total;
-    var cor = total >= 75 ? '#4caf50' : total >= 50 ? '#ff9800' : '#f44336';
-    document.getElementById('thumb-score-total').textContent = total + '/100';
-    document.getElementById('thumb-score-total').style.color = cor;
-    document.getElementById('thumb-score-bar').style.width = total + '%';
-    document.getElementById('thumb-score-bar').style.background = cor;
-
-    // Dimensões com botão Corrigir
-    var dims = document.getElementById('thumb-score-dims');
-    dims.innerHTML = '';
-    d.dimensoes.forEach(function(dim, i) {
-      var pct = (dim.score / 25) * 100;
-      var dcor = dim.score >= 19 ? '#4caf50' : dim.score >= 13 ? '#ff9800' : '#f44336';
-      var mostrarCorrigir = dim.score < 19;
-      dims.innerHTML += '<div id="thumb-dim-'+i+'">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">'
-        + '<span style="font-size:12px;color:#888">' + esc(dim.nome) + '</span>'
-        + '<div style="display:flex;align-items:center;gap:8px">'
-        + '<span style="font-size:12px;font-weight:700;color:'+dcor+'">' + dim.score + '/25</span>'
-        + (mostrarCorrigir ? '<button onclick="corrigirDimThumb('+i+')" id="btn-thumb-dim-'+i+'" style="background:transparent;border:1px solid #E8593C;border-radius:4px;padding:2px 8px;font-size:10px;color:#E8593C;cursor:pointer;font-family:inherit">Corrigir</button>' : '')
-        + '</div></div>'
-        + '<div style="height:4px;background:#1a1a1a;border-radius:2px">'
-        + '<div style="height:100%;width:'+pct+'%;background:'+dcor+';border-radius:2px;transition:width .6s ease"></div>'
-        + '</div>'
-        + '<div style="font-size:11px;color:#555;margin-top:2px">' + esc(dim.justificativa) + '</div>'
-        + '</div>';
-    });
-
-    // Diagnóstico
-    if(d.diagnostico) {
-      document.getElementById('thumb-diagnostico-texto').innerHTML = esc(d.diagnostico).split('\n').join('<br>');
-      document.getElementById('thumb-diagnostico').style.display = 'block';
-    }
-
-    // Checklist
-    if(d.checklist && d.checklist.length) {
-      var cl = document.getElementById('thumb-checklist-items');
-      cl.innerHTML = d.checklist.map(function(item) {
-        var ok = item.ok;
-        return '<div>' + (ok ? '✅' : '❌') + ' ' + esc(item.pergunta) + '</div>';
-      }).join('');
-      document.getElementById('thumb-checklist').style.display = 'block';
-    }
-
-    // Títulos virais
-    if(d.titulos && d.titulos.length) {
-      var tl = document.getElementById('thumb-titulos-items');
-      tl.innerHTML = d.titulos.forEach(function(t, i) {
-        var div = document.createElement('div');
-        div.style.cssText = 'display:flex;align-items:center;gap:8px;background:#111;border:1px solid #2a2a2a;border-radius:6px;padding:8px 10px;cursor:pointer;margin-bottom:4px';
-        div.innerHTML = '<span style="background:#E8593C;color:#fff;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700">'+(i+1)+'</span><span style="font-size:12px;color:#ccc">'+esc(t)+'</span>';
-        div.onclick = function(){ usarTituloThumb(t); };
-        tl.appendChild(div);
-      });
-      document.getElementById('thumb-titulos').style.display = 'block';
-    }
-
-    // Prompt de correção
-    if(d.prompt_correcao) {
-      document.getElementById('thumb-prompt-texto').value = d.prompt_correcao;
-      document.getElementById('thumb-prompt-area').style.display = 'block';
-      document.getElementById('thumb-comparacao').style.display = 'block';
-    }
-
-    document.getElementById('thumb-score-area').style.display = 'block';
-  } catch(e) { alert('Erro: ' + e.message); }
-  setBtnLoading('btn-avaliar-thumb', false, '🔍 Analisar', '🔍 Analisar');
-}
-
-async function corrigirDimThumb(idx) {
-  if(!thumbAnalise) return;
-  var dim = thumbAnalise.dimensoes[idx];
-  var btn = document.getElementById('btn-thumb-dim-'+idx);
-  btn.textContent = '⏳';
-  btn.disabled = true;
-  try {
-    var r = await fetch('/corrigir-dim-thumbnail', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        dimensao: dim.nome,
-        justificativa: dim.justificativa,
-        prompt_atual: document.getElementById('thumb-prompt-texto').value,
-        canal: document.getElementById('thumb-canal').value
-      })
-    });
-    var d = await r.json();
-    if(d.erro) throw new Error(d.erro);
-    document.getElementById('thumb-prompt-texto').value = d.prompt_atualizado;
-  } catch(e) { alert('Erro: ' + e.message); }
-  btn.textContent = 'Corrigir';
-  btn.disabled = false;
-}
-
-async function traduzirThumbPrompt() {
-  var prompt = document.getElementById('thumb-prompt-texto').value.trim();
-  if(!prompt) return;
-  try {
-    var r = await fetch('/traduzir', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({prompt: prompt})
-    });
-    var d = await r.json();
-    document.getElementById('thumb-trad').textContent = d.traducao || '';
-  } catch(e) {}
-}
-
-function usarTituloThumb(titulo) {
-  var prompt = document.getElementById('thumb-prompt-texto').value;
-  var novoPrompt = prompt + ', with bold text overlay: "' + titulo + '", text in top-left corner, high contrast font';
-  document.getElementById('thumb-prompt-texto').value = novoPrompt;
-}
-
-async function gerarThumbCorrigida() {
-  var prompt = document.getElementById('thumb-prompt-texto').value.trim();
-  if(!prompt) { alert('Prompt vazio'); return; }
-  var btn = document.getElementById('btn-gerar-thumb-corrigida');
-  btn.textContent = '⏳ Gerando...';
-  btn.disabled = true;
-  var container = document.getElementById('thumb-corrigida-container');
-  container.innerHTML = '<span style="color:#555;font-size:11px">Gerando com Leonardo...</span>';
-  try {
-    var canal = document.getElementById('thumb-canal').value;
-    var formato = canal === 'mente' ? '16:9' : state.formato;
-    var estilo = canal === 'mente' ? 'mente' : state.estilo;
-    var r = await fetch('/gerar-thumbnail-imagem', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({idx: 99, prompt: prompt, formato: formato, estilo: estilo, session_id: 'thumb_' + Date.now()})
-    });
-    var d = await r.json();
-    if(d.ok) {
-      var img = document.createElement('img');
-      img.src = '/thumbnail/thumb_corrigida/99?t=' + Date.now();
-      img.style.cssText = 'width:100%;border-radius:8px';
-      img.onerror = function(){ container.textContent = 'Erro ao carregar'; };
-      container.innerHTML = '';
-      container.appendChild(img);
-    } else {
-      container.innerHTML = '<span style="color:#f44336;font-size:11px">Erro: ' + esc(d.erro || 'Falhou') + '</span>';
-    }
-  } catch(e) {
-    container.innerHTML = '<span style="color:#f44336;font-size:11px">Erro: ' + e.message + '</span>';
-  }
-  btn.textContent = '⚡ Gerar com Leonardo';
-  btn.disabled = false;
+function setP(pct) {
+  var el = document.getElementById('progress');
+  if(el) el.style.width = pct + '%';
 }
 
 function atualizarContador() {
   var sf = document.getElementById('script-final');
-  var contador = document.getElementById('script-contador');
-  if(!sf || !contador) return;
-  var chars = sf.value.length;
-  var segundos = Math.round(chars / 13);
-  var durMap = {'40':40,'60':60,'90':90,'120':120,'180':180,'240':240,'300':300};
-  var durEsperada = durMap[String(state.duracao)] || 60;
-  var cor = Math.abs(segundos - durEsperada) <= 10 ? '#4caf50' : Math.abs(segundos - durEsperada) <= 20 ? '#ff9800' : '#f44336';
-  contador.style.color = cor;
-  contador.textContent = chars + ' chars ≈ ' + segundos + 's';
+  var cc = document.getElementById('char-count');
+  if(!sf || !cc) return;
+  var palavras = sf.value.trim() ? sf.value.trim().split(/\s+/).length : 0;
+  var duracao_s = Math.round(palavras * 0.45);
+  var n_prompts = Math.max(Math.round(duracao_s / 2), 0);
+  cc.textContent = palavras + ' palavras · ~' + duracao_s + 's · ' + n_prompts + ' imagens';
 }
 
-function copiarScript() {
-  var sf = document.getElementById('script-final');
-  if(!sf || !sf.value) return;
-  navigator.clipboard.writeText(sf.value).then(function() {
-    var btn = document.getElementById('btn-copiar');
-    btn.textContent = '✅ Copiado';
-    setTimeout(function(){ btn.textContent = '📋 Copiar'; }, 2000);
-  }).catch(function() {
-    sf.select();
-    document.execCommand('copy');
-    var btn = document.getElementById('btn-copiar');
-    btn.textContent = '✅ Copiado';
-    setTimeout(function(){ btn.textContent = '📋 Copiar'; }, 2000);
+function renderPrompts(prompts) {
+  var html = '';
+  prompts.forEach(function(p, i) {
+    html += '<div style="display:flex;gap:8px;margin-bottom:8px">'
+      + '<span style="background:#E8593C;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;flex-shrink:0">' + (i+1) + '</span>'
+      + '<div style="flex:1">'
+      + '<textarea id="pt'+i+'" style="width:100%;background:#111;border:1px solid #333;border-radius:6px;padding:8px;font-size:12px;color:#ccc;font-family:inherit;resize:none;height:60px">' + esc(p) + '</textarea>'
+      + '<div style="display:flex;gap:6px;margin-top:3px">'
+      + '<button onclick="regenerarPrompt('+i+')" style="background:#E8593C;color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;font-family:inherit">Regenerar</button>'
+      + '</div></div></div>';
   });
-}
-
-function toggleScore() {
-  var detalhe = document.getElementById('score-detalhe');
-  var icon = document.getElementById('score-toggle-icon');
-  if(!detalhe) return;
-  var aberto = detalhe.style.display !== 'none';
-  detalhe.style.display = aberto ? 'none' : 'block';
-  icon.textContent = aberto ? '▼' : '▲';
-}
-
-function setBtnLoading(id, loading, textoOriginal, textoLoading) {
-  var btn = document.getElementById(id);
-  if(!btn) return;
-  btn.disabled = loading;
-  btn.style.opacity = loading ? '0.7' : '1';
-  if(loading) {
-    btn.setAttribute('data-original', btn.textContent);
-    btn.innerHTML = '<span style="display:inline-block;animation:spin 1s linear infinite">⟳</span> ' + (textoLoading || 'Aguarde...');
-  } else {
-    btn.textContent = textoOriginal || btn.getAttribute('data-original') || btn.textContent;
-  }
-}
-
-function atualizarScriptFinal() {
-  try {
-    var ganchoEl = document.querySelector('#gancho-opts .gancho-opt.sel');
-    var fraseEl = document.querySelector('#frase-opts .gancho-opt.sel');
-    var perguntaEl = document.querySelector('#pergunta-opts .gancho-opt.sel');
-    var corpo = (document.getElementById('narracao-edit') || {}).value || '';
-    var gancho = (document.getElementById('gancho-edit') || {}).value || (ganchoEl ? ganchoEl.textContent.trim() : '');
-    var frase = (document.getElementById('frase-edit') || {}).value || (fraseEl ? fraseEl.textContent.trim() : '');
-    var pergunta = (document.getElementById('pergunta-edit') || {}).value || (perguntaEl ? perguntaEl.textContent.trim() : '');
-    var rot = state.roteiro || {};
-    var partes;
-    if(rot._modelo === 'mente') {
-      var narFinal = (rot.narracao_final || []).join(' ');
-      partes = [gancho, corpo.trim(), narFinal, frase, pergunta];
-    } else {
-      partes = [gancho, corpo.trim(), frase, pergunta];
-    }
-    var script = partes.filter(function(p){ return p && p.trim(); }).join(' ');
-    var sf = document.getElementById('script-final');
-    if(sf) { sf.value = script; atualizarContador(); }
-  } catch(e) { console.log('atualizarScriptFinal erro:', e); }
+  var el = document.getElementById('prompts-list');
+  if(el) el.innerHTML = html;
 }
 
 async function gerarPrompts() {
-  if(!state.roteiro) { alert('Gere o roteiro primeiro'); return; }
   var script = (document.getElementById('script-final') || {}).value || '';
-  if(!script) { alert('Script final vazio'); return; }
-  var btn = document.getElementById('btn-prompts');
-  setBtnLoading('btn-prompts', true, '3. Gerar Prompts de Imagem', 'Gerando prompts...');
+  if(!script.trim()) { alert('Cole o script primeiro'); return; }
+  setBtnLoading('btn-prompts', true, '1. Gerar Prompts de Imagem', 'Gerando prompts...');
+  var palavras = script.trim().split(/\s+/).length;
+  var duracao_s = Math.round(palavras * 0.45);
+  var n_prompts = Math.max(Math.round(duracao_s / 2), 5);
   try {
-    var resp = await fetch('/gerar-prompts', {
+    var r = await fetch('/gerar-prompts', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({ script: script, roteiro: state.roteiro, duracao: state.duracao, modelo: state.modelo })
+      body: JSON.stringify({ script: script, modelo: state.modelo, formato: state.formato, n_prompts: n_prompts, duracao: String(duracao_s) })
     });
-    var d = await resp.json();
+    var d = await r.json();
     if(d.erro) throw new Error(d.erro);
-    state.prompts = d.prompts;
-    renderPrompts(d.prompts);
-    salvarEstado();
-    document.getElementById('result-card').style.display = 'block';
+    state.prompts = d.prompts || [];
+    renderPrompts(state.prompts);
     document.getElementById('section-prompts').style.display = 'block';
     document.getElementById('btn-imagens').disabled = false;
     document.getElementById('btn-imagens').style.opacity = '1';
-  } catch(e) { alert('Erro: ' + e.message); }
-  setBtnLoading('btn-prompts', false, '3. Gerar Prompts de Imagem');
-}
-
-async function traduzirPrompt(idx) {
-  var ta = document.getElementById('pt'+idx);
-  if(!ta) return;
-  state.prompts[idx] = ta.value;
-  try {
-    var r = await fetch('/traduzir', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({prompt: ta.value})});
-    var d = await r.json();
-    var t = document.getElementById('trad'+idx);
-    if(t) t.textContent = d.traducao || '';
-  } catch(e) {}
-}
-
-async function regenPrompt(i) {
-  var ta = document.getElementById('pt'+i);
-  if(!ta) return;
-  var prompt_atual = ta.value;
-  var btn = ta.parentElement.querySelector('button:last-of-type');
-  if(btn) { btn.textContent = '...'; btn.disabled = true; }
-  try {
-    var r = await fetch('/regenerar-prompt', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({prompt_atual: prompt_atual, modelo: state.modelo})
-    });
-    var d = await r.json();
-    if(d.erro) throw new Error(d.erro);
-    ta.value = d.prompt;
-    state.prompts[i] = d.prompt;
     salvarEstado();
-    // Gera imagem automaticamente com novo prompt
-    await gerarImagemUnica(i, d.prompt);
-  } catch(e) {
-    alert('Erro ao regenerar: ' + e.message);
-  }
-  if(btn) { btn.textContent = 'Regenerar'; btn.disabled = false; }
+  } catch(e) { alert('Erro ao gerar prompts: ' + e.message); }
+  setBtnLoading('btn-prompts', false, '1. Gerar Prompts de Imagem');
 }
 
-async function regenerarOpcoes(tipo) {
-  var titulo = document.getElementById('titulo').value.trim();
-  if(!titulo) { alert('Digite um titulo primeiro'); return; }
-  var btnMap = {gancho: 'Regenerar ganchos', frase: 'Regenerar frases', pergunta: 'Regenerar perguntas'};
-  var btns = document.querySelectorAll('.regen-opts-btn');
-  var btn = null;
-  btns.forEach(function(b){ if(b.textContent.toLowerCase().indexOf(tipo) > -1) btn = b; });
-  if(btn) { btn.textContent = '⏳ Gerando...'; btn.disabled = true; }
-  try {
-    var r = await fetch('/regenerar-opcoes', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({titulo: titulo, tipo: tipo, modelo: state.modelo})
+async function gerarNarracao(narracao_txt, session_id) {
+  // Chamada interna — gera audio via so_audio=true
+  var resp = await fetch('/narracao', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ narracao_custom: narracao_txt, so_audio: true, modelo: state.modelo })
+  });
+  var reader = resp.body.getReader();
+  var dec = new TextDecoder();
+  var buf = '';
+  while(true) {
+    var res = await reader.read();
+    if(res.done) break;
+    buf += dec.decode(res.value, {stream: true});
+    var lines = buf.split('\n');
+    buf = lines.pop();
+    lines.forEach(function(line) {
+      line = line.trim();
+      if(line.indexOf('data:') !== 0) return;
+      try {
+        var d = JSON.parse(line.slice(5));
+        if(d.session_id) state.narracao_session_id = d.session_id;
+        if(d.audio_ok) {
+          var ap = document.getElementById('audio-player');
+          if(ap) ap.src = '/audio/' + state.narracao_session_id + '?t=' + Date.now();
+          document.getElementById('result-card').style.display = 'block';
+          document.getElementById('section-narracao').style.display = 'block';
+        }
+      } catch(ex) {}
     });
-    var d = await r.json();
-    if(d.erro) throw new Error(d.erro);
-    var containerId = tipo === 'gancho' ? 'gancho-opts' : tipo === 'frase' ? 'frase-opts' : 'pergunta-opts';
-    renderOpts(containerId, d.opcoes || [], tipo);
-    var editEl = document.getElementById(tipo + '-edit');
-    if(editEl && d.opcoes && d.opcoes[0]) editEl.value = d.opcoes[0];
-    atualizarScriptFinal();
-  } catch(e) { alert('Erro ao regenerar: ' + e.message); }
-  if(btn) { btn.textContent = btnMap[tipo] || 'Regenerar'; btn.disabled = false; }
+  }
 }
 
 async function gerarImagens() {
-  if(!state.roteiro) { alert('Gere o roteiro primeiro'); return; }
-  var titulo = document.getElementById('titulo').value.trim();
-  var ganchoEl = document.querySelector('#gancho-opts .gancho-opt.sel');
-  var fraseEl = document.querySelector('#frase-opts .gancho-opt.sel');
-  var perguntaEl = document.querySelector('#pergunta-opts .gancho-opt.sel');
-  var perguntaEditEl = document.getElementById('pergunta-edit');
-
   state.prompts.forEach(function(p, i) {
     var ta = document.getElementById('pt'+i);
     if(ta) state.prompts[i] = ta.value;
   });
-
-  var payload = JSON.parse(JSON.stringify(state.roteiro));
-  payload.titulo = titulo;
-  payload.gancho = (document.getElementById('gancho-edit') || {}).value || (ganchoEl ? ganchoEl.textContent : (state.roteiro.gancho_principal || ''));
-  payload.frase_final = (document.getElementById('frase-edit') || {}).value || (fraseEl ? fraseEl.textContent : (state.roteiro.frase_final_principal || ''));
-  payload.pergunta_divisora = (document.getElementById('pergunta-edit') || {}).value || (perguntaEl ? perguntaEl.textContent : (state.roteiro.pergunta_divisora_principal || ''));
-  payload.narracao_custom = (document.getElementById('script-final') || {}).value || document.getElementById('narracao-edit').value;
-  payload.narracao_session_id = state.narracao_session_id || null;
-  payload.modelo = state.modelo;
-  payload.prompts_custom = state.prompts;
-  payload.estilo = state.estilo;
-  payload.formato = state.formato;
-
-
+  var script = (document.getElementById('script-final') || {}).value || '';
   document.getElementById('steps-card').style.display = 'block';
   document.getElementById('result-card').style.display = 'none';
   document.getElementById('btn-imagens').disabled = true;
   setP(5);
-  setStep(1,'done','Roteiro aprovado');
-  setStep(2,'active','Aguardando...');
+  setStep(1,'active','Aguardando...');
+  setStep(2,'','Aguardando...');
   setStep(3,'','Aguardando...');
-  setStep(4,'','Aguardando...');
-
   try {
     var resp = await fetch('/narracao', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(payload)
+      body: JSON.stringify({
+        narracao_custom: script,
+        narracao_session_id: state.narracao_session_id || null,
+        prompts_custom: state.prompts,
+        modelo: state.modelo,
+        estilo: state.estilo || 'field_journal',
+        formato: state.formato
+      })
     });
     var reader = resp.body.getReader();
     var dec = new TextDecoder();
@@ -1405,11 +547,9 @@ async function gerarImagens() {
             state.zipPath = d.zip;
             document.getElementById('section-imagens').style.display = 'block';
             document.getElementById('result-card').style.display = 'block';
-            var btnThumb = document.getElementById('btn-thumbnails');
-            btnThumb.disabled = false;
-            btnThumb.style.opacity = '1';
+            document.getElementById('btn-download').style.display = 'block';
+            salvarEstado();
           }
-          // Audio nao recarrega — ja foi gerado no passo 2
           if(d.imgs_total) renderGrid(d.imgs_total);
         } catch(e) {}
       });
@@ -1418,179 +558,91 @@ async function gerarImagens() {
   document.getElementById('btn-imagens').disabled = false;
 }
 
-async function gerarThumbnails() {
-  if(!state.roteiro) { alert('Gere o roteiro primeiro'); return; }
-  var btn = document.getElementById('btn-thumbnails');
-  btn.disabled = true;
-  btn.textContent = '⏳ Gerando thumbnails...';
-  var script = (document.getElementById('script-final') || {}).value || '';
-  try {
-    var r = await fetch('/gerar-thumbnails', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        roteiro: state.roteiro,
-        script: script,
-        formato: state.formato,
-        estilo: state.estilo
-      })
-    });
-    var d = await r.json();
-    if(d.erro) throw new Error(d.erro);
-    // Renderiza os conceitos e inicia geração das imagens
-    var grid = document.getElementById('thumbnails-grid');
-    grid.innerHTML = '';
-    state.thumbnails = d.conceitos;
-    document.getElementById('section-thumbnails').style.display = 'block';
-    document.getElementById('result-card').style.display = 'block';
-
-    d.conceitos.forEach(function(c, i) {
-      var card = document.createElement('div');
-      card.style.cssText = 'background:#111;border:1px solid #2a2a2a;border-radius:10px;padding:12px;';
-      card.innerHTML = '<div style="display:flex;gap:10px;align-items:flex-start">'
-        + '<div style="flex:1">'
-        + '<div style="font-size:11px;font-weight:700;color:#7a4a9a;margin-bottom:4px">THUMBNAIL ' + (i+1) + ' — ' + esc(c.emocao) + '</div>'
-        + '<div style="font-size:12px;color:#888;margin-bottom:8px">' + esc(c.conceito) + '</div>'
-        + '<textarea id="thumb-prompt-'+i+'" style="width:100%;background:#0a0a0a;border:1px solid #333;border-radius:6px;padding:8px;font-size:11px;color:#aaa;font-family:inherit;resize:vertical;height:54px">' + esc(c.prompt) + '</textarea>'
-        + '<button onclick="regenerarThumbnail('+i+')" style="margin-top:6px;background:transparent;border:1px solid #7a4a9a;border-radius:4px;padding:3px 10px;font-size:11px;color:#7a4a9a;cursor:pointer;font-family:inherit">🔄 Regenerar</button>'
-        + '</div>'
-        + '<div id="thumb-img-'+i+'" style="width:120px;flex-shrink:0;background:#0a0a0a;border-radius:8px;min-height:80px;display:flex;align-items:center;justify-content:center;color:#333;font-size:11px">Gerando...</div>'
-        + '</div>';
-      grid.appendChild(card);
-      // Gera imagem automaticamente
-      gerarImagemThumbnail(i, c.prompt);
-    });
-
-    // Mostra botão download após gerar thumbnails
-    document.getElementById('section-download').style.display = 'block';
-    var dlBtn = document.getElementById('dl-btn');
-    dlBtn.onclick = function(){ window.location = '/download?file=' + encodeURIComponent(state.zipPath); };
-
-  } catch(e) { alert('Erro: ' + e.message); }
-  btn.disabled = false;
-  btn.textContent = '5. Gerar Thumbnails';
-}
-
-async function gerarImagemThumbnail(idx, prompt) {
-  try {
-    var r = await fetch('/gerar-thumbnail-imagem', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({idx: idx, prompt: prompt, formato: state.formato, estilo: state.estilo, session_id: state.sessionId})
-    });
-    var d = await r.json();
-    if(d.ok) {
-      var el = document.getElementById('thumb-img-' + idx);
-      if(el) el.innerHTML = '<img src="/thumbnail/' + state.sessionId + '/' + idx + '?t=' + Date.now() + '" style="width:100%;border-radius:8px">';
+function renderGrid(total) {
+  var grid = document.getElementById('image-grid');
+  if(!grid) return;
+  if(!grid.children.length) {
+    var html = '';
+    for(var i=0;i<total;i++) {
+      html += '<div id="cell'+i+'" style="aspect-ratio:9/16;background:#111;border-radius:6px;overflow:hidden">'
+        + '<img id="img-'+i+'" style="width:100%;height:100%;object-fit:cover;display:none"></div>';
     }
-  } catch(e) {
-    var el = document.getElementById('thumb-img-' + idx);
-    if(el) el.textContent = 'Erro';
+    grid.innerHTML = html;
   }
 }
 
-async function regenerarThumbnail(idx) {
-  var promptEl = document.getElementById('thumb-prompt-' + idx);
-  if(!promptEl) return;
-  var el = document.getElementById('thumb-img-' + idx);
-  if(el) el.innerHTML = '<span style="color:#555;font-size:11px">Gerando...</span>';
-  await gerarImagemThumbnail(idx, promptEl.value.trim());
+function showTab(tab) {
+  document.getElementById('tab-gerar').style.display = tab==='gerar' ? 'block' : 'none';
+  document.getElementById('tab-thumb').style.display = tab==='thumb' ? 'block' : 'none';
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('sel'); });
+  document.getElementById('tab-btn-'+tab).classList.add('sel');
 }
 
-function renderPrompts(prompts) {
-  var container = document.getElementById('prompts-list');
-  if(!container) return;
-  var html = '';
-  prompts.forEach(function(p, i) {
-    html += '<div style="display:flex;gap:8px;margin-bottom:12px;align-items:flex-start">'
-      + '<span style="background:#1a5c3a;color:#fff;border-radius:4px;padding:3px 8px;font-size:11px;font-weight:700;flex-shrink:0;margin-top:4px">' + (i+1) + '</span>'
-      + '<div style="flex:1">'
-      + '<textarea id="pt' + i + '" style="width:100%;background:#111;border:1px solid #333;border-radius:6px;padding:8px;font-size:12px;color:#ccc;font-family:inherit;resize:vertical;height:64px">' + esc(p) + '</textarea>'
-      + '<div style="display:flex;gap:6px;margin-top:4px">'
-      + '<button onclick="traduzirPrompt(' + i + ')" style="background:transparent;border:1px solid #333;border-radius:4px;padding:3px 10px;font-size:11px;color:#666;cursor:pointer;font-family:inherit">Traduzir</button>'
-      + '<button onclick="regenerarPrompt(' + i + ')" style="background:#1a1a1a;border:1px solid #E8593C;border-radius:4px;padding:3px 10px;font-size:11px;color:#E8593C;cursor:pointer;font-family:inherit">🔄 Regenerar prompt</button>'
-      + '</div>'
-      + '<div id="trad' + i + '" style="font-size:11px;color:#555;margin-top:3px;font-style:italic"></div>'
-      + '</div></div>';
-  });
-  container.innerHTML = html;
-}
-
-async function regenerarPrompt(idx) {
-  var promptEl = document.getElementById('pt' + idx);
-  if(!promptEl) return;
-  var promptAtual = promptEl.value.trim();
-  var btns = promptEl.parentElement.querySelectorAll('button');
-  var btn = btns[btns.length - 1];
-  btn.textContent = '⏳ Gerando...';
-  btn.disabled = true;
+async function regenerarPrompt(i) {
+  var ta = document.getElementById('pt'+i);
+  if(!ta) return;
+  var btn = ta.parentElement.querySelector('button');
+  if(btn) { btn.textContent = '...'; btn.disabled = true; }
   try {
-    // Passo 1: Claude gera novo prompt relacionado ao anterior
     var r = await fetch('/regenerar-prompt', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({prompt_atual: promptAtual, idx: idx})
+      body: JSON.stringify({ prompt_atual: ta.value, modelo: state.modelo })
     });
     var d = await r.json();
     if(d.erro) throw new Error(d.erro);
-    var novoPrompt = d.prompt;
-    promptEl.value = novoPrompt;
-    state.prompts[idx] = novoPrompt;
-    // Passo 2: Gera imagem automaticamente com novo prompt
-    btn.textContent = '🖼 Gerando imagem...';
-    var r2 = await fetch('/regenerar-imagem', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({session_id: state.sessionId, idx: idx, prompt: novoPrompt, estilo: state.estilo, formato: state.formato})
-    });
-    var d2 = await r2.json();
-    if(d2.ok) {
-      var imgEl = document.getElementById('img-' + idx);
-      if(imgEl) imgEl.src = '/imagem/' + state.sessionId + '/' + idx + '?t=' + Date.now();
-    } else { alert('Erro na imagem: ' + (d2.erro || 'Falhou')); }
+    ta.value = d.prompt;
+    state.prompts[i] = d.prompt;
+    salvarEstado();
   } catch(e) { alert('Erro: ' + e.message); }
-  btn.textContent = '🔄 Regenerar prompt';
-  btn.disabled = false;
+  if(btn) { btn.textContent = 'Regenerar'; btn.disabled = false; }
 }
 
-function renderGrid(total) {
-  var html = '';
-  for(var i = 0; i < total; i++) {
-    var num = String(i+1).padStart(2,'0');
-    html += '<div class="img-cell" id="cell'+i+'">'
-      + '<img id="img-'+i+'" src="/imagem/'+state.sessionId+'/'+i+'?t='+Date.now()+'" alt="'+num+'" loading="lazy">'
-      + '<span class="img-num">'+num+'</span>'
-      + '</div>';
-  }
-  document.getElementById('img-grid').innerHTML = html;
+function baixarZip() {
+  if(state.sessionId) window.open('/download?session_id=' + state.sessionId);
 }
 
-
-
-function renderCalendario() {
-  var html = '';
-  state.calendarioItems.forEach(function(item, i) {
-    html += '<div class="cal-item">'
-      + '<span style="font-size:10px;font-weight:600;background:#1a3a5c;color:#5b9bd5;border-radius:4px;padding:2px 8px">'+item.status+'</span>'
-      + '<span class="cal-title">'+esc(item.titulo)+'</span>'
-      + '<span class="cal-date">'+item.data+'</span>'
-      + '<button class="cal-btn" onclick="usarCalItem('+i+')">Gerar</button>'
-      + '</div>';
-  });
-  document.getElementById('cal-list').innerHTML = html || '<div style="color:#444;font-size:13px;padding:1rem">Nenhum video planejado.</div>';
+function salvarEstado() {
+  try { localStorage.setItem('yt_state', JSON.stringify(state)); } catch(e) {}
 }
 
-function usarCalItem(idx) {
-  document.getElementById('titulo').value = state.calendarioItems[idx].titulo;
-  showTab('gerar', document.getElementById('tab-btn-gerar'));
+function restaurarEstado() {
+  try {
+    var salvo = JSON.parse(localStorage.getItem('yt_state') || 'null');
+    if(!salvo) return;
+    if(salvo.modelo) selModel(salvo.modelo);
+    if(salvo.formato) selChip('formato', salvo.formato);
+    if(salvo.prompts && salvo.prompts.length) {
+      state.prompts = salvo.prompts;
+      renderPrompts(state.prompts);
+      document.getElementById('section-prompts').style.display = 'block';
+    }
+    if(salvo.sessionId) state.sessionId = salvo.sessionId;
+    if(salvo.narracao_session_id) state.narracao_session_id = salvo.narracao_session_id;
+    if(salvo.zipPath) {
+      state.zipPath = salvo.zipPath;
+      document.getElementById('result-card').style.display = 'block';
+      document.getElementById('btn-download').style.display = 'block';
+    }
+  } catch(e) { console.log('restaurar erro:', e); }
 }
 
-function esc(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function novoVideo() {
+  if(!confirm('Iniciar novo video? O progresso atual sera perdido.')) return;
+  localStorage.removeItem('yt_state');
+  state = { modelo: 'animais', formato: '9:16', prompts: [], sessionId: null, narracao_session_id: null, narracao_gerada: null, zipPath: null };
+  document.getElementById('script-final').value = '';
+  document.getElementById('section-prompts').style.display = 'none';
+  document.getElementById('steps-card').style.display = 'none';
+  document.getElementById('result-card').style.display = 'none';
+  document.getElementById('btn-download').style.display = 'none';
+  atualizarContador();
+  selModel('animais');
 }
 
-document.getElementById('titulo').addEventListener('keydown', function(e) {
-  if(e.key === 'Enter') gerarRoteiro();
+document.addEventListener('DOMContentLoaded', function() {
+  restaurarEstado();
+  atualizarContador();
 });
 </script>
 </body>
