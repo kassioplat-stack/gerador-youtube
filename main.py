@@ -483,7 +483,7 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game", modelo="an
             r = requests.post(
                 "https://cloud.leonardo.ai/api/rest/v1/generations",
                 headers={"authorization": f"Bearer {LEONARDO_KEY}", "content-type": "application/json"},
-                json={"prompt": prompt + ", " + sufixo, "width": dims["width"], "height": dims["height"], "num_images": 1, "negative_prompt": "blurry, low quality, distorted, ugly, watermark, text, humans, human hands, multiple animals, cartoon, anime, deformed", "guidance_scale": 7},
+                json={"prompt": (prompt + ", " + sufixo)[:900], "width": dims["width"], "height": dims["height"], "num_images": 1, "negative_prompt": "blurry, low quality, distorted, ugly, watermark, text, humans, cartoon, anime, deformed", "guidance_scale": 7},
                 timeout=40
             )
             data = r.json()
@@ -506,6 +506,7 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game", modelo="an
                     print(f"POLL STATUS: {status}, data: {str(r2_data)[:200]}")
             raise Exception(f"Timeout apos 240s. gen_id={gen_id}")
         except Exception as e:
+            print(f"Leonardo tentativa {tentativa+1} erro: {str(e)[:200]}")
             if tentativa == 2:
                 raise
             time.sleep(5)
