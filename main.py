@@ -637,7 +637,7 @@ def gerar():
             except Exception as e:
                 yield 'data:' + json.dumps({'erro': str(e)}) + '\n\n'
             return
-        yield 'data:' + json.dumps({'step': 1, 'status': 'done', 'msg': 'Roteiro aprovado', 'progress': 15}) + '\n\n'
+        yield 'data:' + json.dumps({'step': 1, 'status': 'done', 'msg': 'Prompts recebidos', 'progress': 15}) + '\n\n'
 
         yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': 'Gerando imagens...', 'progress': 18}) + '\n\n'
         erros = []
