@@ -533,6 +533,7 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game", modelo="an
 def gerar_audio(narracao_txt, session_id):
     audio_data = None
     audio_service = ''
+    print(f"ELEVENLABS: chamando voice_id={ELEVENLABS_VOICE} session={session_id} texto={len(narracao_txt)} chars")
     try:
         if ELEVENLABS_KEY:
             r = requests.post(
@@ -541,13 +542,16 @@ def gerar_audio(narracao_txt, session_id):
                 json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.75, 'similarity_boost': 0.75, 'style': 0.0, 'use_speaker_boost': True}},
                 timeout=60
             )
+            print(f"ELEVENLABS: status={r.status_code} bytes={len(r.content)}")
             if r.status_code == 200 and len(r.content) > 100:
                 audio_data = r.content
                 audio_service = 'ElevenLabs'
             else:
-                print(f"ElevenLabs status={r.status_code} bytes={len(r.content)}")
+                print(f"ELEVENLABS ERRO: status={r.status_code} response={r.text[:300]}")
+        else:
+            print("ELEVENLABS: ELEVENLABS_KEY vazia — pulando")
     except Exception as e:
-        print(f"ElevenLabs erro: {e}")
+        print(f"ELEVENLABS EXCECAO: {e}")
 
     # Sem fallback — se ElevenLabs falhar, audio fica None e o erro aparece no log
 
@@ -697,21 +701,20 @@ def gerar():
         audio_data = None
         audio_service = ''
 
-        # Tenta reutilizar narração já gerada
+        # Tenta reutilizar narração já gerada — APENAS se audio existe em memória
+        # Não reutiliza de disco (arquivo pode ter sumido com restart do Render)
         if narracao_session_id:
             s = sessions.get(narracao_session_id)
             if s and s.get('audio'):
                 audio_data = s['audio']
                 audio_service = 'reutilizado'
+                print(f"AUDIO: reutilizando sessao {narracao_session_id}")
             else:
-                audio_path = f'/tmp/narracao_{narracao_session_id}.mp3'
-                if os.path.exists(audio_path):
-                    with open(audio_path, 'rb') as fa:
-                        audio_data = fa.read()
-                    audio_service = 'disco'
-
-        # Gera nova narracao APENAS se nao foi gerada no passo 2
-        if not audio_data and narracao_session_id is None:
+                # Sessão não existe mais em memória — gera novo áudio
+                print(f"AUDIO: sessao {narracao_session_id} nao encontrada em memoria, gerando novo")
+                audio_data, audio_service = gerar_audio(narracao_txt, session_id)
+        else:
+            # Sem narracao_session_id — sempre gera novo
             audio_data, audio_service = gerar_audio(narracao_txt, session_id)
 
         sessions[session_id]['audio'] = audio_data
