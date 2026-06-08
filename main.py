@@ -898,11 +898,13 @@ def gerar_prompts():
     )
 
     try:
-        text = chamar_claude(system, user_msg, max_tokens=4000, modelo="claude-sonnet-4-6")
+        text = chamar_claude(system, user_msg, max_tokens=8000, modelo="claude-sonnet-4-6")
         d = parse_json_robusto(text)
         prompts = d.get('prompts', [])
         return jsonify({'prompts': prompts, 'total': len(prompts)})
     except Exception as e:
+        import traceback
+        print(f"ERRO GERAR_PROMPTS: {traceback.format_exc()}")
         return jsonify({'erro': str(e)}), 500
 
 
