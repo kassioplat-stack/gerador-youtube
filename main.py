@@ -530,17 +530,7 @@ def gerar_audio(narracao_txt, session_id):
     except Exception as e:
         print(f"ElevenLabs erro: {e}")
 
-    if not audio_data:
-        try:
-            from gtts import gTTS
-            import io
-            tts = gTTS(narracao_txt, lang='pt')
-            buf = io.BytesIO()
-            tts.write_to_fp(buf)
-            audio_data = buf.getvalue()
-            audio_service = 'gTTS'
-        except Exception as e:
-            print(f"gTTS erro: {e}")
+    # Sem fallback — se ElevenLabs falhar, audio fica None e o erro aparece no log
 
     if audio_data:
         sessions[session_id]['audio'] = audio_data
