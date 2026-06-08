@@ -7,165 +7,147 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#0a0a0a;color:#ccc;font-family:'Inter',system-ui,sans-serif;font-size:14px;min-height:100vh}
-.container{max-width:1200px;margin:0 auto;padding:24px 32px}
-h1{font-size:18px;font-weight:700;color:#fff;margin-bottom:20px;letter-spacing:.5px}
-.layout{display:grid;grid-template-columns:320px 1fr;gap:20px;align-items:start}
-.left-col{display:flex;flex-direction:column;gap:12px}
-.right-col{display:flex;flex-direction:column;gap:12px}
-.card{background:#111;border:1px solid #1e1e1e;border-radius:12px;padding:16px}
-.slbl{font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:10px}
+.container{max-width:480px;margin:0 auto;padding:16px}
+h1{font-size:16px;font-weight:700;color:#fff;margin-bottom:16px;letter-spacing:.5px}
+.card{background:#111;border:1px solid #1e1e1e;border-radius:12px;padding:14px;margin-bottom:12px}
+.slbl{font-size:11px;font-weight:600;color:#555;text-transform:uppercase;letter-spacing:.8px;display:block;margin-bottom:8px}
 .btn{width:100%;background:#E8593C;border:none;border-radius:10px;padding:13px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;transition:opacity .15s}
-.btn:disabled{opacity:.35;cursor:not-allowed}
-.btn:not(:disabled):hover{opacity:.85}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn:not(:disabled):hover{opacity:.88}
 .btn-sec{background:#1a1a1a;border:1px solid #2a2a2a;color:#888}
-.btn-sec:not(:disabled):hover{border-color:#E8593C;color:#E8593C;opacity:1}
-textarea{width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;padding:10px;font-size:13px;color:#ccc;font-family:inherit;resize:vertical;min-height:200px;line-height:1.6}
+textarea{width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:8px;padding:10px;font-size:13px;color:#ccc;font-family:inherit;resize:vertical;min-height:160px;line-height:1.5}
 textarea:focus{outline:none;border-color:#E8593C}
 .model-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.model-card{background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;cursor:pointer;text-align:left;transition:all .15s;font-family:inherit;width:100%}
+.model-card{background:#0a0a0a;border:1px solid #2a2a2a;border-radius:10px;padding:12px;cursor:pointer;text-align:left;transition:all .15s;font-family:inherit}
 .model-card.sel{border-color:#E8593C;background:#1a0a08}
 .model-card.sel .mc-name{color:#E8593C}
-.mc-icon{font-size:22px;margin-bottom:6px}
-.mc-name{font-size:13px;font-weight:600;color:#ccc}
+.mc-icon{font-size:20px;margin-bottom:4px}
+.mc-name{font-size:12px;font-weight:600;color:#ccc}
 .mc-desc{font-size:11px;color:#444;margin-top:2px}
 .chips-row{display:flex;gap:6px;flex-wrap:wrap}
-.chip{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:5px 14px;font-size:12px;color:#666;cursor:pointer;font-family:inherit;transition:all .15s}
+.chip{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:6px;padding:5px 12px;font-size:12px;color:#666;cursor:pointer;font-family:inherit;transition:all .15s}
 .chip.sel{border-color:#E8593C;color:#E8593C;background:#1a0a08}
-.btns-col{display:flex;flex-direction:column;gap:8px}
 .prompt-item{display:flex;gap:8px;margin-bottom:10px}
-.prompt-num{background:#E8593C;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;flex-shrink:0;margin-top:4px}
+.prompt-num{background:#E8593C;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;flex-shrink:0;height:fit-content;margin-top:4px}
 .prompt-ta{width:100%;background:#0a0a0a;border:1px solid #2a2a2a;border-radius:6px;padding:8px;font-size:12px;color:#ccc;font-family:inherit;resize:none;height:56px}
 .prompt-ta:focus{outline:none;border-color:#444}
 .regen-btn{background:transparent;border:1px solid #2a2a2a;border-radius:4px;padding:2px 8px;font-size:11px;color:#555;cursor:pointer;font-family:inherit;margin-top:3px}
 .regen-btn:hover{border-color:#E8593C;color:#E8593C}
-.step-item{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #0f0f0f}
+.step-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #0f0f0f}
 .step-item:last-child{border-bottom:none}
-.step-dot{width:24px;height:24px;border-radius:50%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:10px;color:#555;flex-shrink:0;font-weight:700}
+.step-dot{width:22px;height:22px;border-radius:50%;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:10px;color:#555;flex-shrink:0;font-weight:700}
 .step-dot.active{background:#E8593C;color:#fff}
 .step-dot.done{background:#4caf50;color:#fff}
 .step-dot.error{background:#f44336;color:#fff}
-.step-label{font-size:13px;color:#ccc}
-.step-msg{font-size:11px;color:#555;margin-top:2px}
-.prog-bar{height:4px;background:#1a1a1a;border-radius:2px;margin-bottom:16px}
+.step-label{font-size:12px;color:#ccc}
+.step-msg{font-size:11px;color:#555;margin-top:1px}
+.prog-bar{height:4px;background:#1a1a1a;border-radius:2px;margin-bottom:14px}
 .prog-fill{height:100%;width:0%;background:#E8593C;border-radius:2px;transition:width .4s}
-.img-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:10px}
+.img-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
 .img-cell{aspect-ratio:9/16;background:#1a1a1a;border-radius:6px;overflow:hidden}
 .img-cell img{width:100%;height:100%;object-fit:cover;display:none}
-.tab-row{display:flex;gap:8px;margin-bottom:20px}
-.tab-btn{background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:8px 20px;font-size:13px;color:#666;cursor:pointer;font-family:inherit}
+.tab-row{display:flex;gap:8px;margin-bottom:16px}
+.tab-btn{flex:1;background:#1a1a1a;border:1px solid #2a2a2a;border-radius:8px;padding:8px;font-size:12px;color:#666;cursor:pointer;font-family:inherit}
 .tab-btn.sel{background:#1a0a08;border-color:#E8593C;color:#E8593C}
-.info-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.divider{height:1px;background:#1a1a1a;margin:12px 0}
+.info-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 </style>
 </head>
 <body>
 <div class="container">
   <h1>⚡ Gerador YouTube</h1>
 
+  <!-- Tabs -->
   <div class="tab-row">
-    <button class="tab-btn sel" id="tab-btn-gerar" onclick="showTab('gerar')">Gerar Vídeo</button>
+    <button class="tab-btn sel" id="tab-btn-gerar" onclick="showTab('gerar')">Gerar</button>
     <button class="tab-btn" id="tab-btn-thumb" onclick="showTab('thumb')">Thumbnail</button>
   </div>
 
   <!-- ABA GERAR -->
   <div id="tab-gerar">
-    <div class="layout">
 
-      <!-- COLUNA ESQUERDA -->
-      <div class="left-col">
+    <!-- Modelo -->
+    <div class="card">
+      <span class="slbl">Modelo de conteúdo</span>
+      <div class="model-grid">
+        <button class="model-card sel" id="m-animais" onclick="selModel('animais')">
+          <div class="mc-icon">🐾</div>
+          <div class="mc-name">Animal</div>
+          <div class="mc-desc">Field journal naturalista</div>
+        </button>
+        <button class="model-card" id="m-mente" onclick="selModel('mente')">
+          <div class="mc-icon">🧠</div>
+          <div class="mc-name">Mente</div>
+          <div class="mc-desc">Personagem azul 3D</div>
+        </button>
+      </div>
+    </div>
 
-        <div class="card">
-          <span class="slbl">Modelo de conteúdo</span>
-          <div class="model-grid">
-            <button class="model-card sel" id="m-animais" onclick="selModel('animais')">
-              <div class="mc-icon">🐾</div>
-              <div class="mc-name">Animal</div>
-              <div class="mc-desc">Field journal naturalista</div>
-            </button>
-            <button class="model-card" id="m-mente" onclick="selModel('mente')">
-              <div class="mc-icon">🧠</div>
-              <div class="mc-name">Mente</div>
-              <div class="mc-desc">Personagem azul 3D</div>
-            </button>
-          </div>
-        </div>
+    <!-- Formato -->
+    <div class="card">
+      <span class="slbl">Formato</span>
+      <div class="chips-row">
+        <button class="chip sel" id="f916" onclick="selChip('formato','9:16')">9:16</button>
+        <button class="chip" id="f169" onclick="selChip('formato','16:9')">16:9</button>
+        <button class="chip" id="f11" onclick="selChip('formato','1:1')">1:1</button>
+      </div>
+    </div>
 
-        <div class="card">
-          <span class="slbl">Formato</span>
-          <div class="chips-row">
-            <button class="chip sel" id="f916" onclick="selChip('formato','9:16')">9:16</button>
-            <button class="chip" id="f169" onclick="selChip('formato','16:9')">16:9</button>
-            <button class="chip" id="f11" onclick="selChip('formato','1:1')">1:1</button>
-          </div>
-        </div>
+    <!-- Script -->
+    <div class="card">
+      <div class="info-row">
+        <span class="slbl" style="margin:0">Script de narração</span>
+        <span id="char-count" style="font-size:11px;color:#555">0 palavras</span>
+      </div>
+      <textarea id="script-final" placeholder="Cole aqui o script completo da narração..." oninput="atualizarContador()"></textarea>
+    </div>
 
-        <div class="card">
-          <div class="info-row">
-            <span class="slbl" style="margin:0">Script de narração</span>
-            <span id="char-count" style="font-size:11px;color:#555">0 palavras</span>
-          </div>
-          <textarea id="script-final" placeholder="Cole aqui o script completo da narração..." oninput="atualizarContador(); salvarEstado();"></textarea>
-        </div>
+    <!-- Btn Prompts -->
+    <button class="btn" id="btn-prompts" onclick="gerarPrompts()" style="margin-bottom:12px">1. Gerar Prompts de Imagem</button>
 
-        <div class="btns-col">
-          <button class="btn" id="btn-prompts" onclick="gerarPrompts()">1. Gerar Prompts</button>
-          <button class="btn btn-sec" id="btn-narracao" onclick="gerarNarracao()" disabled>2. Gerar Narração</button>
-          <button class="btn btn-sec" id="btn-imagens" onclick="gerarImagens()" disabled>3. Gerar Imagens</button>
-        </div>
+    <!-- Prompts -->
+    <div id="section-prompts" style="display:none">
+      <div class="card">
+        <span class="slbl">Prompts de imagem</span>
+        <div id="prompts-list"></div>
+      </div>
+      <button class="btn" id="btn-imagens" onclick="gerarImagens()" style="margin-bottom:12px" disabled>2. Gerar Imagens</button>
+    </div>
 
-        <!-- Audio -->
-        <div id="section-narracao" class="card" style="display:none">
-          <span class="slbl">Narração gerada</span>
-          <audio id="audio-player" controls style="width:100%;margin-top:6px"></audio>
-        </div>
+    <!-- Steps -->
+    <div id="steps-card" class="card" style="display:none">
+      <div class="prog-bar"><div class="prog-fill" id="progress"></div></div>
+      <div class="step-item">
+        <div class="step-dot" id="s1">1</div>
+        <div><div class="step-label">Imagens - Leonardo</div><div class="step-msg" id="msg1">Aguardando...</div></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot" id="s2">2</div>
+        <div><div class="step-label">Narração - ElevenLabs</div><div class="step-msg" id="msg2">Aguardando...</div></div>
+      </div>
+      <div class="step-item">
+        <div class="step-dot" id="s3">3</div>
+        <div><div class="step-label">ZIP</div><div class="step-msg" id="msg3">Aguardando...</div></div>
+      </div>
+    </div>
 
-        <!-- Download -->
-        <button class="btn" id="btn-download" onclick="baixarZip()" style="display:none">⬇ Baixar Projeto (ZIP)</button>
+    <!-- Resultado -->
+    <div id="result-card" style="display:none">
+      <div id="section-narracao" class="card" style="display:none;margin-bottom:12px">
+        <span class="slbl">Narração gerada</span>
+        <audio id="audio-player" controls style="width:100%;margin-top:6px"></audio>
+      </div>
+      <div id="section-imagens" class="card" style="display:none;margin-bottom:12px">
+        <span class="slbl">Imagens geradas</span>
+        <div class="img-grid" id="image-grid"></div>
+      </div>
+      <button class="btn" id="btn-download" onclick="baixarZip()" style="display:none;margin-bottom:12px">⬇ Baixar Projeto (ZIP)</button>
+    </div>
 
-        <div style="text-align:center">
-          <button onclick="novoVideo()" style="background:transparent;border:1px solid #2a2a2a;border-radius:8px;padding:8px 20px;font-size:12px;color:#555;cursor:pointer;font-family:inherit">+ Novo Vídeo</button>
-        </div>
+    <!-- Novo vídeo -->
+    <div style="text-align:center;margin-top:8px">
+      <button onclick="novoVideo()" style="background:transparent;border:1px solid #2a2a2a;border-radius:8px;padding:8px 20px;font-size:12px;color:#555;cursor:pointer;font-family:inherit">+ Novo Vídeo</button>
+    </div>
 
-      </div><!-- /left-col -->
-
-      <!-- COLUNA DIREITA -->
-      <div class="right-col">
-
-        <!-- Prompts -->
-        <div id="section-prompts" class="card" style="display:none">
-          <span class="slbl">Prompts de imagem</span>
-          <div id="prompts-list"></div>
-        </div>
-
-        <!-- Steps -->
-        <div id="steps-card" class="card" style="display:none">
-          <div class="prog-bar"><div class="prog-fill" id="progress"></div></div>
-          <div class="step-item">
-            <div class="step-dot" id="s1">1</div>
-            <div><div class="step-label">Prompts</div><div class="step-msg" id="msg1">Aguardando...</div></div>
-          </div>
-          <div class="step-item">
-            <div class="step-dot" id="s2">2</div>
-            <div><div class="step-label">Imagens - Leonardo</div><div class="step-msg" id="msg2">Aguardando...</div></div>
-          </div>
-          <div class="step-item">
-            <div class="step-dot" id="s3">3</div>
-            <div><div class="step-label">Narração - ElevenLabs</div><div class="step-msg" id="msg3">Aguardando...</div></div>
-          </div>
-          <div class="step-item">
-            <div class="step-dot" id="s4">4</div>
-            <div><div class="step-label">ZIP</div><div class="step-msg" id="msg4">Aguardando...</div></div>
-          </div>
-        </div>
-
-        <!-- Imagens -->
-        <div id="section-imagens" class="card" style="display:none">
-          <span class="slbl">Imagens geradas</span>
-          <div class="img-grid" id="image-grid"></div>
-        </div>
-
-      </div><!-- /right-col -->
-    </div><!-- /layout -->
   </div><!-- /tab-gerar -->
 
   <!-- ABA THUMBNAIL -->
@@ -176,7 +158,7 @@ textarea:focus{outline:none;border-color:#E8593C}
     </div>
   </div>
 
-</div>
+</div><!-- /container -->
 
 <script>
 var state = {
@@ -187,12 +169,29 @@ var state = {
   narracao_session_id: null,
   zipPath: null
 };
+var _processando = false;
+
+function bloquearBotoes() {
+  _processando = true;
+  ['btn-prompts','btn-narracao','btn-imagens'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.style.pointerEvents = 'none';
+  });
+}
+
+function liberarBotoes() {
+  _processando = false;
+  ['btn-prompts','btn-narracao','btn-imagens'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.style.pointerEvents = '';
+  });
+}
 
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function showTab(tab) {
-  document.getElementById('tab-gerar').style.display = tab==='gerar'?'block':'none';
-  document.getElementById('tab-thumb').style.display = tab==='thumb'?'block':'none';
+  document.getElementById('tab-gerar').style.display = tab==='gerar' ? 'block' : 'none';
+  document.getElementById('tab-thumb').style.display = tab==='thumb' ? 'block' : 'none';
   document.getElementById('tab-btn-gerar').classList.toggle('sel', tab==='gerar');
   document.getElementById('tab-btn-thumb').classList.toggle('sel', tab==='thumb');
 }
@@ -210,7 +209,7 @@ function selChip(key, val) {
   var map = {'9:16':'f916','16:9':'f169','1:1':'f11'};
   Object.values(map).forEach(function(id){ var el=document.getElementById(id); if(el) el.classList.remove('sel'); });
   var selId = map[val];
-  if(selId){ var el=document.getElementById(selId); if(el) el.classList.add('sel'); }
+  if(selId) { var el=document.getElementById(selId); if(el) el.classList.add('sel'); }
   salvarEstado();
 }
 
@@ -224,24 +223,27 @@ function setBtnLoading(id, loading, normalText, loadingText) {
 function setStep(n, status, msg) {
   var dot = document.getElementById('s'+n);
   var msgEl = document.getElementById('msg'+n);
-  if(dot){
-    dot.className = 'step-dot'+(status==='done'?' done':status==='active'?' active':status==='error'?' error':'');
-    dot.textContent = status==='done'?'✓':String(n);
+  if(dot) {
+    dot.className = 'step-dot' + (status==='done' ? ' done' : status==='active' ? ' active' : status==='error' ? ' error' : '');
+    dot.textContent = status==='done' ? '✓' : String(n);
   }
   if(msgEl && msg) msgEl.textContent = msg;
 }
 
-function setP(pct){ var el=document.getElementById('progress'); if(el) el.style.width=pct+'%'; }
+function setP(pct) {
+  var el = document.getElementById('progress');
+  if(el) el.style.width = pct + '%';
+}
 
 function atualizarContador() {
   var sf = document.getElementById('script-final');
   var cc = document.getElementById('char-count');
-  if(!sf||!cc) return;
+  if(!sf || !cc) return;
   var txt = sf.value.trim();
   var palavras = txt ? txt.split(/\s+/).length : 0;
   var duracao_s = Math.round(palavras * 0.45);
   var n = Math.max(Math.round(duracao_s / 2), 0);
-  cc.textContent = palavras+' palavras · ~'+duracao_s+'s · '+n+' imagens';
+  cc.textContent = palavras + ' palavras · ~' + duracao_s + 's · ' + n + ' imagens';
 }
 
 function renderPrompts(prompts) {
@@ -250,11 +252,11 @@ function renderPrompts(prompts) {
   var html = '';
   prompts.forEach(function(p, i) {
     html += '<div class="prompt-item">'
-      +'<span class="prompt-num">'+(i+1)+'</span>'
-      +'<div style="flex:1">'
-      +'<textarea class="prompt-ta" id="pt'+i+'">'+esc(p)+'</textarea>'
-      +'<button class="regen-btn" onclick="regenPrompt('+i+')">↻ Regenerar</button>'
-      +'</div></div>';
+      + '<span class="prompt-num">' + (i+1) + '</span>'
+      + '<div style="flex:1">'
+      + '<textarea class="prompt-ta" id="pt'+i+'">' + esc(p) + '</textarea>'
+      + '<button class="regen-btn" onclick="regenPrompt('+i+')">↻ Regenerar</button>'
+      + '</div></div>';
   });
   el.innerHTML = html;
 }
@@ -263,22 +265,23 @@ function renderGrid(total) {
   var grid = document.getElementById('image-grid');
   if(!grid || grid.children.length) return;
   var html = '';
-  for(var i=0;i<total;i++){
+  for(var i=0;i<total;i++) {
     html += '<div class="img-cell" id="cell'+i+'"><img id="img-'+i+'"></div>';
   }
   grid.innerHTML = html;
 }
 
 async function gerarPrompts() {
-  var script = (document.getElementById('script-final')||{}).value||'';
-  if(!script.trim()){ alert('Cole o script primeiro'); return; }
-  setBtnLoading('btn-prompts', true, '1. Gerar Prompts', 'Gerando prompts...');
+  var script = (document.getElementById('script-final')||{}).value || '';
+  if(!script.trim()) { alert('Cole o script primeiro'); return; }
+  setBtnLoading('btn-prompts', true, '1. Gerar Prompts de Imagem', 'Gerando...');
   var palavras = script.trim().split(/\s+/).length;
   var duracao_s = Math.round(palavras * 0.45);
   var n_prompts = Math.max(Math.round(duracao_s / 2), 5);
   try {
     var r = await fetch('/gerar-prompts', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
       body: JSON.stringify({script:script, modelo:state.modelo, formato:state.formato, n_prompts:n_prompts, duracao:String(duracao_s)})
     });
     var d = await r.json();
@@ -286,38 +289,37 @@ async function gerarPrompts() {
     state.prompts = d.prompts || [];
     renderPrompts(state.prompts);
     document.getElementById('section-prompts').style.display = 'block';
-    document.getElementById('btn-narracao').disabled = false;
-    document.getElementById('btn-imagens').disabled = false;
+    var bi = document.getElementById('btn-imagens');
+    if(bi) { bi.disabled = false; }
     salvarEstado();
-  } catch(e){ alert('Erro ao gerar prompts: '+e.message); }
-  setBtnLoading('btn-prompts', false, '1. Gerar Prompts');
+  } catch(e) { alert('Erro ao gerar prompts: ' + e.message); }
+  setBtnLoading('btn-prompts', false, '1. Gerar Prompts de Imagem');
 }
 
-async function gerarNarracao() {
-  var script = (document.getElementById('script-final')||{}).value||'';
-  if(!script.trim()){ alert('Cole o script primeiro'); return; }
-  setBtnLoading('btn-narracao', true, '2. Gerar Narração', 'Gerando narração...');
+async function regenPrompt(i) {
+  var ta = document.getElementById('pt'+i);
+  if(!ta) return;
+  ta.disabled = true;
   try {
-    var resp = await fetch('/gerar-narracao-simples', {
+    var r = await fetch('/regenerar-prompt', {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({narracao_custom: script, modelo: state.modelo})
+      body: JSON.stringify({prompt_atual: ta.value, modelo: state.modelo})
     });
-    var d = await resp.json();
+    var d = await r.json();
     if(d.erro) throw new Error(d.erro);
-    state.sessionId = d.session_id;
-    state.narracao_session_id = d.session_id;
-    var ap = document.getElementById('audio-player');
-    if(ap) ap.src = d.audio_url + '?t=' + Date.now();
-    document.getElementById('section-narracao').style.display = 'block';
+    ta.value = d.prompt;
+    state.prompts[i] = d.prompt;
     salvarEstado();
-  } catch(e){ alert('Erro ao gerar narração: '+e.message); }
-  setBtnLoading('btn-narracao', false, '2. Gerar Narração');
+  } catch(e) { alert('Erro: ' + e.message); }
+  ta.disabled = false;
 }
 
 async function gerarImagens() {
+  // Captura edições nos prompts
   state.prompts.forEach(function(p,i){ var ta=document.getElementById('pt'+i); if(ta) state.prompts[i]=ta.value; });
-  var script = (document.getElementById('script-final')||{}).value||'';
+  var script = (document.getElementById('script-final')||{}).value || '';
   document.getElementById('steps-card').style.display = 'block';
+  document.getElementById('result-card').style.display = 'none';
   document.getElementById('btn-imagens').disabled = true;
   setP(5); setStep(1,'active','Iniciando...'); setStep(2,'','Aguardando...'); setStep(3,'','Aguardando...');
   try {
@@ -335,12 +337,12 @@ async function gerarImagens() {
     var reader = resp.body.getReader();
     var dec = new TextDecoder();
     var buf = '';
-    while(true){
+    while(true) {
       var res = await reader.read();
       if(res.done) break;
       buf += dec.decode(res.value, {stream:true});
       var lines = buf.split('\n'); buf = lines.pop();
-      lines.forEach(function(line){
+      lines.forEach(function(line) {
         line = line.trim();
         if(line.indexOf('data:') !== 0) return;
         try {
@@ -348,129 +350,82 @@ async function gerarImagens() {
           if(d.step) setStep(d.step, d.status, d.msg);
           if(d.progress !== undefined) setP(d.progress);
           if(d.session_id) state.sessionId = d.session_id;
-          if(d.imgs_total){ state.imgsTotal=d.imgs_total; renderGrid(d.imgs_total); document.getElementById('section-imagens').style.display='block'; }
-          if(d.img_idx !== undefined){
+          if(d.img_idx !== undefined) {
             var img = document.getElementById('img-'+d.img_idx);
-            if(img){ img.src='/imagem/'+state.sessionId+'/'+d.img_idx+'?t='+Date.now(); img.style.display='block'; }
+            if(img) { img.src = '/imagem/'+state.sessionId+'/'+d.img_idx+'?t='+Date.now(); img.style.display='block'; }
           }
-          if(d.audio_ok||d.narracao_ok){
+          if(d.imgs_total) {
+            renderGrid(d.imgs_total);
+            document.getElementById('section-imagens').style.display = 'block';
+            document.getElementById('result-card').style.display = 'block';
+          }
+          if(d.audio_ok || d.narracao_ok) {
             var ap = document.getElementById('audio-player');
-            if(ap && state.sessionId) ap.src='/audio/'+state.sessionId+'?t='+Date.now();
-            document.getElementById('section-narracao').style.display='block';
+            if(ap && state.sessionId) ap.src = '/audio/'+state.sessionId+'?t='+Date.now();
+            document.getElementById('section-narracao').style.display = 'block';
+            document.getElementById('result-card').style.display = 'block';
           }
-          if(d.erro){ alert('Erro: '+d.erro); }
-          if(d.zip||d.done){
+          if(d.zip || d.done) {
             if(d.zip) state.zipPath = d.zip;
-            document.getElementById('btn-download').style.display='block';
+            document.getElementById('btn-download').style.display = 'block';
+            document.getElementById('result-card').style.display = 'block';
             salvarEstado();
           }
-        } catch(ex){ console.log('SSE:', line); }
+        } catch(ex) { console.log('SSE parse:', line); }
       });
     }
-  } catch(e){ alert('Erro ao gerar: '+e.message); }
+  } catch(e) { alert('Erro ao gerar: ' + e.message); }
   document.getElementById('btn-imagens').disabled = false;
+  liberarBotoes();
 }
 
-async function regenPrompt(i) {
-  var ta = document.getElementById('pt'+i);
-  if(!ta) return;
-  ta.disabled = true;
-  try {
-    var r = await fetch('/regenerar-prompt', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({prompt_atual: ta.value, modelo: state.modelo})
-    });
-    var d = await r.json();
-    if(d.erro) throw new Error(d.erro);
-    ta.value = d.prompt;
-    state.prompts[i] = d.prompt;
-    salvarEstado();
-  } catch(e){ alert('Erro: '+e.message); }
-  ta.disabled = false;
-}
-
-function baixarZip(){
+function baixarZip() {
   if(state.sessionId) window.open('/download?session_id='+state.sessionId);
 }
 
-function salvarEstado(){
-  try{
-    var script = (document.getElementById('script-final')||{}).value || '';
-    state.imgsTotal = state.imgsTotal || 0;
-    localStorage.setItem('yt_v2', JSON.stringify(state));
-    if(script) localStorage.setItem('yt_script', script);
-  }catch(e){}
+function salvarEstado() {
+  try { localStorage.setItem('yt_v2', JSON.stringify(state)); } catch(e){}
 }
 
-function restaurarEstado(){
-  try{
+function restaurarEstado() {
+  try {
     var s = JSON.parse(localStorage.getItem('yt_v2')||'null');
     if(!s) return;
-    // Restaura modelo e formato
     if(s.modelo) selModel(s.modelo);
     if(s.formato) selChip('formato', s.formato);
-    // Restaura script
-    var script = localStorage.getItem('yt_script') || '';
-    if(script){
-      var sf = document.getElementById('script-final');
-      if(sf){ sf.value = script; atualizarContador(); }
-    }
-    // Restaura prompts
-    if(s.prompts && s.prompts.length){
+    if(s.prompts && s.prompts.length) {
       state.prompts = s.prompts;
       renderPrompts(s.prompts);
-      document.getElementById('section-prompts').style.display='block';
-      document.getElementById('btn-narracao').disabled = false;
-      document.getElementById('btn-imagens').disabled = false;
+      document.getElementById('section-prompts').style.display = 'block';
+      var bi = document.getElementById('btn-imagens');
+      if(bi) bi.disabled = false;
     }
-    // Restaura sessão e audio
-    if(s.sessionId){
-      state.sessionId = s.sessionId;
-      state.narracao_session_id = s.narracao_session_id;
-      // Restaura player de audio se sessao existe
-      var ap = document.getElementById('audio-player');
-      if(ap && s.narracao_session_id){
-        ap.src = '/audio/'+s.narracao_session_id+'?t='+Date.now();
-        document.getElementById('section-narracao').style.display='block';
-      }
-      // Restaura imagens geradas
-      if(s.imgsTotal){
-        renderGrid(s.imgsTotal);
-        document.getElementById('section-imagens').style.display='block';
-        for(var i=0;i<s.imgsTotal;i++){
-          var img = document.getElementById('img-'+i);
-          if(img){ img.src='/imagem/'+s.sessionId+'/'+i+'?t='+Date.now(); img.style.display='block'; }
-        }
-      }
-    }
-    // Restaura download
-    if(s.zipPath){
+    if(s.sessionId) state.sessionId = s.sessionId;
+    if(s.narracao_session_id) state.narracao_session_id = s.narracao_session_id;
+    if(s.zipPath) {
       state.zipPath = s.zipPath;
-      document.getElementById('btn-download').style.display='block';
-      document.getElementById('result-card') && (document.getElementById('result-card').style.display='block');
+      document.getElementById('btn-download').style.display = 'block';
+      document.getElementById('result-card').style.display = 'block';
     }
-  }catch(e){ console.log('restaurar:',e); }
+  } catch(e) { console.log('restaurar:', e); }
 }
 
-function novoVideo(){
-  if(!confirm('Iniciar novo vídeo? O progresso será perdido.')) return;
+function novoVideo() {
+  if(!confirm('Iniciar novo vídeo? O progresso atual será perdido.')) return;
   localStorage.removeItem('yt_v2');
-  state={modelo:'animais',formato:'9:16',prompts:[],sessionId:null,narracao_session_id:null,zipPath:null};
-  document.getElementById('script-final').value='';
-  document.getElementById('section-prompts').style.display='none';
-  document.getElementById('steps-card').style.display='none';
-  document.getElementById('section-imagens').style.display='none';
-  document.getElementById('section-narracao').style.display='none';
-  document.getElementById('btn-download').style.display='none';
-  document.getElementById('image-grid').innerHTML='';
-  document.getElementById('btn-narracao').disabled=true;
-  document.getElementById('btn-imagens').disabled=true;
+  state = {modelo:'animais', formato:'9:16', prompts:[], sessionId:null, narracao_session_id:null, zipPath:null};
+  document.getElementById('script-final').value = '';
+  document.getElementById('section-prompts').style.display = 'none';
+  document.getElementById('steps-card').style.display = 'none';
+  document.getElementById('result-card').style.display = 'none';
+  document.getElementById('btn-download').style.display = 'none';
+  document.getElementById('image-grid').innerHTML = '';
   atualizarContador();
   selModel('animais');
   selChip('formato','9:16');
 }
 
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('DOMContentLoaded', function() {
   restaurarEstado();
   atualizarContador();
 });
