@@ -1326,13 +1326,14 @@ def gerar_narracao_simples():
         narracao_txt = data.get('narracao_custom', '').strip()
         if not narracao_txt:
             return jsonify({'erro': 'Texto vazio'}), 400
+        import uuid as _uuid2
+        session_id = str(_uuid2.uuid4())
+        sessions[session_id] = {'audio': None, 'imagens': {}, 'prompts': [], 'created_at': time.time()}
         print(f"NARRACAO: voice={ELEVENLABS_VOICE} chars={len(narracao_txt)}")
-        audio_data, audio_service = gerar_audio(narracao_txt, 'nar')
+        audio_data, audio_service = gerar_audio(narracao_txt, session_id)
         if not audio_data:
             return jsonify({'erro': 'ElevenLabs nao retornou audio'}), 500
-        import uuid as _uuid
-        session_id = str(_uuid.uuid4())
-        sessions[session_id] = {'audio': audio_data, 'imagens': {}, 'prompts': [], 'created_at': time.time()}
+        sessions[session_id]['audio'] = audio_data
         try:
             with open(f'/tmp/narracao_{session_id}.mp3', 'wb') as f:
                 f.write(audio_data)
