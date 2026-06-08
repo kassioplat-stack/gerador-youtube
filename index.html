@@ -110,8 +110,7 @@ textarea:focus{outline:none;border-color:#E8593C}
         <span class="slbl">Prompts de imagem</span>
         <div id="prompts-list"></div>
       </div>
-      <button class="btn" id="btn-narracao" onclick="gerarNarracao()" style="margin-bottom:12px" disabled>2. Gerar Narração</button>
-      <button class="btn" id="btn-imagens" onclick="gerarImagens()" style="margin-bottom:12px" disabled>3. Gerar Imagens + ZIP</button>
+      <button class="btn" id="btn-imagens" onclick="gerarImagens()" style="margin-bottom:12px" disabled>2. Gerar Imagens</button>
     </div>
 
     <!-- Steps -->
@@ -119,11 +118,11 @@ textarea:focus{outline:none;border-color:#E8593C}
       <div class="prog-bar"><div class="prog-fill" id="progress"></div></div>
       <div class="step-item">
         <div class="step-dot" id="s1">1</div>
-        <div><div class="step-label">Narração - ElevenLabs</div><div class="step-msg" id="msg1">Aguardando...</div></div>
+        <div><div class="step-label">Imagens - Leonardo</div><div class="step-msg" id="msg1">Aguardando...</div></div>
       </div>
       <div class="step-item">
         <div class="step-dot" id="s2">2</div>
-        <div><div class="step-label">Imagens - Leonardo</div><div class="step-msg" id="msg2">Aguardando...</div></div>
+        <div><div class="step-label">Narração - ElevenLabs</div><div class="step-msg" id="msg2">Aguardando...</div></div>
       </div>
       <div class="step-item">
         <div class="step-dot" id="s3">3</div>
@@ -275,8 +274,6 @@ async function gerarPrompts() {
     document.getElementById('section-prompts').style.display = 'block';
     var bi = document.getElementById('btn-imagens');
     if(bi) { bi.disabled = false; }
-    var bn = document.getElementById('btn-narracao');
-    if(bn) { bn.disabled = false; }
     salvarEstado();
   } catch(e) { alert('Erro ao gerar prompts: ' + e.message); }
   setBtnLoading('btn-prompts', false, '1. Gerar Prompts de Imagem');
@@ -300,52 +297,6 @@ async function regenPrompt(i) {
   ta.disabled = false;
 }
 
-async function gerarNarracao() {
-  var script = (document.getElementById('script-final')||{}).value || '';
-  if(!script.trim()) { alert('Cole o script primeiro'); return; }
-  setBtnLoading('btn-narracao', true, '2. Gerar Narração', 'Gerando narração...');
-  document.getElementById('steps-card').style.display = 'block';
-  setStep(1,'active','Gerando com ElevenLabs...'); setStep(2,'','Aguardando...'); setStep(3,'','Aguardando...');
-  setP(10);
-  try {
-    var resp = await fetch('/narracao', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({narracao_custom: script, modelo: state.modelo, so_audio: true})
-    });
-    var reader = resp.body.getReader();
-    var dec = new TextDecoder();
-    var buf = '';
-    while(true) {
-      var res = await reader.read();
-      if(res.done) break;
-      buf += dec.decode(res.value, {stream:true});
-      var lines = buf.split('\n'); buf = lines.pop();
-      lines.forEach(function(line) {
-        line = line.trim();
-        if(line.indexOf('data:') !== 0) return;
-        try {
-          var d = JSON.parse(line.slice(5));
-          if(d.session_id) state.narracao_session_id = d.session_id;
-          if(d.audio_ok) {
-            var ap = document.getElementById('audio-player');
-            if(ap && state.narracao_session_id) ap.src = '/audio/'+state.narracao_session_id+'?t='+Date.now();
-            document.getElementById('section-narracao').style.display = 'block';
-            document.getElementById('result-card').style.display = 'block';
-            setStep(1,'done','Narração gerada!');
-            setP(33);
-            salvarEstado();
-          }
-          if(d.erro) { setStep(1,'error',d.erro); alert('Erro: ' + d.erro); }
-        } catch(ex) {}
-      });
-    }
-  } catch(e) {
-    setStep(1,'error','Erro: ' + e.message);
-    alert('Erro ao gerar narração: ' + e.message);
-  }
-  setBtnLoading('btn-narracao', false, '2. Gerar Narração');
-}
-
 async function gerarImagens() {
   // Captura edições nos prompts
   state.prompts.forEach(function(p,i){ var ta=document.getElementById('pt'+i); if(ta) state.prompts[i]=ta.value; });
@@ -353,7 +304,7 @@ async function gerarImagens() {
   document.getElementById('steps-card').style.display = 'block';
   document.getElementById('result-card').style.display = 'none';
   document.getElementById('btn-imagens').disabled = true;
-  setP(5); setStep(1,'',''); setStep(2,'active','Iniciando Leonardo...'); setStep(3,'','Aguardando...');
+  setP(5); setStep(1,'active','Iniciando...'); setStep(2,'','Aguardando...'); setStep(3,'','Aguardando...');
   try {
     var resp = await fetch('/narracao', {
       method:'POST', headers:{'Content-Type':'application/json'},
@@ -406,7 +357,7 @@ async function gerarImagens() {
         } catch(ex) { console.log('SSE parse:', line); }
       });
     }
-  } catch(e) { alert('Erro ao gerar imagens: ' + e.message); }
+  } catch(e) { alert('Erro ao gerar: ' + e.message); }
   document.getElementById('btn-imagens').disabled = false;
 }
 
@@ -430,8 +381,6 @@ function restaurarEstado() {
       document.getElementById('section-prompts').style.display = 'block';
       var bi = document.getElementById('btn-imagens');
       if(bi) bi.disabled = false;
-      var bn = document.getElementById('btn-narracao');
-      if(bn) bn.disabled = false;
     }
     if(s.sessionId) state.sessionId = s.sessionId;
     if(s.narracao_session_id) state.narracao_session_id = s.narracao_session_id;
