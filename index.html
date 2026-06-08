@@ -104,7 +104,7 @@ textarea:focus{outline:none;border-color:#E8593C}
             <span class="slbl" style="margin:0">Script de narração</span>
             <span id="char-count" style="font-size:11px;color:#555">0 palavras</span>
           </div>
-          <textarea id="script-final" placeholder="Cole aqui o script completo da narração..." oninput="atualizarContador()"></textarea>
+          <textarea id="script-final" placeholder="Cole aqui o script completo da narração..." oninput="atualizarContador(); salvarEstado();"></textarea>
         </div>
 
         <div class="btns-col">
@@ -363,7 +363,7 @@ async function gerarImagens() {
           if(d.step) setStep(d.step, d.status, d.msg);
           if(d.progress !== undefined) setP(d.progress);
           if(d.session_id) state.sessionId = d.session_id;
-          if(d.imgs_total){ renderGrid(d.imgs_total); document.getElementById('section-imagens').style.display='block'; }
+          if(d.imgs_total){ state.imgsTotal=d.imgs_total; renderGrid(d.imgs_total); document.getElementById('section-imagens').style.display='block'; }
           if(d.img_idx !== undefined){
             var img = document.getElementById('img-'+d.img_idx);
             if(img){ img.src='/imagem/'+state.sessionId+'/'+d.img_idx+'?t='+Date.now(); img.style.display='block'; }
@@ -409,15 +409,28 @@ function baixarZip(){
 }
 
 function salvarEstado(){
-  try{ localStorage.setItem('yt_v2', JSON.stringify(state)); }catch(e){}
+  try{
+    var script = (document.getElementById('script-final')||{}).value || '';
+    state.imgsTotal = state.imgsTotal || 0;
+    localStorage.setItem('yt_v2', JSON.stringify(state));
+    if(script) localStorage.setItem('yt_script', script);
+  }catch(e){}
 }
 
 function restaurarEstado(){
   try{
     var s = JSON.parse(localStorage.getItem('yt_v2')||'null');
     if(!s) return;
+    // Restaura modelo e formato
     if(s.modelo) selModel(s.modelo);
     if(s.formato) selChip('formato', s.formato);
+    // Restaura script
+    var script = localStorage.getItem('yt_script') || '';
+    if(script){
+      var sf = document.getElementById('script-final');
+      if(sf){ sf.value = script; atualizarContador(); }
+    }
+    // Restaura prompts
     if(s.prompts && s.prompts.length){
       state.prompts = s.prompts;
       renderPrompts(s.prompts);
@@ -425,8 +438,32 @@ function restaurarEstado(){
       document.getElementById('btn-narracao').disabled = false;
       document.getElementById('btn-imagens').disabled = false;
     }
-    if(s.sessionId){ state.sessionId=s.sessionId; state.narracao_session_id=s.narracao_session_id; }
-    if(s.zipPath){ state.zipPath=s.zipPath; document.getElementById('btn-download').style.display='block'; }
+    // Restaura sessão e audio
+    if(s.sessionId){
+      state.sessionId = s.sessionId;
+      state.narracao_session_id = s.narracao_session_id;
+      // Restaura player de audio se sessao existe
+      var ap = document.getElementById('audio-player');
+      if(ap && s.narracao_session_id){
+        ap.src = '/audio/'+s.narracao_session_id+'?t='+Date.now();
+        document.getElementById('section-narracao').style.display='block';
+      }
+      // Restaura imagens geradas
+      if(s.imgsTotal){
+        renderGrid(s.imgsTotal);
+        document.getElementById('section-imagens').style.display='block';
+        for(var i=0;i<s.imgsTotal;i++){
+          var img = document.getElementById('img-'+i);
+          if(img){ img.src='/imagem/'+s.sessionId+'/'+i+'?t='+Date.now(); img.style.display='block'; }
+        }
+      }
+    }
+    // Restaura download
+    if(s.zipPath){
+      state.zipPath = s.zipPath;
+      document.getElementById('btn-download').style.display='block';
+      document.getElementById('result-card') && (document.getElementById('result-card').style.display='block');
+    }
   }catch(e){ console.log('restaurar:',e); }
 }
 
