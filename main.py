@@ -652,6 +652,7 @@ def gerar():
         data.get('caso3', {}).get('prompts', []) +
         data.get('prompts_final', [])
     )
+    modelo = data.get('modelo', 'animais')
 
     session_id = str(__import__('uuid').uuid4())
 
@@ -1371,15 +1372,17 @@ def corrigir_dim_thumbnail():
 
 @app.route('/gerar-narracao-simples', methods=['POST'])
 def gerar_narracao_simples():
-    print(f"NARRACAO SIMPLES REQUEST: content_type={request.content_type}")
-    data = request.get_json(force=True, silent=True) or {}
-    print(f"NARRACAO SIMPLES DATA keys: {list(data.keys())}")
-    narracao_txt = data.get('narracao_custom', '').strip()
-    if not narracao_txt:
-        return jsonify({'erro': 'Texto vazio', 'data_recebido': str(data)[:200]}), 400
-    print(f"NARRACAO SIMPLES: {len(narracao_txt)} chars, voice={ELEVENLABS_VOICE}")
+    import traceback as _tb
     try:
+        print(f"NARRACAO SIMPLES: content_type={request.content_type}")
+        data = request.get_json(force=True, silent=True) or {}
+        print(f"NARRACAO SIMPLES: keys={list(data.keys())} narracao_size={len(data.get('narracao_custom',''))}")
+        narracao_txt = data.get('narracao_custom', '').strip()
+        if not narracao_txt:
+            return jsonify({'erro': 'Texto vazio'}), 400
+        print(f"NARRACAO SIMPLES: chamando ElevenLabs voice={ELEVENLABS_VOICE} chars={len(narracao_txt)}")
         audio_data, audio_service = gerar_audio(narracao_txt, 'temp')
+        print(f"NARRACAO SIMPLES: audio_service={audio_service} bytes={len(audio_data) if audio_data else 0}")
         if not audio_data:
             return jsonify({'erro': 'ElevenLabs nao retornou audio'}), 500
         session_id = str(__import__('uuid').uuid4())
@@ -1388,9 +1391,8 @@ def gerar_narracao_simples():
             f.write(audio_data)
         return jsonify({'ok': True, 'session_id': session_id, 'audio_url': f'/audio/{session_id}'})
     except Exception as e:
-        import traceback
-        print(f"ERRO NARRACAO: {traceback.format_exc()}")
-        return jsonify({'erro': str(e)}), 500
+        print(f"ERRO NARRACAO SIMPLES: {_tb.format_exc()}")
+        return jsonify({'erro': str(e), 'traceback': _tb.format_exc()[-500:]}), 500
 
 @app.route('/testar-elevenlabs')
 def testar_elevenlabs():
