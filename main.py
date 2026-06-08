@@ -4,20 +4,6 @@ from flask import Flask, request, jsonify, send_file, Response
 
 app = Flask(__name__)
 
-@app.errorhandler(500)
-def erro_500(e):
-    import traceback
-    tb = traceback.format_exc()
-    print(f"ERRO 500: {tb}")
-    return __import__('flask').jsonify({'erro': str(e), 'traceback': tb[-500:]}), 500
-
-@app.errorhandler(Exception)
-def erro_geral(e):
-    import traceback
-    tb = traceback.format_exc()
-    print(f"ERRO GERAL: {tb}")
-    return __import__('flask').jsonify({'erro': str(e)}), 500
-
 CLAUDE_KEY     = os.environ.get("CLAUDE_API_KEY", "")
 LEONARDO_KEY   = os.environ.get("LEONARDO_API_KEY", "")
 ELEVENLABS_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
@@ -29,25 +15,15 @@ def limpar_sessions_antigas():
     agora = time.time()
     para_remover = []
     for k, v in list(sessions.items()):
-        created = v.get('created_at', 0) if isinstance(v, dict) else 0
+        created = v.get('created_at', agora) if isinstance(v, dict) else agora
         if agora - created > 7200:
             para_remover.append(k)
     for k in para_remover:
-        s = sessions.pop(k, {})
-        # Limpa arquivos /tmp/ associados
-        try:
-            import glob
-            for f in glob.glob(f'/tmp/{k}_*.jpg'):
-                os.remove(f)
-            zip_path = f'/tmp/video_{k}.zip'
-            if os.path.exists(zip_path):
-                os.remove(zip_path)
-        except: pass
+        sessions.pop(k, None)
 
 HISTORICO_FILE = "historico.json"
 
 _historico_cache = None
-_historico_lock = __import__('threading').Lock()
 
 def carregar_historico():
     global _historico_cache
@@ -84,10 +60,23 @@ def animais_recentes():
     return recentes
 
 ESTILO_ANIMAL = (
-    "hand-drawn naturalist field journal, black ink sketch, loose pencil lines, "
-    "rough crosshatching, white background, watercolor accents, "
-    "scientific notebook style, authentic hand-drawn illustration, "
-    "no text, no labels, no typography"
+    "Hand-drawn wildlife field journal illustration, white background, clean negative space, "
+    "black ink sketch, loose pencil construction lines still visible, observational drawing style, "
+    "naturalist notebook aesthetic, imperfect human-made strokes, rough crosshatching, messy linework, "
+    "unfinished sketch areas, authentic pen-and-pencil texture. "
+    "COMPOSITION: Main scene in the center occupying 70% of the canvas, several small observational "
+    "studies around the borders, close-up animal face sketches, object studies, alternative poses, "
+    "visual arrows only, no text, no labels, no typography. "
+    "ART STYLE: looks like a researcher quickly documenting a strange animal behavior in a field notebook, "
+    "not polished, not commercial, not concept art, not digital painting, not comic book, not cartoon. "
+    "LINES: scratchy pen lines, visible sketch construction, overlapping strokes, anatomical corrections "
+    "visible, scribbles, exploration marks, human drawing mistakes. "
+    "COLOR: mostly black ink, selective muted watercolor accents, very limited color palette, white paper dominates. "
+    "MOOD: scientific curiosity, observed behavior, rare discovery, natural history illustration. "
+    "AVOID: AI-generated look, perfect anatomy, perfect perspective, symmetry, graphic design, typography, "
+    "photorealism, 3D rendering, smooth digital painting, corporate illustration. "
+    "KEYWORDS: field journal, naturalist sketchbook, wildlife observation, scientific notebook, "
+    "pen and ink, crosshatching, rough sketch, white background, behavioral observation, authentic hand-drawn illustration."
 )
 
 # Mantido para compatibilidade — nao usado
@@ -489,12 +478,9 @@ def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-6")
                 tipo = resp["error"].get("type", "unknown")
                 msg = resp["error"].get("message", str(resp["error"]))
                 raise Exception(f"API error [{tipo}]: {msg}")
-            if not resp.get("content"):
+            if "content" not in resp:
                 raise Exception(f"Resposta inesperada da API: {str(resp)[:200]}")
-            content_list = resp["content"]
-            if not content_list or "text" not in content_list[0]:
-                raise Exception(f"Content sem texto: {str(resp)[:200]}")
-            text = content_list[0]["text"]
+            text = resp["content"][0]["text"]
             text = re.sub(r"```json|```", "", text).strip()
             text = re.sub(r',\s*([}\]])', r'\1', text)
             return text
@@ -514,32 +500,24 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game", modelo="an
             r = requests.post(
                 "https://cloud.leonardo.ai/api/rest/v1/generations",
                 headers={"authorization": f"Bearer {LEONARDO_KEY}", "content-type": "application/json"},
-                json={"prompt": (prompt + ", " + sufixo)[:900], "width": dims["width"], "height": dims["height"], "num_images": 1, "negative_prompt": "blurry, low quality, distorted, ugly, watermark, text, humans, cartoon, anime, deformed", "guidance_scale": 7},
+                json={"prompt": prompt + ", " + sufixo, "modelId": "7b592283-e8a7-4c5a-9ba6-d18c31f258b9",
+                      "width": dims["width"], "height": dims["height"], "num_images": 1, "guidance_scale": 10,
+                      "negative_prompt": "blurry, low quality, distorted, ugly, watermark, text, humans, human hands, multiple animals, cartoon, anime, deformed", "guidance_scale": 7},
                 timeout=40
             )
-            if r.status_code != 200:
-                raise Exception(f"Leonardo HTTP {r.status_code}: {r.text[:200]}")
             data = r.json()
             if "sdGenerationJob" not in data:
                 raise Exception(f"Leonardo erro: {data}")
             gen_id = data["sdGenerationJob"]["generationId"]
-            for poll_i in range(80):
+            for _ in range(50):
                 time.sleep(3)
                 r2 = requests.get(f"https://cloud.leonardo.ai/api/rest/v1/generations/{gen_id}",
                                   headers={"authorization": f"Bearer {LEONARDO_KEY}"}, timeout=15)
-                r2_data = r2.json()
-                gen_data = r2_data.get("generations_by_pk", {})
-                status = gen_data.get("status", "")
-                imgs = gen_data.get("generated_images", [])
+                imgs = r2.json().get("generations_by_pk", {}).get("generated_images", [])
                 if imgs:
                     return requests.get(imgs[0]["url"], timeout=20).content
-                if status == "FAILED":
-                    raise Exception(f"Leonardo FAILED: {r2_data}")
-                if poll_i == 0:
-                    print(f"POLL STATUS: {status}, data: {str(r2_data)[:200]}")
-            raise Exception(f"Timeout apos 240s. gen_id={gen_id}")
+            raise Exception("Timeout")
         except Exception as e:
-            print(f"Leonardo tentativa {tentativa+1} erro: {str(e)[:200]}")
             if tentativa == 2:
                 raise
             time.sleep(5)
@@ -547,7 +525,6 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game", modelo="an
 def gerar_audio(narracao_txt, session_id):
     audio_data = None
     audio_service = ''
-    print(f"ELEVENLABS: chamando voice_id={ELEVENLABS_VOICE} session={session_id} texto={len(narracao_txt)} chars")
     try:
         if ELEVENLABS_KEY:
             r = requests.post(
@@ -556,18 +533,25 @@ def gerar_audio(narracao_txt, session_id):
                 json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.75, 'similarity_boost': 0.75, 'style': 0.0, 'use_speaker_boost': True}},
                 timeout=60
             )
-            print(f"ELEVENLABS: status={r.status_code} bytes={len(r.content)}")
             if r.status_code == 200 and len(r.content) > 100:
                 audio_data = r.content
                 audio_service = 'ElevenLabs'
             else:
-                print(f"ELEVENLABS ERRO: status={r.status_code} response={r.text[:300]}")
-        else:
-            print("ELEVENLABS: ELEVENLABS_KEY vazia — pulando")
+                print(f"ElevenLabs status={r.status_code} bytes={len(r.content)}")
     except Exception as e:
-        print(f"ELEVENLABS EXCECAO: {e}")
+        print(f"ElevenLabs erro: {e}")
 
-    # Sem fallback — se ElevenLabs falhar, audio fica None e o erro aparece no log
+    if not audio_data:
+        try:
+            from gtts import gTTS
+            import io
+            tts = gTTS(narracao_txt, lang='pt')
+            buf = io.BytesIO()
+            tts.write_to_fp(buf)
+            audio_data = buf.getvalue()
+            audio_service = 'gTTS'
+        except Exception as e:
+            print(f"gTTS erro: {e}")
 
     if audio_data:
         sessions[session_id]['audio'] = audio_data
@@ -652,16 +636,12 @@ def gerar():
         data.get('caso3', {}).get('prompts', []) +
         data.get('prompts_final', [])
     )
-    modelo = data.get('modelo', 'animais')
 
-    session_id = str(__import__('uuid').uuid4())
-
-    print(f'REQUEST: so_audio={so_audio}, narracao_txt_size={len(narracao_txt)}, prompts={len(prompts)}')
+    session_id = str(int(time.time()))
 
     def stream():
-        print(f'STREAM: so_audio={so_audio}, prompts={len(prompts)}, narracao_session_id={narracao_session_id}')
-        sessions[session_id] = {'imagens': {}, 'prompts': prompts, 'audio': None, 'created_at': __import__('time').time()}
-        yield 'data:' + json.dumps({'session_id': session_id, 'imgs_total': len(prompts)}) + '\n\n'
+        sessions[session_id] = {'imagens': {}, 'prompts': prompts, 'audio': None}
+        yield 'data:' + json.dumps({'session_id': session_id}) + '\n\n'
         # Modo so_audio — pula imagens e gera apenas audio
         if so_audio:
             try:
@@ -674,64 +654,52 @@ def gerar():
             except Exception as e:
                 yield 'data:' + json.dumps({'erro': str(e)}) + '\n\n'
             return
-        yield 'data:' + json.dumps({'step': 1, 'status': 'done', 'msg': 'Prompts recebidos', 'progress': 15}) + '\n\n'
+        yield 'data:' + json.dumps({'step': 1, 'status': 'done', 'msg': 'Roteiro aprovado', 'progress': 15}) + '\n\n'
 
         yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': 'Gerando imagens...', 'progress': 18}) + '\n\n'
         erros = []
-        resultados = {}
-        # Geração paralela com ThreadPoolExecutor (máx 3 workers para não sobrecarregar API)
-        from concurrent.futures import ThreadPoolExecutor, as_completed
-        def gerar_uma(args):
-            i, prompt = args
-            return i, leonardo_generate(prompt, formato, estilo, modelo)
-
-        with ThreadPoolExecutor(max_workers=3) as executor:
-            futures = {executor.submit(gerar_uma, (i, p)): i for i, p in enumerate(prompts)}
-            concluidos = 0
-            for future in as_completed(futures):
-                concluidos += 1
-                try:
-                    i, img = future.result()
-                    num = str(i + 1).zfill(2)
-                    sessions[session_id]['imagens'][i] = img
-                    img_path = f'/tmp/{session_id}_{i}.jpg'
-                    with open(img_path, 'wb') as f_img:
-                        f_img.write(img)
-                    pct = 18 + int(concluidos / max(len(prompts), 1) * 50)
-                    yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num}/{len(prompts)} ok', 'progress': pct, 'img_idx': i, 'imgs_total': len(prompts)}) + '\n\n'
-                except Exception as e:
-                    i = futures[future]
-                    num = str(i + 1).zfill(2)
-                    erros.append(num)
-                    erro_msg = str(e)[:80]
-                    print(f"ERRO IMAGEM {num}: {erro_msg}")
-                    pct = 18 + int(concluidos / max(len(prompts), 1) * 50)
-                    yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num} falhou: {erro_msg}', 'progress': pct}) + '\n\n'
+        for i, prompt in enumerate(prompts):
+            num = str(i + 1).zfill(2)
+            try:
+                img = leonardo_generate(prompt, formato, estilo, modelo)
+                sessions[session_id]['imagens'][i] = img
+                img_path = f'/tmp/{session_id}_{i}.jpg'
+                with open(img_path, 'wb') as f_img:
+                    f_img.write(img)
+                pct = 18 + int((i + 1) / max(len(prompts), 1) * 50)
+                yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num}/{len(prompts)} ok', 'progress': pct}) + '\n\n'
+            except Exception as e:
+                erros.append(num)
+                erro_msg = str(e)[:80]
+                print(f"ERRO IMAGEM {num}: {erro_msg}")
+                yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num} falhou: {erro_msg}', 'progress': 18 + int((i + 1) / max(len(prompts), 1) * 50)}) + '\n\n'
 
         msg_imgs = f"{len(sessions[session_id]['imagens'])}/{len(prompts)} imagens geradas"
         if erros:
             msg_imgs += f" (falharam: {', '.join(erros)})"
         yield 'data:' + json.dumps({'step': 2, 'status': 'done', 'msg': msg_imgs, 'progress': 70}) + '\n\n'
+        yield 'data:' + json.dumps({'imgs_total': len(prompts)}) + '\n\n'
 
         # Reutiliza áudio já gerado ou gera novo
         yield 'data:' + json.dumps({'step': 3, 'status': 'active', 'msg': 'Preparando narracao...', 'progress': 72}) + '\n\n'
         audio_data = None
         audio_service = ''
 
-        # Tenta reutilizar narração já gerada — APENAS se audio existe em memória
-        # Não reutiliza de disco (arquivo pode ter sumido com restart do Render)
+        # Tenta reutilizar narração já gerada
         if narracao_session_id:
             s = sessions.get(narracao_session_id)
             if s and s.get('audio'):
                 audio_data = s['audio']
                 audio_service = 'reutilizado'
-                print(f"AUDIO: reutilizando sessao {narracao_session_id}")
             else:
-                # Sessão não existe mais em memória — gera novo áudio
-                print(f"AUDIO: sessao {narracao_session_id} nao encontrada em memoria, gerando novo")
-                audio_data, audio_service = gerar_audio(narracao_txt, session_id)
-        else:
-            # Sem narracao_session_id — sempre gera novo
+                audio_path = f'/tmp/narracao_{narracao_session_id}.mp3'
+                if os.path.exists(audio_path):
+                    with open(audio_path, 'rb') as fa:
+                        audio_data = fa.read()
+                    audio_service = 'disco'
+
+        # Gera nova narracao APENAS se nao foi gerada no passo 2
+        if not audio_data and narracao_session_id is None:
             audio_data, audio_service = gerar_audio(narracao_txt, session_id)
 
         sessions[session_id]['audio'] = audio_data
@@ -739,7 +707,7 @@ def gerar():
         msg_audio = f'Narracao via {audio_service}' if audio_data else 'Erro na narracao'
         yield 'data:' + json.dumps({'step': 3, 'status': status_audio, 'msg': msg_audio, 'progress': 88}) + '\n\n'
         if audio_data:
-            yield 'data:' + json.dumps({'audio_ok': True, 'narracao_ok': True, 'audio_url': f'/audio/{session_id}'}) + '\n\n'
+            yield 'data:' + json.dumps({'audio_url': f'/audio/{session_id}'}) + '\n\n'
 
         yield 'data:' + json.dumps({'step': 4, 'status': 'active', 'msg': 'Criando ZIP...', 'progress': 92}) + '\n\n'
         try:
@@ -760,10 +728,7 @@ def gerar():
         except Exception as e:
             yield 'data:' + json.dumps({'step': 4, 'status': 'error', 'msg': f'Erro ZIP: {str(e)}'}) + '\n\n'
 
-    resp = Response(stream(), mimetype='text/event-stream')
-    resp.headers['Cache-Control'] = 'no-cache'
-    resp.headers['X-Accel-Buffering'] = 'no'
-    return resp
+    return Response(stream(), mimetype='text/event-stream')
 
 @app.route('/audio/<session_id>')
 def audio(session_id):
@@ -789,24 +754,10 @@ def imagem(session_id, idx):
 
 @app.route('/download')
 def download():
-    session_id = request.args.get('session_id', '')
     f = request.args.get('file', '')
-    if session_id:
-        # Valida session_id — aceita UUID e timestamp
-        import re as _re
-        if not _re.match(r'^[a-f0-9\-]{8,36}$', session_id):
-            return 'Session inválida', 400
-        f = f'/tmp/video_{session_id}.zip'
-    if not f:
+    if not f or not f.startswith('/tmp/'):
         return 'Nao encontrado', 404
-    # Proteção contra path traversal
-    real = os.path.realpath(f)
-    allowed = os.path.realpath('/tmp')
-    if not real.startswith(allowed + os.sep) and real != allowed:
-        return 'Acesso negado', 403
-    if not os.path.exists(real):
-        return 'Arquivo nao encontrado', 404
-    return send_file(real, as_attachment=True, download_name='projeto_youtube.zip')
+    return send_file(f, as_attachment=True, download_name='projeto_youtube.zip')
 
 @app.route('/traduzir', methods=['POST'])
 def traduzir():
@@ -825,7 +776,6 @@ def regenerar_imagem():
     prompt = data.get('prompt', '')
     estilo = data.get('estilo', 'stylized_game')
     formato = data.get('formato', '9:16')
-    modelo = data.get('modelo', 'animais')
     try:
         img = leonardo_generate(prompt, formato, estilo, modelo)
         if session_id in sessions:
@@ -916,13 +866,11 @@ def gerar_prompts():
     )
 
     try:
-        text = chamar_claude(system, user_msg, max_tokens=8000, modelo="claude-sonnet-4-6")
+        text = chamar_claude(system, user_msg, max_tokens=4000, modelo="claude-sonnet-4-6")
         d = parse_json_robusto(text)
         prompts = d.get('prompts', [])
         return jsonify({'prompts': prompts, 'total': len(prompts)})
     except Exception as e:
-        import traceback
-        print(f"ERRO GERAR_PROMPTS: {traceback.format_exc()}")
         return jsonify({'erro': str(e)}), 500
 
 
@@ -1265,7 +1213,6 @@ def gerar_thumbnail_imagem():
     formato = data.get('formato', '9:16')
     estilo = data.get('estilo', 'stylized_game')
     session_id = data.get('session_id', '')
-    modelo = data.get('modelo', 'animais')
     try:
         img = leonardo_generate(prompt, formato, estilo, modelo)
         if session_id and session_id in sessions:
@@ -1369,82 +1316,6 @@ def corrigir_dim_thumbnail():
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
 
-
-@app.route('/gerar-narracao-simples', methods=['POST'])
-def gerar_narracao_simples():
-    import traceback as _tb
-    try:
-        print(f"NARRACAO SIMPLES: content_type={request.content_type}")
-        data = request.get_json(force=True, silent=True) or {}
-        print(f"NARRACAO SIMPLES: keys={list(data.keys())} narracao_size={len(data.get('narracao_custom',''))}")
-        narracao_txt = data.get('narracao_custom', '').strip()
-        if not narracao_txt:
-            return jsonify({'erro': 'Texto vazio'}), 400
-        print(f"NARRACAO SIMPLES: chamando ElevenLabs voice={ELEVENLABS_VOICE} chars={len(narracao_txt)}")
-        audio_data, audio_service = gerar_audio(narracao_txt, 'temp')
-        print(f"NARRACAO SIMPLES: audio_service={audio_service} bytes={len(audio_data) if audio_data else 0}")
-        if not audio_data:
-            return jsonify({'erro': 'ElevenLabs nao retornou audio'}), 500
-        session_id = str(__import__('uuid').uuid4())
-        sessions[session_id] = {'audio': audio_data, 'imagens': {}, 'prompts': [], 'created_at': time.time()}
-        with open(f'/tmp/narracao_{session_id}.mp3', 'wb') as f:
-            f.write(audio_data)
-        return jsonify({'ok': True, 'session_id': session_id, 'audio_url': f'/audio/{session_id}'})
-    except Exception as e:
-        print(f"ERRO NARRACAO SIMPLES: {_tb.format_exc()}")
-        return jsonify({'erro': str(e), 'traceback': _tb.format_exc()[-500:]}), 500
-
-@app.route('/testar-elevenlabs')
-def testar_elevenlabs():
-    try:
-        r = requests.post(
-            f'https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE}',
-            headers={'xi-api-key': ELEVENLABS_KEY, 'content-type': 'application/json'},
-            json={'text': 'Teste de voz.', 'model_id': 'eleven_multilingual_v2'},
-            timeout=30
-        )
-        return jsonify({
-            'status': r.status_code,
-            'bytes': len(r.content),
-            'voice_id': ELEVENLABS_VOICE,
-            'key_preview': ELEVENLABS_KEY[:8] + '...' if ELEVENLABS_KEY else 'VAZIA',
-            'response_text': r.text[:300] if r.status_code != 200 else 'OK'
-        })
-    except Exception as e:
-        return jsonify({'erro': str(e)})
-
-@app.route('/testar-leonardo')
-def testar_leonardo():
-    try:
-        # Passo 1: cria geracao
-        r = requests.post(
-            "https://cloud.leonardo.ai/api/rest/v1/generations",
-            headers={"authorization": f"Bearer {LEONARDO_KEY}", "content-type": "application/json"},
-            json={"prompt": "a cat sitting on a chair", "width": 512, "height": 512, "num_images": 1},
-            timeout=30
-        )
-        data = r.json()
-        gen_id = data.get("sdGenerationJob", {}).get("generationId")
-        if not gen_id:
-            return jsonify({"erro": "sem generationId", "response": data})
-        # Passo 2: polling
-        for i in range(20):
-            time.sleep(3)
-            r2 = requests.get(
-                f"https://cloud.leonardo.ai/api/rest/v1/generations/{gen_id}",
-                headers={"authorization": f"Bearer {LEONARDO_KEY}"}, timeout=15
-            )
-            data2 = r2.json()
-            gen_data = data2.get("generations_by_pk", {})
-            status = gen_data.get("status", "unknown")
-            imgs = gen_data.get("generated_images", [])
-            if imgs:
-                return jsonify({"ok": True, "tentativas": i+1, "url": imgs[0]["url"]})
-            if status == "FAILED":
-                return jsonify({"erro": "FAILED", "data": data2})
-        return jsonify({"erro": "timeout", "ultimo_status": status, "data": data2})
-    except Exception as e:
-        return jsonify({"erro": str(e)})
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
