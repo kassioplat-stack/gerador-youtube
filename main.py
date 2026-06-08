@@ -55,16 +55,28 @@ def animais_recentes():
             pass
     return recentes
 
-ESTILOS = {
-    "stylized_game": "stylized game character art, non-realistic, vibrant colors, bold outlines, 9:16 vertical",
-    "cinematic_doc": "cinematic wildlife documentary, hyper realistic, dramatic lighting, 9:16 vertical",
-    "anime": "anime style illustration, vibrant colors, emotional scene, studio ghibli inspired, 9:16 vertical",
-    "dark_fantasy": "dark fantasy illustration, epic composition, moody atmosphere, highly detailed, 9:16 vertical",
-    "feature_film": "semi-realistic feature film illustration, cinematic color grading, volumetric lighting, 9:16 vertical",
-    "macro_nature": "ultra macro nature photography, extreme detail, bokeh background, National Geographic style, 9:16 vertical",
-    "anime_moderno": "modern anime illustration style, clean bold outlines, vibrant saturated colors, natural warm lighting, 9:16 vertical",
-    "cartoon_flat": "flat design cartoon illustration, clean vector art, bold outlines, solid vibrant colors, cute animal character, 2D animation style, no shadows, 9:16 vertical"
-}
+ESTILO_ANIMAL = (
+    "Hand-drawn wildlife field journal illustration, white background, clean negative space, "
+    "black ink sketch, loose pencil construction lines still visible, observational drawing style, "
+    "naturalist notebook aesthetic, imperfect human-made strokes, rough crosshatching, messy linework, "
+    "unfinished sketch areas, authentic pen-and-pencil texture. "
+    "COMPOSITION: Main scene in the center occupying 70% of the canvas, several small observational "
+    "studies around the borders, close-up animal face sketches, object studies, alternative poses, "
+    "visual arrows only, no text, no labels, no typography. "
+    "ART STYLE: looks like a researcher quickly documenting a strange animal behavior in a field notebook, "
+    "not polished, not commercial, not concept art, not digital painting, not comic book, not cartoon. "
+    "LINES: scratchy pen lines, visible sketch construction, overlapping strokes, anatomical corrections "
+    "visible, scribbles, exploration marks, human drawing mistakes. "
+    "COLOR: mostly black ink, selective muted watercolor accents, very limited color palette, white paper dominates. "
+    "MOOD: scientific curiosity, observed behavior, rare discovery, natural history illustration. "
+    "AVOID: AI-generated look, perfect anatomy, perfect perspective, symmetry, graphic design, typography, "
+    "photorealism, 3D rendering, smooth digital painting, corporate illustration. "
+    "KEYWORDS: field journal, naturalist sketchbook, wildlife observation, scientific notebook, "
+    "pen and ink, crosshatching, rough sketch, white background, behavioral observation, authentic hand-drawn illustration."
+)
+
+# Mantido para compatibilidade — nao usado
+ESTILOS = {"field_journal": ESTILO_ANIMAL}
 
 FORMATOS = {
     "9:16": {"width": 768, "height": 1344},
@@ -475,10 +487,9 @@ def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-6")
 
 def leonardo_generate(prompt, formato="9:16", estilo="stylized_game", modelo="animais"):
     if modelo == "mente":
-        # Personagem azul 3D — sufixo fixo, ignora estilo selecionado
         sufixo = "3D render, matte blue rubber figure, minimalist, white background, studio lighting, clean composition, surreal psychology"
     else:
-        sufixo = ESTILOS.get(estilo, ESTILOS["stylized_game"])
+        sufixo = ESTILO_ANIMAL
     dims = FORMATOS.get(formato, FORMATOS["9:16"])
     for tentativa in range(3):
         try:
