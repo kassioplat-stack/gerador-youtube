@@ -490,14 +490,21 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game", modelo="an
             if "sdGenerationJob" not in data:
                 raise Exception(f"Leonardo erro: {data}")
             gen_id = data["sdGenerationJob"]["generationId"]
-            for _ in range(50):
+            for poll_i in range(80):
                 time.sleep(3)
                 r2 = requests.get(f"https://cloud.leonardo.ai/api/rest/v1/generations/{gen_id}",
                                   headers={"authorization": f"Bearer {LEONARDO_KEY}"}, timeout=15)
-                imgs = r2.json().get("generations_by_pk", {}).get("generated_images", [])
+                r2_data = r2.json()
+                gen_data = r2_data.get("generations_by_pk", {})
+                status = gen_data.get("status", "")
+                imgs = gen_data.get("generated_images", [])
                 if imgs:
                     return requests.get(imgs[0]["url"], timeout=20).content
-            raise Exception("Timeout")
+                if status == "FAILED":
+                    raise Exception(f"Leonardo FAILED: {r2_data}")
+                if poll_i == 0:
+                    print(f"POLL STATUS: {status}, data: {str(r2_data)[:200]}")
+            raise Exception(f"Timeout apos 240s. gen_id={gen_id}")
         except Exception as e:
             if tentativa == 2:
                 raise
@@ -1305,13 +1312,33 @@ def corrigir_dim_thumbnail():
 @app.route('/testar-leonardo')
 def testar_leonardo():
     try:
+        # Passo 1: cria geracao
         r = requests.post(
             "https://cloud.leonardo.ai/api/rest/v1/generations",
             headers={"authorization": f"Bearer {LEONARDO_KEY}", "content-type": "application/json"},
             json={"prompt": "a cat sitting on a chair", "width": 512, "height": 512, "num_images": 1},
             timeout=30
         )
-        return jsonify({"status": r.status_code, "response": r.json()})
+        data = r.json()
+        gen_id = data.get("sdGenerationJob", {}).get("generationId")
+        if not gen_id:
+            return jsonify({"erro": "sem generationId", "response": data})
+        # Passo 2: polling
+        for i in range(20):
+            time.sleep(3)
+            r2 = requests.get(
+                f"https://cloud.leonardo.ai/api/rest/v1/generations/{gen_id}",
+                headers={"authorization": f"Bearer {LEONARDO_KEY}"}, timeout=15
+            )
+            data2 = r2.json()
+            gen_data = data2.get("generations_by_pk", {})
+            status = gen_data.get("status", "unknown")
+            imgs = gen_data.get("generated_images", [])
+            if imgs:
+                return jsonify({"ok": True, "tentativas": i+1, "url": imgs[0]["url"]})
+            if status == "FAILED":
+                return jsonify({"erro": "FAILED", "data": data2})
+        return jsonify({"erro": "timeout", "ultimo_status": status, "data": data2})
     except Exception as e:
         return jsonify({"erro": str(e)})
 
