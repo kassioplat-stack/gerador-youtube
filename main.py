@@ -1302,6 +1302,19 @@ def corrigir_dim_thumbnail():
         return jsonify({'erro': str(e)}), 500
 
 
+@app.route('/testar-leonardo')
+def testar_leonardo():
+    try:
+        r = requests.post(
+            "https://cloud.leonardo.ai/api/rest/v1/generations",
+            headers={"authorization": f"Bearer {LEONARDO_KEY}", "content-type": "application/json"},
+            json={"prompt": "a cat sitting on a chair", "width": 512, "height": 512, "num_images": 1},
+            timeout=30
+        )
+        return jsonify({"status": r.status_code, "response": r.json()})
+    except Exception as e:
+        return jsonify({"erro": str(e)})
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
