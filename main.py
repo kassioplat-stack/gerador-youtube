@@ -800,82 +800,66 @@ def regenerar_opcoes():
 def gerar_prompts():
     data = request.json
     script = data.get('script', '').strip()
-    duracao = str(data.get('duracao', '60'))
     modelo = data.get('modelo', 'animais')
+    formato = data.get('formato', '9:16')
+    duracao_s = int(data.get('duracao', 60))
 
-    duracao_s = {"40":40,"60":60,"90":90,"120":120,"180":180,"240":240,"300":300}.get(duracao, 60)
+    # n_prompts vem do frontend (palavras * 0.45 / 2) ou calcula aqui
+    n_prompts_req = data.get('n_prompts')
+    if n_prompts_req:
+        n_prompts = int(n_prompts_req)
+    else:
+        palavras = len(script.split())
+        n_prompts = max(round(palavras * 0.45 / 2), 5)
 
     if modelo == 'mente':
-        n_prompts = max(round(duracao_s / 3), 5)
-
         system_lines = [
             "Voce e o diretor de arte do canal de psicologia mais viral do YouTube.",
             "Sua missao: traduzir cada momento emocional da narracao em uma imagem impossivel, perturbadora e viciante.",
-            "Nao ilustre o que foi DITO — ilustre o que foi SENTIDO.",
+            "REGRA FUNDAMENTAL: cada prompt deve ser FIEL ao momento especifico da narracao — nao generico.",
+            "Leia o script frase a frase. Identifique o sentimento central de cada momento. Traduza em imagem.",
+            "Nao ilustre o que foi DITO — ilustre o que foi SENTIDO naquele momento.",
             "",
-            "PERSONAGEM FIXO em TODOS os prompts (obrigatorio):",
+            "PERSONAGEM FIXO em TODOS os prompts:",
             "blue matte rubber 3D humanoid figure, genderless, faceless, smooth surface, two small black dot eyes, rounded head, white absolute background, soft studio lighting.",
             "",
-            "O QUE FAZ UMA IMAGEM VICIANTE NO ESTILO MENTE:",
-            "1. TENSAO VISUAL IMPOSSIVEL: algo que nao pode existir mas faz sentido emocional — o cerebro tenta resolver e nao consegue",
-            "2. FIDELIDADE A EMOCAO: nao ilustra a palavra — ilustra o SENTIMENTO daquele momento",
-            "3. ESCALA E ISOLAMENTO: figura pequena em espaco enorme cria vulnerabilidade sem explicar",
-            "4. O DETALHE IMPOSSIVEL: cada imagem tem um elemento que nao deveria estar ali — sombra errada, duplicacao, objeto saindo da cabeca",
-            "5. ESTRANHEZA CONTROLADA: perturbador mas nao assustador — o espectador para para entender",
+            "4 DIRECOES VISUAIS — escolha a mais fiel ao sentimento do momento:",
+            "SOMBRA REVELADORA: figura pequena, sombra enorme diferente dela revelando algo oculto",
+            "CABECA ABERTA: topo da cabeca aberto com objeto metaforico do que esta sendo revelado",
+            "DUPLO EU: duas figuras em conflito ou tensao representando o dilema do momento",
+            "PSICOLOGIA SURREALISTA: figura com elemento impossivel que representa a verdade daquele momento",
             "",
-            "4 DIRECOES VISUAIS — escolha a mais perturbadora para cada momento:",
-            "SOMBRA REVELADORA: figura pequena, sombra enorme e diferente dela — a sombra mostra o que ela esconde",
-            "CABECA ABERTA: topo da cabeca aberto com objeto metaforico do momento — o que controla sem pedir permissao",
-            "DUPLO EU: duas figuras identicas em conflito, tensao ou negacao — o eu real vs o eu performado",
-            "PSICOLOGIA SURREALISTA: figura com elemento impossivel que representa a verdade psicologica daquele momento",
+            "PROIBIDO: texto na imagem, outros personagens, cenarios coloridos, fundo que nao seja branco absoluto.",
             "",
-            "EXEMPLOS DE PROMPT CORRETO:",
-            "MOMENTO: voce terceirizou seu valor",
-            "PROMPT: blue matte 3D figure standing small in vast white space, its enormous shadow on the wall shaped like a crowd of people watching and judging, figure looking at shadow not at viewer, dramatic side lighting, isolated, vulnerable",
-            "---",
-            "MOMENTO: seu cerebro aprendeu isso antes de voce aprender a ler",
-            "PROMPT: blue matte 3D figure with head opened at top, inside a small child figure sits looking outward, the adult figure unaware, white absolute background, soft melancholic lighting, surreal and tender",
-            "---",
-            "MOMENTO: voce deixa qualquer um votar em quanto voce vale",
-            "PROMPT: blue matte 3D figure standing on a scale, dozens of tiny identical figures surrounding it placing weights on the scale, figure looking down helpless, white background, cold overhead lighting",
-            "",
-            "PROIBIDO:",
-            "- Texto ou palavras na imagem",
-            "- Outros personagens que nao sejam versoes da figura azul",
-            "- Cenarios complexos ou coloridos — fundo BRANCO ABSOLUTO sempre",
-            "- Imagens genericas sem conexao emocional com o momento",
-            "- cinematic, realistic, photographic, human skin, face",
-            "",
-            "Gere EXATAMENTE " + str(n_prompts) + " prompts — um por momento emocional da narracao.",
-            "Distribua pelos momentos mais impactantes — gancho, viradas, ferida, final.",
-            'Retorne JSON valido sem markdown: {"prompts": ["prompt1", "prompt2"]}'
+            "Gere EXATAMENTE " + str(n_prompts) + " prompts — distribuidos uniformemente pelo script.",
+            "Cada prompt deve ser diferente e especifico para aquele momento da narracao.",
+            'Retorne JSON sem markdown: {"prompts": ["prompt1", "prompt2"]}'
         ]
         system = "\n".join(system_lines)
-        user_msg = (
-            "Script (" + str(duracao_s) + "s, " + str(n_prompts) + " imagens necessarias):\n\n" + script +
-            "\n\nGere " + str(n_prompts) + " prompts em ingles — um por momento emocional. "
-            "Cada prompt deve ser impossivel, perturbador e fiel ao sentimento daquele momento."
-        )
     else:
-        n_prompts = max(round(duracao_s / 3), 5)
-        system = (
-            "Voce e um diretor de arte especialista em videos curtos virais do YouTube."
-            " Recebera um script de narracao e deve identificar os MOMENTOS NARRATIVOS."
-            " Um momento NAO e uma frase gramatical — e um bloco de significado narrativo."
-            " Frases curtissimas em sequencia formam UM unico momento — nao divida em varios prompts."
-            " Para cada momento gere um prompt que traduz LITERALMENTE aquele momento visual."
-            " Gere EXATAMENTE " + str(n_prompts) + " prompts."
-            " FORMATO: [descricao fisica ESPECIFICA do animal] + [acao EXATA descrita no script] + [angulo] + [iluminacao] + [movimento]."
-            " Defina as caracteristicas fisicas do animal no primeiro prompt e repita em TODOS os outros desse animal."
-            " Angulos: wide shot para apresentacao, close-up para tensao, extreme close-up para twist."
-            " Iluminacao: golden hour no inicio, dramatic shadows na escalada, blue hour na revelacao."
-            " Movimento: mid-motion para acao, frozen in the moment para choque, slow motion blur para emocao."
-            " PROIBIDO: cinematic, realistic, documentary, photographic, an animal."
-            " Use o nome especifico do animal — nunca pronomes sem referencia."
-            " Os prompts devem ser em INGLES."
-            ' Retorne JSON valido sem markdown: {"prompts": ["prompt1", "prompt2"]}'
-        )
-        user_msg = "Script:\n\n" + script + "\n\nGere " + str(n_prompts) + " prompts em ingles — um por momento narrativo."
+        system_lines = [
+            "Voce e um diretor de arte especialista em videos curtos virais do YouTube.",
+            "Sua missao: traduzir cada momento da narracao em uma imagem fiel ao script.",
+            "REGRA FUNDAMENTAL: cada prompt deve ser FIEL ao momento especifico da narracao.",
+            "Leia o script frase a frase. Identifique o que esta acontecendo. Traduza em imagem.",
+            "",
+            "ESTILO FIXO: Hand-drawn wildlife field journal, naturalist sketchbook, black ink sketch, white background.",
+            "",
+            "FORMATO: [animal especifico com caracteristicas fisicas] + [acao exata do momento] + [angulo] + [iluminacao].",
+            "Defina o animal no primeiro prompt e repita as caracteristicas fisicas em todos os outros.",
+            "Angulos: wide shot para apresentacao, close-up para tensao, extreme close-up para twist.",
+            "PROIBIDO: cinematic, realistic, photographic, texto na imagem.",
+            "",
+            "Gere EXATAMENTE " + str(n_prompts) + " prompts — distribuidos uniformemente pelo script.",
+            "Cada prompt diferente e especifico para aquele momento da narracao.",
+            'Retorne JSON sem markdown: {"prompts": ["prompt1", "prompt2"]}'
+        ]
+        system = "\n".join(system_lines)
+
+    user_msg = (
+        "Script (" + str(n_prompts) + " prompts necessarios):\n\n" + script +
+        "\n\nGere " + str(n_prompts) + " prompts em ingles, um por momento, fieis ao script."
+    )
 
     try:
         text = chamar_claude(system, user_msg, max_tokens=4000, modelo="claude-sonnet-4-6")
