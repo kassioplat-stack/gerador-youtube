@@ -281,6 +281,7 @@ async function gerarPrompts() {
     state.prompts = d.prompts || [];
     renderPrompts(state.prompts);
     document.getElementById('section-prompts').style.display = 'block';
+    document.getElementById('btn-narracao').disabled = false;
     salvarEstado();
   } catch(e) { alert('Erro ao gerar prompts: ' + e.message); }
   setBtnLoading('btn-prompts', false, '1. Gerar Prompts de Imagem');
