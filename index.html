@@ -21,22 +21,24 @@ body{background:#F2F2F0;color:#1a1a1a;font-family:'Inter',system-ui,sans-serif;f
 .slbl{font-size:10px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:1.2px;display:block;margin-bottom:10px}
 
 /* BOTOES PRIMARIOS */
-.btn{width:100%;background:#0D0D0D;border:none;border-radius:10px;padding:14px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;transition:all .15s;letter-spacing:.2px}
+.btn{width:100%;background:#FF0000;border:none;border-radius:10px;padding:14px;font-size:13px;font-weight:700;color:#fff;cursor:pointer;font-family:inherit;transition:all .18s;letter-spacing:.2px;position:relative;overflow:hidden;text-decoration:none}
+.btn::after{content:'';position:absolute;bottom:0;left:10%;width:80%;height:2px;background:rgba(255,255,255,.35);border-radius:1px;transform:scaleX(0);transition:transform .18s}
+.btn:not(:disabled):hover::after{transform:scaleX(1)}
 .btn:disabled{opacity:.3;cursor:not-allowed}
-.btn:not(:disabled):hover{background:#2a2a2a;transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
-.btn-sec{background:#F2F2F0;border:1.5px solid #E0E0DC;color:#666}
-.btn-sec:not(:disabled):hover{background:#E8E8E4;transform:none;box-shadow:none}
+.btn:not(:disabled):hover{background:#CC0000;transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,0,0,.25)}
+.btn-sec{background:#FF6B00;border:none;color:#fff}
+.btn-sec:not(:disabled):hover{background:#E05F00;transform:translateY(-1px);box-shadow:0 4px 16px rgba(255,107,0,.25)}
 
 /* INPUTS */
 textarea{width:100%;background:#FAFAF8;border:1.5px solid #E8E8E4;border-radius:8px;padding:10px;font-size:13px;color:#1a1a1a;font-family:inherit;resize:vertical;min-height:160px;line-height:1.6}
-textarea:focus{outline:none;border-color:#0D0D0D;background:#fff}
+textarea:focus{outline:none;border-color:#FF0000;background:#fff}
 textarea::placeholder{color:#C0C0BC}
 
 /* MODEL CARDS */
 .model-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .model-card{background:#FAFAF8;border:1.5px solid #E8E8E4;border-radius:10px;padding:12px;cursor:pointer;text-align:left;transition:all .15s;font-family:inherit}
-.model-card.sel{border-color:#0D0D0D;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.08)}
-.model-card.sel .mc-name{color:#0D0D0D}
+.model-card.sel{border-color:#FF0000;background:#fff5f5;box-shadow:0 2px 8px rgba(255,0,0,.1)}
+.model-card.sel .mc-name{color:#FF0000}
 .mc-icon{font-size:18px;margin-bottom:6px}
 .mc-name{font-size:12px;font-weight:700;color:#666}
 .mc-desc{font-size:11px;color:#AAA;margin-top:2px}
@@ -44,27 +46,27 @@ textarea::placeholder{color:#C0C0BC}
 /* CHIPS */
 .chips-row{display:flex;gap:6px;flex-wrap:wrap}
 .chip{background:#FAFAF8;border:1.5px solid #E8E8E4;border-radius:6px;padding:5px 14px;font-size:12px;font-weight:600;color:#888;cursor:pointer;font-family:inherit;transition:all .15s}
-.chip.sel{border-color:#0D0D0D;color:#0D0D0D;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.chip.sel{border-color:#FF0000;color:#FF0000;background:#fff5f5;box-shadow:0 1px 4px rgba(255,0,0,.1)}
 
 /* PROMPTS */
 .prompt-item{display:flex;gap:8px;margin-bottom:10px}
-.prompt-num{background:#0D0D0D;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;flex-shrink:0;height:fit-content;margin-top:4px}
+.prompt-num{background:#FF0000;color:#fff;border-radius:4px;padding:2px 7px;font-size:11px;font-weight:700;flex-shrink:0;height:fit-content;margin-top:4px}
 .prompt-ta{width:100%;background:#FAFAF8;border:1.5px solid #E8E8E4;border-radius:6px;padding:8px;font-size:12px;color:#1a1a1a;font-family:inherit;resize:none;height:56px}
-.prompt-ta:focus{outline:none;border-color:#0D0D0D}
+.prompt-ta:focus{outline:none;border-color:#FF0000}
 .regen-btn{background:transparent;border:1.5px solid #E8E8E4;border-radius:4px;padding:2px 8px;font-size:11px;color:#999;cursor:pointer;font-family:inherit;margin-top:3px;transition:all .15s}
-.regen-btn:hover{border-color:#0D0D0D;color:#0D0D0D}
+.regen-btn:hover{border-color:#FF0000;color:#FF0000}
 
 /* STEPS */
 .step-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F0F0EC}
 .step-item:last-child{border-bottom:none}
 .step-dot{width:22px;height:22px;border-radius:50%;background:#F0F0EC;display:flex;align-items:center;justify-content:center;font-size:10px;color:#AAA;flex-shrink:0;font-weight:700}
-.step-dot.active{background:#0D0D0D;color:#fff}
-.step-dot.done{background:#1a1a1a;color:#fff}
+.step-dot.active{background:#FF0000;color:#fff}
+.step-dot.done{background:#22c55e;color:#fff}
 .step-dot.error{background:#e53935;color:#fff}
 .step-label{font-size:12px;color:#1a1a1a;font-weight:500}
 .step-msg{font-size:11px;color:#AAA;margin-top:1px}
 .prog-bar{height:3px;background:#F0F0EC;border-radius:2px;margin-bottom:14px}
-.prog-fill{height:100%;width:0%;background:#0D0D0D;border-radius:2px;transition:width .4s}
+.prog-fill{height:100%;width:0%;background:linear-gradient(90deg,#FF0000,#FF6B00);border-radius:2px;transition:width .4s}
 
 /* IMAGENS */
 .img-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
@@ -74,7 +76,7 @@ textarea::placeholder{color:#C0C0BC}
 /* TABS */
 .tab-row{display:flex;gap:6px;margin-bottom:20px;background:#E8E8E4;border-radius:10px;padding:3px}
 .tab-btn{flex:1;background:transparent;border:none;border-radius:8px;padding:8px;font-size:12px;font-weight:600;color:#888;cursor:pointer;font-family:inherit;transition:all .15s}
-.tab-btn.sel{background:#fff;color:#0D0D0D;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.tab-btn.sel{background:#fff;color:#FF0000;box-shadow:0 1px 4px rgba(0,0,0,.08)}
 
 /* INFO ROW */
 .info-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
@@ -187,7 +189,7 @@ textarea::placeholder{color:#C0C0BC}
 
     <!-- Novo vídeo -->
     <div style="text-align:center;margin-top:8px">
-      <button onclick="novoVideo()" style="background:transparent;border:1.5px solid #E0E0DC;border-radius:8px;padding:8px 20px;font-size:12px;font-weight:600;color:#999;cursor:pointer;font-family:inherit;transition:all .15s">+ Novo Vídeo</button>
+      <button onclick="novoVideo()" style="background:transparent;border:1.5px solid #E0E0DC;border-radius:8px;padding:8px 20px;font-size:12px;font-weight:600;color:#999;cursor:pointer;font-family:inherit;transition:all .15s;text-decoration:underline;text-underline-offset:3px;text-decoration-color:transparent;" onmouseover="this.style.textDecorationColor='#ccc'" onmouseout="this.style.textDecorationColor='transparent'">+ Novo Vídeo</button>
     </div>
 
   </div><!-- /tab-gerar -->
