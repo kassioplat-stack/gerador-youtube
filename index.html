@@ -321,10 +321,10 @@ async function gerarNarracao() {
     var d = await r.json();
     if(d.erro) throw new Error(d.erro);
     state.sessionId = d.session_id;
+    state.narracao_session_id = d.session_id;
     var ap = document.getElementById('audio-player');
     if(ap) ap.src = '/audio/' + d.session_id + '?t=' + Date.now();
     document.getElementById('section-narracao').style.display = 'block';
-    document.getElementById('btn-narracao').disabled = false;
     document.getElementById('btn-imagens').disabled = false;
     salvarEstado();
   } catch(e) {
