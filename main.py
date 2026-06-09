@@ -79,7 +79,6 @@ ESTILO_ANIMAL = (
     "pen and ink, crosshatching, rough sketch, white background, behavioral observation, authentic hand-drawn illustration."
 )
 
-# Mantido para compatibilidade — nao usado
 ESTILOS = {"field_journal": ESTILO_ANIMAL}
 
 FORMATOS = {
@@ -92,8 +91,6 @@ DURACOES = {"40": 40, "60": 60, "90": 90, "120": 120, "180": 180, "240": 240, "3
 PALAVRAS  = {"40": 88, "60": 130, "90": 195, "120": 260, "180": 390, "240": 520, "300": 650}
 
 def calc_frases(dur, nh):
-    # Numero de frases por historia baseado na duracao
-    # ~2.5 palavras/segundo, ~8 palavras por frase = ~3s por frase em media
     d = DURACOES.get(str(dur), 60)
     total = max(round(d / 3), nh * 4 + 4)
     if nh == 1:
@@ -257,7 +254,6 @@ def build_system(modelo, nh, dist, total_palavras):
     restricao = animais_recentes()
     restr = "Animais usados nos ultimos 7 dias - NAO repita: " + ", ".join(restricao) + "." if restricao else "Sem restricao de animais."
 
-    # Modelo animais — unico modelo desta funcao (mente usa build_system_mente)
     if True:
         ctx = (
             "Voce cria roteiros virais de comportamento animal para YouTube. " + restr + "\n"
@@ -429,23 +425,16 @@ def build_system(modelo, nh, dist, total_palavras):
 
 def parse_json_robusto(text):
     import re as _re, json as _json
-    # Limpa markdown
     text = _re.sub(r"```json|```", "", text).strip()
-    # Remove trailing commas
     text = _re.sub(r",\s*([}\]])", r"\1", text)
-    # Extrai bloco JSON
     m = _re.search(r"\{.*\}", text, _re.DOTALL)
     if m:
         text = m.group()
-    # Tenta parse direto
     try:
         return _json.loads(text)
     except _json.JSONDecodeError as e:
-        # Estrategia: substitui aspas duplas dentro de valores string por aspas simples
-        # Encontra strings JSON e sanitiza o conteudo interno
         def sanitizar_string(match):
             inner = match.group(1)
-            # Remove aspas duplas do interior da string
             inner = inner.replace('\\"', '__ESCAPED_QUOTE__')
             inner = inner.replace('"'  , "'")
             inner = inner.replace('__ESCAPED_QUOTE__', '\\"')
@@ -454,7 +443,6 @@ def parse_json_robusto(text):
         try:
             return _json.loads(text2)
         except:
-            # Ultimo recurso: remove tudo apos o ultimo } valido
             last = text.rfind("}")
             if last > 0:
                 try:
@@ -473,7 +461,6 @@ def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-6")
                 timeout=300
             )
             resp = r.json()
-            # Detecta erro da API antes de tentar acessar content
             if "error" in resp:
                 tipo = resp["error"].get("type", "unknown")
                 msg = resp["error"].get("message", str(resp["error"]))
@@ -501,7 +488,7 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game", modelo="an
                 "https://cloud.leonardo.ai/api/rest/v1/generations",
                 headers={"authorization": f"Bearer {LEONARDO_KEY}", "content-type": "application/json"},
                 json={"prompt": prompt + ", " + sufixo, "modelId": "7b592283-e8a7-4c5a-9ba6-d18c31f258b9",
-                      "width": dims["width"], "height": dims["height"], "num_images": 1, "guidance_scale": 10,
+                      "width": dims["width"], "height": dims["height"], "num_images": 1,
                       "negative_prompt": "blurry, low quality, distorted, ugly, watermark, text, humans, human hands, multiple animals, cartoon, anime, deformed", "guidance_scale": 7},
                 timeout=40
             )
@@ -541,8 +528,6 @@ def gerar_audio(narracao_txt, session_id):
     except Exception as e:
         print(f"ElevenLabs erro: {e}")
 
-
-
     if audio_data:
         sessions[session_id]['audio'] = audio_data
         try:
@@ -573,7 +558,6 @@ def roteiro():
     duracao_s = {"40":40,"60":60,"90":90,"120":120,"180":180,"240":240,"300":300}.get(duracao, 60)
     chars_limite = duracao_s * 13
 
-    # MENTE tem estrutura e system prompt próprios
     if modelo == 'mente':
         system = build_system_mente(duracao_s, total_palavras)
     else:
@@ -586,9 +570,8 @@ def roteiro():
     try:
         text = chamar_claude(system, user_msg)
         d = parse_json_robusto(text)
-        # Salva historico — animais para Animal, comportamento para MENTE
         if modelo == 'mente':
-            d['_modelo'] = 'mente'  # marca para o frontend
+            d['_modelo'] = 'mente'
         else:
             animais = [d.get(k, {}).get('animal', '') for k in ['caso1', 'caso2', 'caso3'] if d.get(k, {}).get('animal')]
             if animais:
@@ -622,9 +605,19 @@ def imagem(session_id, idx):
 
 @app.route('/download')
 def download():
+    session_id = request.args.get('session_id', '')
     f = request.args.get('file', '')
+
+    if session_id:
+        s = sessions.get(session_id)
+        if s and s.get('zip') and os.path.exists(s['zip']):
+            return send_file(s['zip'], as_attachment=True, download_name='projeto_youtube.zip')
+        f = f'/tmp/video_{session_id}.zip'
+
     if not f or not f.startswith('/tmp/'):
         return 'Nao encontrado', 404
+    if not os.path.exists(f):
+        return 'Arquivo nao encontrado', 404
     return send_file(f, as_attachment=True, download_name='projeto_youtube.zip')
 
 @app.route('/traduzir', methods=['POST'])
@@ -644,8 +637,9 @@ def regenerar_imagem():
     prompt = data.get('prompt', '')
     estilo = data.get('estilo', 'stylized_game')
     formato = data.get('formato', '9:16')
+    modelo_req = data.get('modelo', 'animais')
     try:
-        img = leonardo_generate(prompt, formato, estilo, modelo)
+        img = leonardo_generate(prompt, formato, estilo, modelo_req)
         if session_id in sessions:
             sessions[session_id]['imagens'][idx] = img
         return jsonify({'ok': True})
@@ -676,7 +670,6 @@ def gerar_prompts():
     formato = data.get('formato', '9:16')
     duracao_s = int(data.get('duracao', 60))
 
-    # n_prompts vem do frontend (palavras * 0.45 / 2) ou calcula aqui
     n_prompts_req = data.get('n_prompts')
     if n_prompts_req:
         n_prompts = int(n_prompts_req)
@@ -764,7 +757,6 @@ def sugerir_titulos():
         return jsonify({'erro': str(e)}), 500
 
 
-
 @app.route('/regenerar-prompt', methods=['POST'])
 def regenerar_prompt():
     data = request.json
@@ -816,7 +808,6 @@ def score_viral():
     modelo = roteiro.get('_modelo', data.get('modelo', 'animais'))
 
     if modelo == 'mente':
-        # Score especifico para MENTE — 5 dimensoes corretas
         gancho = roteiro.get('gancho_principal', '')
         camada1 = roteiro.get('camada1', {})
         camada2 = roteiro.get('camada2', {})
@@ -863,7 +854,6 @@ def score_viral():
             "NARRACAO: " + narracao[:600]
         )
     else:
-        # Score Animal — dimensoes originais
         gancho = roteiro.get('gancho_principal', '')
         emocao = roteiro.get('emocao_ancora', '')
         pergunta_inv = roteiro.get('pergunta_invisivel', '')
@@ -933,7 +923,6 @@ def score_viral():
                     dimensoes.append({'nome': nome, 'score': score, 'justificativa': justificativa})
             elif line.startswith('FRACO:'):
                 fraco_raw = line[6:].strip()
-                # Se Claude retornou D1/D2/etc em vez do nome, converte
                 import re as _re
                 m = _re.match(r'^D(\d+)$', fraco_raw)
                 if m and dimensoes:
@@ -944,7 +933,6 @@ def score_viral():
                 sugestao = line[9:].strip()
         if not total and dimensoes:
             total = sum(d['score'] for d in dimensoes)
-        # Se ponto_fraco ainda vazio, usa a dimensao com menor score
         if not ponto_fraco and dimensoes:
             ponto_fraco = min(dimensoes, key=lambda d: d['score'])['nome']
         return jsonify({'total': total, 'dimensoes': dimensoes, 'ponto_fraco': ponto_fraco, 'sugestao': sugestao})
@@ -1010,7 +998,6 @@ def corrigir_dimensao():
     )
     try:
         text = chamar_claude(system, user_msg, max_tokens=2000, modelo="claude-sonnet-4-6")
-        # Parse linha por linha
         result = {}
         for line in text.strip().split('\n'):
             line = line.strip()
@@ -1021,16 +1008,13 @@ def corrigir_dimensao():
             valor = valor.strip()
             if not campo or not valor:
                 continue
-            # Arrays separados por pipe
             if '|' in valor and not valor.startswith('{'):
                 result[campo] = [v.strip() for v in valor.split('|') if v.strip()]
-            # Objetos JSON
             elif valor.startswith('{'):
                 try:
                     result[campo] = parse_json_robusto(valor)
                 except:
                     result[campo] = valor
-            # Narracao como array (campo comeca com narracao_)
             elif campo.startswith('narracao_'):
                 result[campo] = [v.strip() for v in valor.split('|') if v.strip()]
             else:
@@ -1081,8 +1065,9 @@ def gerar_thumbnail_imagem():
     formato = data.get('formato', '9:16')
     estilo = data.get('estilo', 'stylized_game')
     session_id = data.get('session_id', '')
+    modelo_req = data.get('modelo', 'animais')
     try:
-        img = leonardo_generate(prompt, formato, estilo, modelo)
+        img = leonardo_generate(prompt, formato, estilo, modelo_req)
         if session_id and session_id in sessions:
             if 'thumbnails' not in sessions[session_id]:
                 sessions[session_id]['thumbnails'] = {}
@@ -1185,10 +1170,8 @@ def corrigir_dim_thumbnail():
         return jsonify({'erro': str(e)}), 500
 
 
-
 @app.route('/audio-gerar', methods=['POST'])
 def audio_gerar():
-    """Gera narração a partir do script. Retorna JSON com session_id."""
     try:
         data = request.get_json(force=True, silent=True) or {}
         texto = data.get('script', '').strip()
@@ -1212,41 +1195,30 @@ def audio_gerar():
 
 @app.route('/imagens-gerar', methods=['POST'])
 def imagens_gerar():
-    """Gera imagens e monta ZIP. Usa narração já gerada."""
+    """Inicia geração de imagens em background. Retorna session_id imediatamente."""
     import uuid, threading
     data = request.get_json(force=True, silent=True) or {}
     prompts = data.get('prompts', [])
     narracao_session_id = data.get('narracao_session_id', '')
     formato = data.get('formato', '9:16')
-    modelo = data.get('modelo', 'animais')
+    modelo_req = data.get('modelo', 'animais')
 
     if not prompts:
         return jsonify({'erro': 'Nenhum prompt enviado'}), 400
 
     sid = str(uuid.uuid4())
-    sessions[sid] = {'imagens': {}, 'prompts': prompts, 'audio': None, 'created_at': time.time()}
+    sessions[sid] = {
+        'imagens': {},
+        'prompts': prompts,
+        'audio': None,
+        'created_at': time.time(),
+        'status': 'gerando',
+        'total': len(prompts),
+        'erros': [],
+        'zip': None,
+    }
 
-    # Gera imagens em paralelo
-    from concurrent.futures import ThreadPoolExecutor, as_completed
-    erros = []
-    def gerar_uma(args):
-        i, prompt = args
-        return i, leonardo_generate(prompt, formato, 'field_journal', modelo)
-
-    with ThreadPoolExecutor(max_workers=3) as executor:
-        futures = {executor.submit(gerar_uma, (i, p)): i for i, p in enumerate(prompts)}
-        for future in as_completed(futures):
-            try:
-                i, img = future.result()
-                sessions[sid]['imagens'][i] = img
-                with open(f'/tmp/{sid}_{i}.jpg', 'wb') as f_img:
-                    f_img.write(img)
-            except Exception as e:
-                i = futures[future]
-                erros.append(str(i+1))
-                print(f"IMAGEM {i+1} ERRO: {e}")
-
-    # Recupera áudio já gerado
+    # Recupera áudio já gerado antes de iniciar thread
     audio_data = None
     if narracao_session_id:
         s = sessions.get(narracao_session_id)
@@ -1258,32 +1230,68 @@ def imagens_gerar():
                 with open(audio_path, 'rb') as fa:
                     audio_data = fa.read()
 
-    # Monta ZIP
-    zip_path = f'/tmp/video_{sid}.zip'
-    try:
-        with __import__('zipfile').ZipFile(zip_path, 'w') as zf:
-            for i, img in sessions[sid]['imagens'].items():
-                zf.writestr(f'IMG_{str(i+1).zfill(2)}.jpg', img)
-            if audio_data:
-                zf.writestr('narracao.mp3', audio_data)
-            prompts_txt = '\n\n'.join([f"IMG {str(i+1).zfill(2)}:\n{p}" for i, p in enumerate(prompts)])
-            zf.writestr('prompts.txt', prompts_txt.encode('utf-8'))
-        sessions[sid]['zip'] = zip_path
-    except Exception as e:
-        return jsonify({'erro': f'Erro ZIP: {e}'}), 500
+    def gerar_em_background(sid, prompts, formato, modelo_req, audio_data):
+        from concurrent.futures import ThreadPoolExecutor, as_completed
 
-    n_ok = len(sessions[sid]['imagens'])
+        def gerar_uma(args):
+            i, prompt = args
+            return i, leonardo_generate(prompt, formato, 'field_journal', modelo_req)
+
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            futures = {executor.submit(gerar_uma, (i, p)): i for i, p in enumerate(prompts)}
+            for future in as_completed(futures):
+                try:
+                    i, img = future.result()
+                    sessions[sid]['imagens'][i] = img
+                    with open(f'/tmp/{sid}_{i}.jpg', 'wb') as f_img:
+                        f_img.write(img)
+                except Exception as e:
+                    i = futures[future]
+                    sessions[sid]['erros'].append(str(i + 1))
+                    print(f"IMAGEM {i+1} ERRO: {e}")
+
+        # Monta ZIP ao final
+        zip_path = f'/tmp/video_{sid}.zip'
+        try:
+            with zipfile.ZipFile(zip_path, 'w') as zf:
+                for i, img in sessions[sid]['imagens'].items():
+                    zf.writestr(f'IMG_{str(i+1).zfill(2)}.jpg', img)
+                if audio_data:
+                    zf.writestr('narracao.mp3', audio_data)
+                prompts_txt = '\n\n'.join([f"IMG {str(i+1).zfill(2)}:\n{p}" for i, p in enumerate(prompts)])
+                zf.writestr('prompts.txt', prompts_txt.encode('utf-8'))
+            sessions[sid]['zip'] = zip_path
+        except Exception as e:
+            print(f"ZIP ERRO: {e}")
+
+        sessions[sid]['status'] = 'concluido'
+        print(f"IMAGENS: concluido sid={sid} ok={len(sessions[sid]['imagens'])}/{len(prompts)}")
+
+    thread = threading.Thread(target=gerar_em_background, args=(sid, prompts, formato, modelo_req, audio_data), daemon=True)
+    thread.start()
+
     return jsonify({
         'ok': True,
         'session_id': sid,
-        'imagens_ok': n_ok,
-        'imagens_total': len(prompts),
-        'erros': erros,
-        'zip': zip_path
+        'total': len(prompts),
+    })
+
+
+@app.route('/imagens-status/<session_id>')
+def imagens_status(session_id):
+    """Polling: retorna quantas imagens já foram geradas e se o ZIP está pronto."""
+    s = sessions.get(session_id)
+    if not s:
+        return jsonify({'erro': 'Sessao nao encontrada'}), 404
+    return jsonify({
+        'status': s.get('status', 'gerando'),
+        'imagens_ok': len(s.get('imagens', {})),
+        'total': s.get('total', 0),
+        'erros': s.get('erros', []),
+        'zip': s.get('zip'),
     })
 
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
-
