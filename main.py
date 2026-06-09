@@ -12,10 +12,14 @@ ELEVENLABS_VOICE = os.environ.get("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
 sessions = {}
 
 def limpar_sessions_antigas():
-    agora = time.time()
-    para_remover = [k for k in sessions if agora - float(k) > 7200]
-    for k in para_remover:
-        sessions.pop(k, None)
+    try:
+        agora = time.time()
+        para_remover = [k for k, v in list(sessions.items())
+                        if agora - (v.get('created_at', agora) if isinstance(v, dict) else agora) > 7200]
+        for k in para_remover:
+            sessions.pop(k, None)
+    except:
+        pass
 
 HISTORICO_FILE = "historico.json"
 
@@ -603,128 +607,6 @@ def roteiro():
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
 
-@app.route('/narracao', methods=['POST'])
-
-def gerar():
-    limpar_sessions_antigas()
-    data = request.json
-    estilo = data.get('estilo', 'stylized_game')
-    formato = data.get('formato', '9:16')
-    prompts_custom = data.get('prompts_custom', [])
-    narracao_custom = data.get('narracao_custom', '')
-    narracao_session_id = data.get('narracao_session_id')
-    so_audio = data.get('so_audio', False)
-
-    narracao_txt = narracao_custom if narracao_custom else ' '.join(filter(None, [
-        data.get('gancho', ''),
-        *data.get('narracao_caso1', []),
-        *data.get('narracao_caso2', []),
-        data.get('micro_promessa', ''),
-        *data.get('narracao_caso3', []),
-        *data.get('narracao_final', []),
-        data.get('frase_final', ''),
-        data.get('pergunta_divisora', '')
-    ]))
-
-    prompts = prompts_custom if prompts_custom else (
-        data.get('caso1', {}).get('prompts', []) +
-        data.get('caso2', {}).get('prompts', []) +
-        data.get('caso3', {}).get('prompts', []) +
-        data.get('prompts_final', [])
-    )
-
-    session_id = str(int(time.time()))
-
-    def stream():
-        sessions[session_id] = {'imagens': {}, 'prompts': prompts, 'audio': None}
-        yield 'data:' + json.dumps({'session_id': session_id}) + '\n\n'
-        # Modo so_audio — pula imagens e gera apenas audio
-        if so_audio:
-            try:
-                audio_data, audio_service = gerar_audio(narracao_txt, session_id)
-                sessions[session_id]['audio'] = audio_data
-                if audio_data:
-                    yield 'data:' + json.dumps({'audio_ok': True}) + '\n\n'
-                else:
-                    yield 'data:' + json.dumps({'erro': 'Falha ao gerar audio'}) + '\n\n'
-            except Exception as e:
-                yield 'data:' + json.dumps({'erro': str(e)}) + '\n\n'
-            return
-        yield 'data:' + json.dumps({'step': 1, 'status': 'done', 'msg': 'Roteiro aprovado', 'progress': 15}) + '\n\n'
-
-        yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': 'Gerando imagens...', 'progress': 18}) + '\n\n'
-        erros = []
-        for i, prompt in enumerate(prompts):
-            num = str(i + 1).zfill(2)
-            try:
-                img = leonardo_generate(prompt, formato, estilo, modelo)
-                sessions[session_id]['imagens'][i] = img
-                img_path = f'/tmp/{session_id}_{i}.jpg'
-                with open(img_path, 'wb') as f_img:
-                    f_img.write(img)
-                pct = 18 + int((i + 1) / max(len(prompts), 1) * 50)
-                yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num}/{len(prompts)} ok', 'progress': pct}) + '\n\n'
-            except Exception as e:
-                erros.append(num)
-                erro_msg = str(e)[:80]
-                print(f"ERRO IMAGEM {num}: {erro_msg}")
-                yield 'data:' + json.dumps({'step': 2, 'status': 'active', 'msg': f'Imagem {num} falhou: {erro_msg}', 'progress': 18 + int((i + 1) / max(len(prompts), 1) * 50)}) + '\n\n'
-
-        msg_imgs = f"{len(sessions[session_id]['imagens'])}/{len(prompts)} imagens geradas"
-        if erros:
-            msg_imgs += f" (falharam: {', '.join(erros)})"
-        yield 'data:' + json.dumps({'step': 2, 'status': 'done', 'msg': msg_imgs, 'progress': 70}) + '\n\n'
-        yield 'data:' + json.dumps({'imgs_total': len(prompts)}) + '\n\n'
-
-        # Reutiliza áudio já gerado ou gera novo
-        yield 'data:' + json.dumps({'step': 3, 'status': 'active', 'msg': 'Preparando narracao...', 'progress': 72}) + '\n\n'
-        audio_data = None
-        audio_service = ''
-
-        # Tenta reutilizar narração já gerada
-        if narracao_session_id:
-            s = sessions.get(narracao_session_id)
-            if s and s.get('audio'):
-                audio_data = s['audio']
-                audio_service = 'reutilizado'
-            else:
-                audio_path = f'/tmp/narracao_{narracao_session_id}.mp3'
-                if os.path.exists(audio_path):
-                    with open(audio_path, 'rb') as fa:
-                        audio_data = fa.read()
-                    audio_service = 'disco'
-
-        # Gera nova narracao APENAS se nao foi gerada no passo 2
-        if not audio_data and narracao_session_id is None:
-            audio_data, audio_service = gerar_audio(narracao_txt, session_id)
-
-        sessions[session_id]['audio'] = audio_data
-        status_audio = 'done' if audio_data else 'error'
-        msg_audio = f'Narracao via {audio_service}' if audio_data else 'Erro na narracao'
-        yield 'data:' + json.dumps({'step': 3, 'status': status_audio, 'msg': msg_audio, 'progress': 88}) + '\n\n'
-        if audio_data:
-            yield 'data:' + json.dumps({'audio_url': f'/audio/{session_id}'}) + '\n\n'
-
-        yield 'data:' + json.dumps({'step': 4, 'status': 'active', 'msg': 'Criando ZIP...', 'progress': 92}) + '\n\n'
-        try:
-            zip_path = f'/tmp/video_{session_id}.zip'
-            with zipfile.ZipFile(zip_path, 'w') as zf:
-                for idx, img in sessions[session_id]['imagens'].items():
-                    zf.writestr(f'IMG_{str(idx + 1).zfill(2)}.jpg', img)
-                if audio_data:
-                    zf.writestr('narracao.mp3', audio_data)
-                rot = f"TITULO: {data.get('titulo', '')}\n\n"
-                for i, n in enumerate(narracao_txt.split('.')):
-                    if n.strip():
-                        rot += f"{str(i + 1).zfill(2)}. {n.strip()}.\n"
-                zf.writestr('roteiro.txt', rot.encode('utf-8'))
-                prompts_txt = '\n\n'.join([f"IMG {str(i + 1).zfill(2)}:\n{p}" for i, p in enumerate(prompts)])
-                zf.writestr('prompts.txt', prompts_txt.encode('utf-8'))
-            yield 'data:' + json.dumps({'step': 4, 'status': 'done', 'msg': 'Pronto! Clique para baixar', 'progress': 100, 'zip': zip_path}) + '\n\n'
-        except Exception as e:
-            yield 'data:' + json.dumps({'step': 4, 'status': 'error', 'msg': f'Erro ZIP: {str(e)}'}) + '\n\n'
-
-    return Response(stream(), mimetype='text/event-stream')
 
 @app.route('/audio/<session_id>')
 def audio(session_id):
@@ -1310,6 +1192,31 @@ def corrigir_dim_thumbnail():
         text = chamar_claude(system, user_msg, max_tokens=500, modelo="claude-sonnet-4-6")
         return jsonify({'prompt_atualizado': text.strip().strip('"')})
     except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
+
+@app.route('/audio-gerar', methods=['POST'])
+def audio_gerar():
+    """Gera narração a partir do script. Retorna JSON com session_id."""
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+        texto = data.get('script', '').strip()
+        if not texto:
+            return jsonify({'erro': 'Script vazio'}), 400
+        import uuid
+        sid = str(uuid.uuid4())
+        sessions[sid] = {'audio': None, 'imagens': {}, 'prompts': [], 'created_at': time.time()}
+        print(f"AUDIO GERAR: voice={ELEVENLABS_VOICE} chars={len(texto)}")
+        audio_data, servico = gerar_audio(texto, sid)
+        if not audio_data:
+            return jsonify({'erro': 'ElevenLabs nao retornou audio. Verifique seus creditos.'}), 500
+        sessions[sid]['audio'] = audio_data
+        print(f"AUDIO GERAR: OK servico={servico} bytes={len(audio_data)}")
+        return jsonify({'ok': True, 'session_id': sid})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({'erro': str(e)}), 500
 
 
