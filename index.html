@@ -351,67 +351,56 @@ async function gerarNarracao() {
 }
 
 async function gerarImagens() {
-  // Captura edições nos prompts
   state.prompts.forEach(function(p,i){ var ta=document.getElementById('pt'+i); if(ta) state.prompts[i]=ta.value; });
-  var script = (document.getElementById('script-final')||{}).value || '';
+  if(!state.prompts.length){ alert('Gere os prompts primeiro'); return; }
+
   document.getElementById('steps-card').style.display = 'block';
-  document.getElementById('result-card').style.display = 'none';
   document.getElementById('btn-imagens').disabled = true;
-  setP(5); setStep(1,'active','Iniciando...'); setStep(2,'','Aguardando...'); setStep(3,'','Aguardando...');
+  setP(5); setStep(1,'active','Gerando imagens...'); setStep(2,'','Aguardando...'); setStep(3,'','Aguardando...');
+
   try {
-    var resp = await fetch('/narracao', {
-      method:'POST', headers:{'Content-Type':'application/json'},
+    var r = await fetch('/imagens-gerar', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
-        narracao_custom: script,
-        prompts_custom: state.prompts,
-        modelo: state.modelo,
-        estilo: 'field_journal',
-        formato: state.formato
+        prompts: state.prompts,
+        narracao_session_id: state.narracao_session_id || '',
+        formato: state.formato,
+        modelo: state.modelo
       })
     });
-    var reader = resp.body.getReader();
-    var dec = new TextDecoder();
-    var buf = '';
-    while(true) {
-      var res = await reader.read();
-      if(res.done) break;
-      buf += dec.decode(res.value, {stream:true});
-      var lines = buf.split('\n'); buf = lines.pop();
-      lines.forEach(function(line) {
-        line = line.trim();
-        if(line.indexOf('data:') !== 0) return;
-        try {
-          var d = JSON.parse(line.slice(5));
-          if(d.step) setStep(d.step, d.status, d.msg);
-          if(d.progress !== undefined) setP(d.progress);
-          if(d.session_id) state.sessionId = d.session_id;
-          if(d.img_idx !== undefined) {
-            var img = document.getElementById('img-'+d.img_idx);
-            if(img) { img.src = '/imagem/'+state.sessionId+'/'+d.img_idx+'?t='+Date.now(); img.style.display='block'; }
-          }
-          if(d.imgs_total) {
-            renderGrid(d.imgs_total);
-            document.getElementById('section-imagens').style.display = 'block';
-            document.getElementById('result-card').style.display = 'block';
-          }
-          if(d.audio_ok || d.narracao_ok) {
-            var ap = document.getElementById('audio-player');
-            if(ap && state.sessionId) ap.src = '/audio/'+state.sessionId+'?t='+Date.now();
-            document.getElementById('section-narracao').style.display = 'block';
-            document.getElementById('result-card').style.display = 'block';
-          }
-          if(d.zip || d.done) {
-            if(d.zip) state.zipPath = d.zip;
-            document.getElementById('btn-download').style.display = 'block';
-            document.getElementById('result-card').style.display = 'block';
-            salvarEstado();
-          }
-        } catch(ex) { console.log('SSE parse:', line); }
-      });
+    var d = await r.json();
+    if(d.erro) throw new Error(d.erro);
+
+    setStep(1, 'done', d.imagens_ok + '/' + d.imagens_total + ' imagens geradas');
+    setP(70);
+
+    // Mostra imagens
+    renderGrid(d.imagens_total);
+    for(var i=0; i<d.imagens_total; i++){
+      (function(idx){
+        var img = document.getElementById('img-'+idx);
+        if(img){ img.src='/imagem/'+d.session_id+'/'+idx+'?t='+Date.now(); img.style.display='block'; }
+      })(i);
     }
-  } catch(e) { alert('Erro ao gerar: ' + e.message); }
+    document.getElementById('section-imagens').style.display = 'block';
+
+    // Narração já gerada
+    setStep(2, 'done', 'Narração reutilizada');
+    setP(90);
+
+    // ZIP
+    setStep(3, 'done', 'Pronto!');
+    setP(100);
+    state.sessionId = d.session_id;
+    state.zipPath = d.zip;
+    document.getElementById('btn-download').style.display = 'block';
+    salvarEstado();
+
+  } catch(e) { alert('Erro ao gerar imagens: ' + e.message); }
   document.getElementById('btn-imagens').disabled = false;
 }
+
 
 function baixarZip() {
   if(state.sessionId) window.open('/download?session_id='+state.sessionId);
