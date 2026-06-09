@@ -1210,6 +1210,79 @@ def audio_gerar():
         return jsonify({'erro': str(e)}), 500
 
 
+@app.route('/imagens-gerar', methods=['POST'])
+def imagens_gerar():
+    """Gera imagens e monta ZIP. Usa narração já gerada."""
+    import uuid, threading
+    data = request.get_json(force=True, silent=True) or {}
+    prompts = data.get('prompts', [])
+    narracao_session_id = data.get('narracao_session_id', '')
+    formato = data.get('formato', '9:16')
+    modelo = data.get('modelo', 'animais')
+
+    if not prompts:
+        return jsonify({'erro': 'Nenhum prompt enviado'}), 400
+
+    sid = str(uuid.uuid4())
+    sessions[sid] = {'imagens': {}, 'prompts': prompts, 'audio': None, 'created_at': time.time()}
+
+    # Gera imagens em paralelo
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    erros = []
+    def gerar_uma(args):
+        i, prompt = args
+        return i, leonardo_generate(prompt, formato, 'field_journal', modelo)
+
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = {executor.submit(gerar_uma, (i, p)): i for i, p in enumerate(prompts)}
+        for future in as_completed(futures):
+            try:
+                i, img = future.result()
+                sessions[sid]['imagens'][i] = img
+                with open(f'/tmp/{sid}_{i}.jpg', 'wb') as f_img:
+                    f_img.write(img)
+            except Exception as e:
+                i = futures[future]
+                erros.append(str(i+1))
+                print(f"IMAGEM {i+1} ERRO: {e}")
+
+    # Recupera áudio já gerado
+    audio_data = None
+    if narracao_session_id:
+        s = sessions.get(narracao_session_id)
+        if s and s.get('audio'):
+            audio_data = s['audio']
+        else:
+            audio_path = f'/tmp/narracao_{narracao_session_id}.mp3'
+            if os.path.exists(audio_path):
+                with open(audio_path, 'rb') as fa:
+                    audio_data = fa.read()
+
+    # Monta ZIP
+    zip_path = f'/tmp/video_{sid}.zip'
+    try:
+        with __import__('zipfile').ZipFile(zip_path, 'w') as zf:
+            for i, img in sessions[sid]['imagens'].items():
+                zf.writestr(f'IMG_{str(i+1).zfill(2)}.jpg', img)
+            if audio_data:
+                zf.writestr('narracao.mp3', audio_data)
+            prompts_txt = '\n\n'.join([f"IMG {str(i+1).zfill(2)}:\n{p}" for i, p in enumerate(prompts)])
+            zf.writestr('prompts.txt', prompts_txt.encode('utf-8'))
+        sessions[sid]['zip'] = zip_path
+    except Exception as e:
+        return jsonify({'erro': f'Erro ZIP: {e}'}), 500
+
+    n_ok = len(sessions[sid]['imagens'])
+    return jsonify({
+        'ok': True,
+        'session_id': sid,
+        'imagens_ok': n_ok,
+        'imagens_total': len(prompts),
+        'erros': erros,
+        'zip': zip_path
+    })
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
