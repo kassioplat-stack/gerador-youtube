@@ -7,7 +7,7 @@ app = Flask(__name__)
 CLAUDE_KEY     = os.environ.get("CLAUDE_API_KEY", "")
 LEONARDO_KEY   = os.environ.get("LEONARDO_API_KEY", "")
 ELEVENLABS_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
-ELEVENLABS_VOICE = os.environ.get("ELEVENLABS_VOICE_ID", "21m00Tcm4TlvDq8ikWAM")
+ELEVENLABS_VOICE = os.environ.get("ELEVENLABS_VOICE_ID", "ArxqHrvFUTpvtCvw3KVh")
 
 sessions = {}
 
@@ -541,17 +541,7 @@ def gerar_audio(narracao_txt, session_id):
     except Exception as e:
         print(f"ElevenLabs erro: {e}")
 
-    if not audio_data:
-        try:
-            from gtts import gTTS
-            import io
-            tts = gTTS(narracao_txt, lang='pt')
-            buf = io.BytesIO()
-            tts.write_to_fp(buf)
-            audio_data = buf.getvalue()
-            audio_service = 'gTTS'
-        except Exception as e:
-            print(f"gTTS erro: {e}")
+
 
     if audio_data:
         sessions[session_id]['audio'] = audio_data
