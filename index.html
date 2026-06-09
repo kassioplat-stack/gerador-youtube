@@ -173,6 +173,22 @@ textarea:focus{outline:none;border-color:#E8593C}
 <script>
 var _processando = false;
 
+function bloquearBotoes() {
+  _processando = true;
+  ['btn-prompts','btn-narracao','btn-imagens'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.style.pointerEvents = 'none';
+  });
+}
+
+function liberarBotoes() {
+  _processando = false;
+  ['btn-prompts','btn-narracao','btn-imagens'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.style.pointerEvents = '';
+  });
+}
+
 var state = {
   modelo: 'animais',
   formato: '9:16',
