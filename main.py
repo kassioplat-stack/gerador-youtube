@@ -493,6 +493,7 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game", modelo="an
                 timeout=40
             )
             data = r.json()
+            print(f"LEONARDO RESPONSE: {str(data)[:300]}")
             if "sdGenerationJob" not in data:
                 raise Exception(f"Leonardo erro: {data}")
             gen_id = data["sdGenerationJob"]["generationId"]
@@ -503,8 +504,8 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game", modelo="an
                 imgs = r2.json().get("generations_by_pk", {}).get("generated_images", [])
                 if imgs:
                     return requests.get(imgs[0]["url"], timeout=20).content
-            raise Exception("Timeout")
         except Exception as e:
+            print(f"LEONARDO ERRO tentativa={tentativa+1}: {type(e).__name__}: {e}")
             if tentativa == 2:
                 raise
             time.sleep(5)
