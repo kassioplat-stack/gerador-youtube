@@ -171,6 +171,8 @@ textarea:focus{outline:none;border-color:#E8593C}
 </div><!-- /container -->
 
 <script>
+var _processando = false;
+
 var state = {
   modelo: 'animais',
   formato: '9:16',
@@ -306,7 +308,6 @@ async function regenPrompt(i) {
 }
 
 async function gerarNarracao() {
-  if(_processando) return;
   var script = (document.getElementById('script-final')||{}).value||'';
   if(!script.trim()){ alert('Cole o script primeiro'); return; }
   bloquearBotoes();
