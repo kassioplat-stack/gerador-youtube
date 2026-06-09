@@ -273,7 +273,7 @@ function renderPrompts(prompts) {
 
 function renderGrid(total) {
   var grid = document.getElementById('image-grid');
-  if(!grid || grid.children.length) return;
+  if(!grid) return;
   var html = '';
   for(var i=0;i<total;i++) {
     html += '<div class="img-cell" id="cell'+i+'"><img id="img-'+i+'"></div>';
@@ -356,9 +356,10 @@ async function gerarImagens() {
 
   document.getElementById('steps-card').style.display = 'block';
   document.getElementById('btn-imagens').disabled = true;
-  setP(5); setStep(1,'active','Gerando imagens...'); setStep(2,'','Aguardando...'); setStep(3,'','Aguardando...');
+  setP(5); setStep(1,'active','Iniciando geração...'); setStep(2,'','Aguardando...'); setStep(3,'','Aguardando...');
 
   try {
+    // Inicia geração em background — retorna imediatamente com session_id
     var r = await fetch('/imagens-gerar', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -372,30 +373,64 @@ async function gerarImagens() {
     var d = await r.json();
     if(d.erro) throw new Error(d.erro);
 
-    setStep(1, 'done', d.imagens_ok + '/' + d.imagens_total + ' imagens geradas');
-    setP(70);
+    var imgSid = d.session_id;
+    var total = d.total;
+    state.sessionId = imgSid;
 
-    // Mostra imagens
-    renderGrid(d.imagens_total);
-    for(var i=0; i<d.imagens_total; i++){
-      (function(idx){
-        var img = document.getElementById('img-'+idx);
-        if(img){ img.src='/imagem/'+d.session_id+'/'+idx+'?t='+Date.now(); img.style.display='block'; }
-      })(i);
-    }
+    // Prepara grid vazia
+    renderGrid(total);
     document.getElementById('section-imagens').style.display = 'block';
 
-    // Narração já gerada
-    setStep(2, 'done', 'Narração reutilizada');
-    setP(90);
+    // Polling a cada 5s até concluir
+    var imgsJaMostradas = {};
+    await new Promise(function(resolve, reject) {
+      var intervalo = setInterval(async function() {
+        try {
+          var rs = await fetch('/imagens-status/' + imgSid);
+          var st = await rs.json();
+          if(st.erro) { clearInterval(intervalo); reject(new Error(st.erro)); return; }
 
-    // ZIP
-    setStep(3, 'done', 'Pronto!');
-    setP(100);
-    state.sessionId = d.session_id;
-    state.zipPath = d.zip;
-    document.getElementById('btn-download').style.display = 'block';
-    salvarEstado();
+          var pct = Math.round(5 + (st.imagens_ok / Math.max(st.total, 1)) * 60);
+          setP(pct);
+          setStep(1, 'active', st.imagens_ok + '/' + st.total + ' imagens geradas...');
+
+          // Mostra imagens conforme chegam
+          for(var i = 0; i < st.imagens_ok; i++) {
+            if(!imgsJaMostradas[i]) {
+              var img = document.getElementById('img-'+i);
+              if(img) { img.src = '/imagem/'+imgSid+'/'+i+'?t='+Date.now(); img.style.display = 'block'; }
+              imgsJaMostradas[i] = true;
+            }
+          }
+
+          if(st.status === 'concluido') {
+            clearInterval(intervalo);
+            // Mostra imagens restantes que possam ter chegado no último ciclo
+            for(var j = 0; j < st.total; j++) {
+              if(!imgsJaMostradas[j]) {
+                var img2 = document.getElementById('img-'+j);
+                if(img2) { img2.src = '/imagem/'+imgSid+'/'+j+'?t='+Date.now(); img2.style.display = 'block'; }
+              }
+            }
+            resolve(st);
+          }
+        } catch(err) {
+          clearInterval(intervalo);
+          reject(err);
+        }
+      }, 5000);
+    }).then(function(st) {
+      var nOk = st.imagens_ok;
+      setStep(1, 'done', nOk + '/' + st.total + ' imagens geradas' + (st.erros.length ? ' (' + st.erros.length + ' erros)' : ''));
+      setP(75);
+      setStep(2, 'done', 'Narração reutilizada');
+      setP(90);
+      setStep(3, 'done', 'Pronto!');
+      setP(100);
+      state.zipPath = st.zip;
+      document.getElementById('btn-download').style.display = 'block';
+      salvarEstado();
+    });
 
   } catch(e) { alert('Erro ao gerar imagens: ' + e.message); }
   document.getElementById('btn-imagens').disabled = false;
@@ -404,6 +439,8 @@ async function gerarImagens() {
 
 function baixarZip() {
   if(state.sessionId) window.open('/download?session_id='+state.sessionId);
+  else if(state.zipPath) window.open('/download?file='+encodeURIComponent(state.zipPath));
+  else alert('ZIP ainda não disponível.');
 }
 
 function salvarEstado() {
