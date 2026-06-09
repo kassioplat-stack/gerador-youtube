@@ -1232,13 +1232,18 @@ def imagens_gerar():
                     audio_data = fa.read()
 
     def gerar_em_background(sid, prompts, formato, modelo_req, audio_data):
+        import sys
         from concurrent.futures import ThreadPoolExecutor, as_completed
+        print(f"THREAD INICIO: sid={sid} total={len(prompts)} modelo={modelo_req}", flush=True)
 
         def gerar_uma(args):
             i, prompt = args
-            return i, leonardo_generate(prompt, formato, 'field_journal', modelo_req)
+            print(f"GERANDO IMAGEM {i+1}/{len(prompts)}", flush=True)
+            img = leonardo_generate(prompt, formato, 'field_journal', modelo_req)
+            print(f"IMAGEM {i+1} OK bytes={len(img)}", flush=True)
+            return i, img
 
-        with ThreadPoolExecutor(max_workers=3) as executor:
+        with ThreadPoolExecutor(max_workers=2) as executor:
             futures = {executor.submit(gerar_uma, (i, p)): i for i, p in enumerate(prompts)}
             for future in as_completed(futures):
                 try:
@@ -1249,7 +1254,7 @@ def imagens_gerar():
                 except Exception as e:
                     i = futures[future]
                     sessions[sid]['erros'].append(str(i + 1))
-                    print(f"IMAGEM {i+1} ERRO: {e}")
+                    print(f"IMAGEM {i+1} ERRO: {type(e).__name__}: {e}", flush=True)
 
         # Monta ZIP ao final
         zip_path = f'/tmp/video_{sid}.zip'
@@ -1268,7 +1273,7 @@ def imagens_gerar():
         sessions[sid]['status'] = 'concluido'
         print(f"IMAGENS: concluido sid={sid} ok={len(sessions[sid]['imagens'])}/{len(prompts)}")
 
-    thread = threading.Thread(target=gerar_em_background, args=(sid, prompts, formato, modelo_req, audio_data), daemon=True)
+    thread = threading.Thread(target=gerar_em_background, args=(sid, prompts, formato, modelo_req, audio_data), daemon=False)
     thread.start()
 
     return jsonify({
