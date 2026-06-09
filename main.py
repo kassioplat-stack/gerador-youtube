@@ -484,10 +484,11 @@ def leonardo_generate(prompt, formato="9:16", estilo="stylized_game", modelo="an
     dims = FORMATOS.get(formato, FORMATOS["9:16"])
     for tentativa in range(3):
         try:
+            prompt_final = (prompt + ", " + sufixo)[:1490]
             r = requests.post(
                 "https://cloud.leonardo.ai/api/rest/v1/generations",
                 headers={"authorization": f"Bearer {LEONARDO_KEY}", "content-type": "application/json"},
-                json={"prompt": prompt + ", " + sufixo, "modelId": "7b592283-e8a7-4c5a-9ba6-d18c31f258b9",
+                json={"prompt": prompt_final, "modelId": "7b592283-e8a7-4c5a-9ba6-d18c31f258b9",
                       "width": dims["width"], "height": dims["height"], "num_images": 1,
                       "negative_prompt": "blurry, low quality, distorted, ugly, watermark, text, humans, human hands, multiple animals, cartoon, anime, deformed", "guidance_scale": 7},
                 timeout=40
