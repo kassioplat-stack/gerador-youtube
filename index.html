@@ -325,6 +325,7 @@ var state = {
   modelo: 'animais',
   formato: '9:16',
   prompts: [],
+  prompts_pt: [],
   sessionId: null,
   zipPath: null
 };
@@ -388,14 +389,16 @@ function atualizarContador() {
   cc.textContent = palavras + ' palavras · ~' + duracao_s + 's · ' + n + ' imagens';
 }
 
-function renderPrompts(prompts) {
+function renderPrompts(prompts, prompts_pt) {
   var el = document.getElementById('prompts-list');
   if(!el) return;
   var html = '';
   prompts.forEach(function(p, i) {
+    var pt = (prompts_pt && prompts_pt[i]) ? prompts_pt[i] : '';
     html += '<div class="prompt-item">'
       + '<span class="prompt-num">' + (i+1) + '</span>'
       + '<div style="flex:1">'
+      + (pt ? '<div style="font-size:11px;color:#8888BB;margin-bottom:4px;line-height:1.4">' + esc(pt) + '</div>' : '')
       + '<textarea class="prompt-ta" id="pt'+i+'">' + esc(p) + '</textarea>'
       + '<button class="regen-btn" onclick="regenPrompt('+i+')">↻ Regenerar</button>'
       + '</div></div>';
@@ -429,7 +432,8 @@ async function gerarPrompts() {
     var d = await r.json();
     if(d.erro) throw new Error(d.erro);
     state.prompts = d.prompts || [];
-    renderPrompts(state.prompts);
+    state.prompts_pt = d.prompts_pt || [];
+    renderPrompts(state.prompts, state.prompts_pt);
     document.getElementById('section-prompts').style.display = 'block';
     document.getElementById('btn-narracao').disabled = false;
     salvarEstado();
@@ -591,7 +595,8 @@ function restaurarEstado() {
     if(s.formato) selChip('formato', s.formato);
     if(s.prompts && s.prompts.length) {
       state.prompts = s.prompts;
-      renderPrompts(s.prompts);
+      state.prompts_pt = s.prompts_pt || [];
+      renderPrompts(s.prompts, state.prompts_pt);
       document.getElementById('section-prompts').style.display = 'block';
       var bi = document.getElementById('btn-imagens');
       if(bi) bi.disabled = false;
