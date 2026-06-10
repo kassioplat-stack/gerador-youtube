@@ -8,6 +8,20 @@ CLAUDE_KEY     = os.environ.get("CLAUDE_API_KEY", "")
 LEONARDO_KEY   = os.environ.get("LEONARDO_API_KEY", "")
 ELEVENLABS_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
 ELEVENLABS_VOICE = os.environ.get("ELEVENLABS_VOICE_ID", "ArxqHrvFUTpvtCvw3KVh")
+GROK_KEY = os.environ.get("GROK_API_KEY", "")
+
+# Vozes fixas disponiveis
+VOZES = [
+    {"id": "ArxqHrvFUTpvtCvw3KVh", "nome": "Kássio"},
+]
+
+# Estilos visuais pre-programados para videos comerciais
+ESTILOS_COMERCIAIS = [
+    {"id": "realista", "nome": "Realista", "desc": "Fotorrealista, cinematografico, alta fidelidade"},
+    {"id": "3d",       "nome": "3D",       "desc": "Render 3D moderno, luzes suaves, minimalista"},
+    {"id": "desenho",  "nome": "Desenho",  "desc": "Ilustracao vetorial, linhas limpas, colorido"},
+    {"id": "cinematic","nome": "Cinematic","desc": "Filmatico, cores ricas, profundidade de campo"},
+]
 
 sessions = {}
 
@@ -1331,6 +1345,347 @@ def imagens_status(session_id):
         'zip': s.get('zip'),
     })
 
+
+
+# ─────────────────────────────────────────────
+# ROTAS VIDEOS COMERCIAIS
+# ─────────────────────────────────────────────
+
+@app.route('/comercial-config', methods=['GET'])
+def comercial_config():
+    """Retorna vozes e estilos disponiveis."""
+    return jsonify({'vozes': VOZES, 'estilos': ESTILOS_COMERCIAIS})
+
+
+@app.route('/comercial-roteiro', methods=['POST'])
+def comercial_roteiro():
+    """Claude gera roteiro de cenas para video comercial."""
+    data = request.get_json(force=True, silent=True) or {}
+    titulo     = data.get('titulo', '').strip()
+    segmento   = data.get('segmento', '').strip()
+    estilo_id  = data.get('estilo', 'realista')
+    descricao  = data.get('descricao', '').strip()
+    n_cenas    = int(data.get('n_cenas', 6))
+
+    estilo_obj = next((e for e in ESTILOS_COMERCIAIS if e['id'] == estilo_id), ESTILOS_COMERCIAIS[0])
+
+    system = (
+        "Voce e um diretor criativo especialista em videos comerciais virais para redes sociais."
+        " Cria videos de ate 60 segundos para qualquer tipo de negocio — local ou digital."
+        " Seu trabalho: gerar um roteiro dividido em cenas, onde cada cena tem 8-10 segundos."
+        " Cada cena precisa de:"
+        " 1. narracao: texto falado nessa cena (curto, impactante, em portugues)"
+        " 2. descricao_visual: o que aparece visualmente nessa cena (em portugues, detalhado)"
+        " 3. prompt_imagem: prompt em INGLES para gerar a imagem dessa cena no Leonardo AI"
+        " 4. comando_video: instrucao em portugues do movimento/animacao do video dessa cena (ex: camera aproxima lentamente, zoom out revelando o ambiente)"
+        " ESTILO VISUAL: " + estilo_obj['nome'] + " — " + estilo_obj['desc'] +
+        " REGRAS:"
+        " - Narracao total deve ter no maximo 120 palavras (60 segundos)"
+        " - Cada cena deve ser visual e emocionalmente diferente da anterior"
+        " - Comece com um gancho visual forte na cena 1"
+        " - Termine com call-to-action claro na ultima cena"
+        " - prompt_imagem sempre em ingles, detalhado, sem mencionar estilo (e aplicado automaticamente)"
+        " Retorne SOMENTE JSON valido sem markdown:"
+        ' {"titulo": "string", "cenas": [{"numero": 1, "narracao": "string", "descricao_visual": "string", "prompt_imagem": "string em ingles", "comando_video": "string em portugues"}]}'
+    )
+
+    user_msg = "Titulo: " + titulo + "\nSegmento/Negocio: " + segmento + "\nDescricao/Ideia: " + descricao + "\nNumero de cenas: " + str(n_cenas)
+
+    try:
+        text = chamar_claude(system, user_msg, max_tokens=3000)
+        d = parse_json_robusto(text)
+        # Cria sessao para esse projeto comercial
+        import uuid
+        sid = 'com_' + str(uuid.uuid4())
+        sessions[sid] = {'com_imagens': {}, 'com_videos': {}, 'com_audio': None, 'created_at': time.time()}
+        d['session_id'] = sid
+        return jsonify(d)
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
+@app.route('/comercial-imagem', methods=['POST'])
+def comercial_imagem():
+    """Gera imagem de uma cena via Leonardo."""
+    data = request.get_json(force=True, silent=True) or {}
+    prompt    = data.get('prompt', '')
+    estilo_id = data.get('estilo', 'realista')
+    session_id= data.get('session_id', '')
+    cena_idx  = int(data.get('cena_idx', 0))
+
+    # Sufixo por estilo
+    sufixos = {
+        'realista':  'photorealistic, cinematic, 8k, sharp details, professional photography, natural lighting',
+        '3d':        '3D render, modern style, soft studio lighting, clean composition, high quality render',
+        'desenho':   'vector illustration, flat design, clean lines, vibrant colors, modern graphic style',
+        'cinematic': 'cinematic film, anamorphic lens, rich colors, bokeh, dramatic lighting, movie still',
+    }
+    sufixo = sufixos.get(estilo_id, sufixos['realista'])
+    prompt_final = (prompt + ', ' + sufixo)[:1490]
+
+    try:
+        dims = FORMATOS.get('9:16', {'width': 768, 'height': 1344})
+        r = requests.post(
+            'https://cloud.leonardo.ai/api/rest/v1/generations',
+            headers={'authorization': f'Bearer {LEONARDO_KEY}', 'content-type': 'application/json'},
+            json={'prompt': prompt_final, 'modelId': '7b592283-e8a7-4c5a-9ba6-d18c31f258b9',
+                  'width': dims['width'], 'height': dims['height'], 'num_images': 1,
+                  'negative_prompt': 'blurry, low quality, distorted, text, watermark', 'guidance_scale': 7},
+            timeout=40
+        )
+        data_r = r.json()
+        if 'sdGenerationJob' not in data_r:
+            raise Exception(f'Leonardo erro: {data_r}')
+        gen_id = data_r['sdGenerationJob']['generationId']
+        for _ in range(50):
+            time.sleep(3)
+            r2 = requests.get(f'https://cloud.leonardo.ai/api/rest/v1/generations/{gen_id}',
+                              headers={'authorization': f'Bearer {LEONARDO_KEY}'}, timeout=15)
+            imgs = r2.json().get('generations_by_pk', {}).get('generated_images', [])
+            if imgs:
+                img_url = imgs[0]['url']
+                img_data = requests.get(img_url, timeout=20).content
+                # Salva em sessao
+                if session_id and session_id in sessions:
+                    if 'com_imagens' not in sessions[session_id]:
+                        sessions[session_id]['com_imagens'] = {}
+                    sessions[session_id]['com_imagens'][cena_idx] = img_data
+                path = f'/tmp/com_{session_id}_{cena_idx}.jpg'
+                with open(path, 'wb') as f:
+                    f.write(img_data)
+                return jsonify({'ok': True, 'url': f'/comercial-imagem-serve/{session_id}/{cena_idx}'})
+        raise Exception('Timeout Leonardo')
+    except Exception as e:
+        return jsonify({'ok': False, 'erro': str(e)}), 500
+
+
+@app.route('/comercial-imagem-serve/<session_id>/<int:idx>')
+def comercial_imagem_serve(session_id, idx):
+    import io
+    s = sessions.get(session_id, {})
+    img = s.get('com_imagens', {}).get(idx)
+    if img:
+        return send_file(io.BytesIO(img), mimetype='image/jpeg')
+    path = f'/tmp/com_{session_id}_{idx}.jpg'
+    if os.path.exists(path):
+        return send_file(path, mimetype='image/jpeg')
+    return 'Nao encontrado', 404
+
+
+@app.route('/comercial-video-iniciar', methods=['POST'])
+def comercial_video_iniciar():
+    """Inicia geracao de video no Grok (image-to-video). Retorna request_id para polling."""
+    data = request.get_json(force=True, silent=True) or {}
+    session_id = data.get('session_id', '')
+    cena_idx   = int(data.get('cena_idx', 0))
+    comando    = data.get('comando', '').strip()
+    prompt_img = data.get('prompt_imagem', '').strip()
+
+    # Tenta usar imagem gerada como base (image-to-video)
+    img_path = f'/tmp/com_{session_id}_{cena_idx}.jpg'
+    image_b64 = None
+    if os.path.exists(img_path):
+        import base64
+        with open(img_path, 'rb') as f:
+            image_b64 = 'data:image/jpeg;base64,' + base64.b64encode(f.read()).decode()
+
+    payload = {
+        'model': 'grok-imagine-video',
+        'prompt': comando if comando else prompt_img,
+        'duration': 6,
+        'resolution': '720p',
+        'aspect_ratio': '9:16',
+    }
+    if image_b64:
+        payload['image'] = {'url': image_b64}
+
+    try:
+        r = requests.post(
+            'https://api.x.ai/v1/videos/generations',
+            headers={'Authorization': f'Bearer {GROK_KEY}', 'Content-Type': 'application/json'},
+            json=payload,
+            timeout=30
+        )
+        d = r.json()
+        print(f'GROK INICIAR: {str(d)[:200]}')
+        if 'request_id' not in d:
+            raise Exception(f'Grok erro: {d}')
+        return jsonify({'ok': True, 'request_id': d['request_id']})
+    except Exception as e:
+        return jsonify({'ok': False, 'erro': str(e)}), 500
+
+
+@app.route('/comercial-video-status/<request_id>')
+def comercial_video_status(request_id):
+    """Polling do status de geracao do video no Grok."""
+    try:
+        r = requests.get(
+            f'https://api.x.ai/v1/videos/{request_id}',
+            headers={'Authorization': f'Bearer {GROK_KEY}'},
+            timeout=15
+        )
+        d = r.json()
+        status = d.get('status', 'pending')
+        video_url = d.get('video', {}).get('url', '') if status == 'done' else ''
+        return jsonify({'status': status, 'video_url': video_url})
+    except Exception as e:
+        return jsonify({'status': 'error', 'erro': str(e)}), 500
+
+
+@app.route('/comercial-video-baixar', methods=['POST'])
+def comercial_video_baixar():
+    """Baixa o video do Grok e salva em sessao."""
+    data = request.get_json(force=True, silent=True) or {}
+    session_id = data.get('session_id', '')
+    cena_idx   = int(data.get('cena_idx', 0))
+    video_url  = data.get('video_url', '')
+
+    try:
+        r = requests.get(video_url, timeout=60)
+        video_data = r.content
+        path = f'/tmp/com_video_{session_id}_{cena_idx}.mp4'
+        with open(path, 'wb') as f:
+            f.write(video_data)
+        if session_id and session_id in sessions:
+            if 'com_videos' not in sessions[session_id]:
+                sessions[session_id]['com_videos'] = {}
+            sessions[session_id]['com_videos'][cena_idx] = video_data
+        return jsonify({'ok': True})
+    except Exception as e:
+        return jsonify({'ok': False, 'erro': str(e)}), 500
+
+
+@app.route('/comercial-narracao', methods=['POST'])
+def comercial_narracao():
+    """Gera narracao completa do video comercial."""
+    data = request.get_json(force=True, silent=True) or {}
+    texto      = data.get('texto', '').strip()
+    voice_id   = data.get('voice_id', ELEVENLABS_VOICE)
+    session_id = data.get('session_id', '')
+
+    if not texto:
+        return jsonify({'erro': 'Texto vazio'}), 400
+
+    try:
+        r = requests.post(
+            f'https://api.elevenlabs.io/v1/text-to-speech/{voice_id}',
+            headers={'xi-api-key': ELEVENLABS_KEY, 'content-type': 'application/json'},
+            json={'text': texto, 'model_id': 'eleven_multilingual_v2',
+                  'voice_settings': {'stability': 0.75, 'similarity_boost': 0.75}},
+            timeout=60
+        )
+        if r.status_code == 200 and len(r.content) > 100:
+            audio_data = r.content
+            path = f'/tmp/com_narracao_{session_id}.mp3'
+            with open(path, 'wb') as f:
+                f.write(audio_data)
+            if session_id and session_id in sessions:
+                sessions[session_id]['com_audio'] = audio_data
+            return jsonify({'ok': True, 'audio_url': f'/comercial-audio/{session_id}'})
+        else:
+            return jsonify({'erro': f'ElevenLabs status={r.status_code}'}), 500
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
+@app.route('/comercial-audio/<session_id>')
+def comercial_audio(session_id):
+    import io
+    s = sessions.get(session_id, {})
+    audio = s.get('com_audio')
+    if audio:
+        return send_file(io.BytesIO(audio), mimetype='audio/mpeg')
+    path = f'/tmp/com_narracao_{session_id}.mp3'
+    if os.path.exists(path):
+        return send_file(path, mimetype='audio/mpeg')
+    return 'Nao encontrado', 404
+
+
+@app.route('/comercial-download', methods=['POST'])
+def comercial_download():
+    """Monta ZIP com videos + narracao."""
+    data = request.get_json(force=True, silent=True) or {}
+    session_id = data.get('session_id', '')
+    n_cenas    = int(data.get('n_cenas', 6))
+
+    zip_path = f'/tmp/comercial_{session_id}.zip'
+    try:
+        with zipfile.ZipFile(zip_path, 'w') as zf:
+            for i in range(n_cenas):
+                v_path = f'/tmp/com_video_{session_id}_{i}.mp4'
+                if os.path.exists(v_path):
+                    zf.write(v_path, f'cena_{str(i+1).zfill(2)}.mp4')
+            a_path = f'/tmp/com_narracao_{session_id}.mp3'
+            if os.path.exists(a_path):
+                zf.write(a_path, 'narracao.mp3')
+        return jsonify({'ok': True, 'zip': zip_path})
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
+
+
+@app.route('/comercial-download-zip')
+def comercial_download_zip():
+    session_id = request.args.get('session_id', '')
+    zip_path = f'/tmp/comercial_{session_id}.zip'
+    if os.path.exists(zip_path):
+        return send_file(zip_path, as_attachment=True, download_name='video_comercial.zip')
+    return 'Nao encontrado', 404
+
+
+
+@app.route('/comercial-gerar-prompt', methods=['POST'])
+def comercial_gerar_prompt():
+    """Claude gera prompt EN para Leonardo com base na descricao da cena e foto opcional."""
+    data = request.get_json(force=True, silent=True) or {}
+    desc     = data.get('desc', '').strip()
+    narracao = data.get('narracao', '').strip()
+    estilo_id= data.get('estilo', 'realista')
+    foto_b64 = data.get('foto', None)
+
+    estilo_obj = next((e for e in ESTILOS_COMERCIAIS if e['id'] == estilo_id), ESTILOS_COMERCIAIS[0])
+
+    system = (
+        "You are a professional prompt engineer for image generation (Leonardo AI)."
+        " Generate a single, detailed image generation prompt in English."
+        " The prompt must be faithful to the scene description and visual style."
+        " Style: " + estilo_obj['nome'] + " — " + estilo_obj['desc'] + "."
+        " Rules: describe subject, action, environment, lighting, angle, mood."
+        " Do NOT mention style keywords (applied automatically)."
+        " Return ONLY the prompt text, no explanation, no quotes."
+    )
+
+    user_parts = []
+    if narracao:
+        user_parts.append("Scene narration: " + narracao)
+    if desc:
+        user_parts.append("Visual description: " + desc)
+    user_msg = "\n".join(user_parts) if user_parts else desc
+
+    try:
+        if foto_b64 and ',' in foto_b64:
+            media_type = foto_b64.split(';')[0].replace('data:', '')
+            img_data = foto_b64.split(',')[1]
+            r = requests.post(
+                "https://api.anthropic.com/v1/messages",
+                headers={"x-api-key": CLAUDE_KEY, "anthropic-version": "2023-06-01", "content-type": "application/json"},
+                json={
+                    "model": "claude-haiku-4-5-20251001",
+                    "max_tokens": 400,
+                    "system": system,
+                    "messages": [{"role": "user", "content": [
+                        {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": img_data}},
+                        {"type": "text", "text": user_msg + "\n\nGenerate the image prompt based on this reference photo and the scene description above."}
+                    ]}]
+                },
+                timeout=30
+            )
+            prompt = r.json()['content'][0]['text'].strip().strip('"')
+        else:
+            prompt = chamar_claude(system, user_msg, max_tokens=400, modelo="claude-haiku-4-5-20251001").strip().strip('"')
+
+        return jsonify({'prompt': prompt})
+    except Exception as e:
+        return jsonify({'erro': str(e)}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
