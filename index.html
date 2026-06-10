@@ -84,6 +84,9 @@ textarea::placeholder{color:#333355}
 /* INFO ROW */
 .info-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 /* COMERCIAL */
+.cena-upload-area{border:1.5px dashed #2A2A45;border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:all .15s;margin-bottom:6px;font-size:11px;color:#555577;font-weight:600}
+.cena-upload-area:hover{border-color:#7B5EFF;background:#13132A}
+.cena-foto-preview{width:100%;height:70px;object-fit:cover;border-radius:8px;border:1.5px solid #7B5EFF;display:none;margin-bottom:6px;cursor:pointer}
 .cena-card{background:#0E0E1A;border:1.5px solid #1E1E35;border-radius:14px;padding:16px;margin-bottom:14px}
 .cena-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .cena-num{background:linear-gradient(135deg,#7B5EFF,#5B3EDF);color:#fff;border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
@@ -618,7 +621,8 @@ var comState = {
   voz_id: 'ArxqHrvFUTpvtCvw3KVh',
   session_id: null,
   cenas: [],
-  n_cenas: 6
+  n_cenas: 6,
+  fotoCenas: {}  // idx -> base64 da foto de referencia da cena
 };
 
 function comStatus(msg) {
@@ -667,15 +671,65 @@ function comSelVoz(id) {
   if(el) el.classList.add('sel');
 }
 
+function comClicarFoto(idx) {
+  var el = document.getElementById('cena-foto-input-'+idx);
+  if(el) el.click();
+}
+
+function comSetFotoCena(idx, input) {
+  var file = input.files[0];
+  if(!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    comState.fotoCenas[idx] = e.target.result;
+    var img = document.getElementById('cena-foto-'+idx);
+    var area = document.getElementById('cena-upload-area-'+idx);
+    if(img) { img.src = e.target.result; img.style.display = 'block'; }
+    if(area) area.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+  input.value = '';
+}
+
+async function comGerarPrompt(idx) {
+  var desc = (document.getElementById('cena-desc-'+idx)||{}).value || '';
+  var narracao = (document.getElementById('cena-narracao-'+idx)||{}).value || '';
+  var fotoB64 = comState.fotoCenas[idx] || null;
+
+  var btn = document.getElementById('cena-btn-prompt-'+idx);
+  if(btn) { btn.disabled = true; btn.textContent = '⏳ Gerando prompt...'; }
+
+  try {
+    var body = {desc: desc, narracao: narracao, estilo: comState.estilo, cena_idx: idx};
+    if(fotoB64) body.foto = fotoB64;
+
+    var r = await fetch('/comercial-gerar-prompt', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
+    });
+    var d = await r.json();
+    if(d.erro) throw new Error(d.erro);
+
+    var ta = document.getElementById('cena-prompt-'+idx);
+    if(ta) ta.value = d.prompt;
+  } catch(e) {
+    alert('Erro ao gerar prompt cena '+(idx+1)+': ' + e.message);
+  }
+  if(btn) { btn.disabled = false; btn.textContent = '✦ Gerar Prompt'; }
+}
+
 function comRenderCenas(cenas) {
   var container = document.getElementById('com-cenas');
   if(!container) return;
   var html = '';
   cenas.forEach(function(c, i) {
     html += '<div class="cena-card" id="cena-card-'+i+'">'
+
+      // Header
       + '<div class="cena-header">'
       + '<div class="cena-num">'+(i+1)+'</div>'
-      + '<div class="cena-title">Cena '+(i+1)+' — '+esc(c.narracao.substring(0,40))+'...</div>'
+      + '<div class="cena-title">Cena '+(i+1)+'</div>'
       + '</div>'
 
       // Narração
@@ -690,10 +744,19 @@ function comRenderCenas(cenas) {
       + '<textarea class="cena-ta" id="cena-desc-'+i+'" rows="2">'+esc(c.descricao_visual)+'</textarea>'
       + '</div>'
 
-      // Prompt imagem
+      // Upload foto de referência
       + '<div class="cena-section">'
-      + '<span class="cena-label">Prompt de imagem (inglês)</span>'
-      + '<textarea class="cena-ta" id="cena-prompt-'+i+'" rows="2">'+esc(c.prompt_imagem)+'</textarea>'
+      + '<span class="cena-label">Foto de referência (opcional)</span>'
+      + '<img class="cena-foto-preview" id="cena-foto-'+i+'" onclick="comClicarFoto('+i+')" title="Trocar foto" />'
+      + '<div class="cena-upload-area" id="cena-upload-area-'+i+'" onclick="comClicarFoto('+i+')">📷 Adicionar foto desta cena</div>'
+      + '<input type="file" id="cena-foto-input-'+i+'" accept="image/*" style="display:none" onchange="comSetFotoCena('+i+', this)" />'
+      + '</div>'
+
+      // Botão gerar prompt
+      + '<div class="cena-section">'
+      + '<button class="cena-btn" id="cena-btn-prompt-'+i+'" onclick="comGerarPrompt('+i+')" style="width:100%;margin-bottom:8px">✦ Gerar Prompt</button>'
+      + '<span class="cena-label">Prompt gerado (inglês — editável)</span>'
+      + '<textarea class="cena-ta" id="cena-prompt-'+i+'" rows="2" placeholder="Clique em Gerar Prompt...">'+esc(c.prompt_imagem)+'</textarea>'
       + '</div>'
 
       // Comando video
@@ -930,7 +993,7 @@ async function comBaixar() {
 
 function comNovo() {
   if(!confirm('Iniciar novo projeto? O progresso será perdido.')) return;
-  comState = {estilo:'realista', voz_id:'ArxqHrvFUTpvtCvw3KVh', session_id:null, cenas:[], n_cenas:6};
+  comState = {estilo:'realista', voz_id:'ArxqHrvFUTpvtCvw3KVh', session_id:null, cenas:[], n_cenas:6, fotoCenas:{}};
   document.getElementById('com-cenas').innerHTML = '';
   document.getElementById('com-acoes').style.display = 'none';
   document.getElementById('btn-com-download').style.display = 'none';
