@@ -1052,7 +1052,7 @@ async function montarVideo() {
       var count = 0;
       var iv = setInterval(async function() {
         count++;
-        if(count > 60) { clearInterval(iv); reject(new Error('Timeout')); return; }
+        if(count > 180) { clearInterval(iv); reject(new Error('Timeout — montagem demorou mais de 12 minutos')); return; }
         try {
           var rs = await fetch('/montar-video-status/' + vid_sid);
           var st = await rs.json();
