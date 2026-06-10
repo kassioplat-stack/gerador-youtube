@@ -542,7 +542,7 @@ def gerar_audio(narracao_txt, session_id):
             r = requests.post(
                 f'https://api.elevenlabs.io/v1/text-to-speech/{ELEVENLABS_VOICE}',
                 headers={'xi-api-key': ELEVENLABS_KEY, 'content-type': 'application/json'},
-                json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.75, 'similarity_boost': 0.75, 'style': 0.0, 'use_speaker_boost': True}},
+                json={'text': narracao_txt, 'model_id': 'eleven_multilingual_v2', 'voice_settings': {'stability': 0.80, 'similarity_boost': 0.75, 'style': 0.0, 'use_speaker_boost': True}},
                 timeout=60
             )
             if r.status_code == 200 and len(r.content) > 100:
@@ -727,68 +727,97 @@ def gerar_prompts():
         ]
         system = "\n".join(system_lines)
     else:
+        estilo_fixo = (
+            "hand-drawn wildlife field journal illustration, "
+            "naturalist notebook aesthetic, "
+            "authentic pen-and-pencil sketch, "
+            "fine black ink outlines, "
+            "visible loose pencil construction lines, "
+            "rough crosshatching, "
+            "detailed wildlife documentary drawing, "
+            "soft watercolor washes, "
+            "earth-tone color palette, "
+            "subtle natural colors, "
+            "field researcher sketchbook style, "
+            "scientific expedition journal, "
+            "organic brush textures, "
+            "highly detailed animal anatomy, "
+            "natural environment, "
+            "wide cinematic composition, "
+            "storytelling illustration, "
+            "soft natural lighting, "
+            "museum-quality naturalist artwork, "
+            "single scene only, "
+            "no text, no labels, no collage, no multiple studies, no repeated animals, no border sketches"
+        )
         system_lines = [
-            "Voce e o diretor de arte do canal de comportamento animal mais viral do YouTube.",
-            "Sua missao: transformar cada momento do script em uma imagem que seja a personificacao visual exata daquele instante da historia.",
+            "You are the art director of the most viral wildlife YouTube channel in the world.",
+            "Your mission: translate EACH SENTENCE of the narration script into a precise, detailed visual scene.",
+            "Every single word of the script must be reflected in the image — nothing generic, nothing invented.",
             "",
-            "PRINCIPIO ABSOLUTO: storytelling visual perfeito.",
-            "Quem visse APENAS as imagens sem ouvir o audio deve entender o arco completo da historia:",
-            "apresentacao do animal, tensao crescente, escalada, twist final.",
-            "Cada imagem e um quadro de um filme. A sequencia e um trailer.",
+            "ABSOLUTE RULE — TOTAL FIDELITY TO THE SCRIPT:",
+            "Read the script sentence by sentence. Identify the EXACT ACTION happening at that moment.",
+            "If the script says 'the elephant stopped eating' — show the elephant standing still in front of untouched food.",
+            "If the script says 'tourists hand bananas through car windows' — show exactly that scene.",
+            "If the script says 'the cat ignores the rats' — show the cat sitting calmly while rats walk nearby.",
+            "NEVER create a generic scene that could belong to any story.",
+            "NEVER show an animal resting when the script describes action.",
+            "The viewer must understand EXACTLY what is being narrated just by looking at the image.",
             "",
-            "REGRA 1 — FIDELIDADE TOTAL AO SCRIPT:",
-            "Leia cada frase do script. Identifique a ACAO EXATA que esta acontecendo.",
-            "Se o script diz o elefante parou de comer, a imagem mostra o elefante parado diante da comida intocada.",
-            "Se o script diz ela correu 40 quilometros, a imagem mostra o animal em movimento frenetico na savana.",
-            "NUNCA crie uma cena generica que poderia ser de qualquer historia.",
-            "NUNCA mostre o animal em repouso quando o script descreve acao.",
+            "CONSISTENT CHARACTER PER ANIMAL:",
+            "In the first prompt for each animal, define unique physical traits.",
+            "Example: 'curious rhesus macaque with brown fur, bright amber eyes, sitting upright'",
+            "Repeat those EXACT traits in every prompt for that same animal throughout its story.",
+            "It is the same individual in different moments — not a generic animal.",
             "",
-            "REGRA 2 — PERSONAGEM CONSISTENTE:",
-            "No primeiro prompt de cada historia defina as caracteristicas fisicas unicas do animal.",
-            "Exemplo: large African elephant with torn left ear, deep-set amber eyes, dusty gray wrinkled skin, prominent tusks.",
-            "Repita EXATAMENTE essas caracteristicas em todos os prompts da mesma historia.",
-            "E o mesmo individuo em cenas diferentes — nao um animal generico.",
+            "CAMERA ANGLE BY EMOTION:",
+            "Introduction: wide establishing shot — animal in full environment, calm and curious.",
+            "Tension: medium shot — something is off, viewer senses it.",
+            "Escalation: dynamic mid-angle — action happening now, energy, movement.",
+            "Twist: extreme close-up on eye or key detail — destabilizes the viewer.",
+            "Philosophical ending: wide lonely shot — small animal in vast environment.",
             "",
-            "REGRA 3 — ANGULO CONTA A EMOCAO:",
-            "Apresentacao: wide establishing shot — animal no ambiente, transmite calma ou curiosidade.",
-            "Tensao: medium shot — algo esta errado, o espectador pressente.",
-            "Escalada: dynamic mid-angle — acao acontecendo agora, movimento, energia.",
-            "Twist: extreme close-up no olho ou detalhe que muda tudo — desestabiliza o espectador.",
-            "Final filosofico: wide shot solitario, animal pequeno no ambiente enorme — peso existencial.",
+            "LIGHTING BY NARRATIVE MOMENT:",
+            "Opening: soft golden hour — false sense of safety.",
+            "Tension: dramatic side shadows — something dark approaching.",
+            "Twist/shock: high contrast or cold blue light — truth revealed.",
             "",
-            "REGRA 4 — ILUMINACAO REFORCA O TOM:",
-            "Inicio: soft golden hour light — falsa seguranca.",
-            "Tensao: dramatic side shadows overcast — algo escuro se aproxima.",
-            "Twist: high contrast ou blue cold light — choque, verdade exposta.",
+            "VISUAL STYLE — apply this EXACT style to every single prompt:",
+            estilo_fixo,
             "",
-            "REGRA 5 — CADA PROMPT E UNICO E INSUBSTITUIVEL:",
-            "Nenhum prompt pode ser trocado de posicao sem destruir a narrativa.",
-            "Cada imagem so faz sentido naquele momento especifico da historia.",
+            "MANDATORY PROMPT FORMAT:",
+            "[unique physical description of animal] + [EXACT action from the script at this moment] + [camera angle] + [lighting] + [motion state: mid-motion / frozen / slow-blur]",
             "",
-            "ESTILO FIXO aplicado automaticamente NAO mencione no prompt:",
-            "Hand-drawn wildlife field journal, naturalist sketchbook, black ink sketch, white background.",
+            "FORBIDDEN in any prompt: text in image, generic scenes, repeated poses, collage, multiple animal studies.",
             "",
-            "FORMATO OBRIGATORIO de cada prompt:",
-            "[caracteristicas fisicas unicas do animal] + [ACAO EXATA do momento do script] + [angulo] + [iluminacao] + [movimento: mid-motion ou frozen ou slow-blur]",
+            "Generate EXACTLY " + str(n_prompts) + " prompts — one per narrative moment, distributed evenly across the script.",
+            "The sequence must form a complete visual story — someone watching only the images must understand the full narrative.",
             "",
-            "PROIBIDO: cinematic, realistic, photographic, documentary, texto na imagem, cenas genericas.",
-            "",
-            "Gere EXATAMENTE " + str(n_prompts) + " prompts — um para cada momento distribuido uniformemente pelo script.",
-            "A sequencia deve formar um storytelling visual completo e coerente.",
-            'Retorne JSON sem markdown: {"prompts": ["prompt1", "prompt2"]}'
+            "ALSO return a Portuguese translation of each prompt for display to the user.",
+            'Return JSON without markdown: {"prompts": [{"en": "english prompt", "pt": "descricao em portugues"}]}'
         ]
         system = "\n".join(system_lines)
 
     user_msg = (
-        "Script (" + str(n_prompts) + " prompts necessarios):\n\n" + script +
-        "\n\nGere " + str(n_prompts) + " prompts em ingles, um por momento, fieis ao script."
+        "Script (" + str(n_prompts) + " prompts needed):\n\n" + script +
+        "\n\nGenerate " + str(n_prompts) + " prompts, one per narrative moment, strictly faithful to the script."
     )
 
     try:
-        text = chamar_claude(system, user_msg, max_tokens=4000, modelo="claude-sonnet-4-6")
+        text = chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-6")
         d = parse_json_robusto(text)
-        prompts = d.get('prompts', [])
-        return jsonify({'prompts': prompts, 'total': len(prompts)})
+        raw_prompts = d.get('prompts', [])
+        # Normaliza formato: aceita lista de strings ou lista de {en, pt}
+        prompts_en = []
+        prompts_pt = []
+        for p in raw_prompts:
+            if isinstance(p, dict):
+                prompts_en.append(p.get('en', ''))
+                prompts_pt.append(p.get('pt', ''))
+            else:
+                prompts_en.append(str(p))
+                prompts_pt.append(str(p))
+        return jsonify({'prompts': prompts_en, 'prompts_pt': prompts_pt, 'total': len(prompts_en)})
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
 
