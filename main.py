@@ -1496,22 +1496,27 @@ def comercial_video_iniciar():
         'resolution': '720p',
         'aspect_ratio': '9:16',
     }
-    if image_b64:
-        payload['image'] = {'url': image_b64}
+    # Grok nao aceita base64 em image.url — so URL publica
+    # Por enquanto gera text-to-video sem imagem de referencia
+    # (image-to-video sera implementado quando houver CDN)
 
     try:
+        import traceback
         r = requests.post(
             'https://api.x.ai/v1/videos/generations',
             headers={'Authorization': f'Bearer {GROK_KEY}', 'Content-Type': 'application/json'},
             json=payload,
             timeout=30
         )
+        print(f'GROK STATUS: {r.status_code}')
+        print(f'GROK RESPONSE: {r.text[:300]}')
         d = r.json()
-        print(f'GROK INICIAR: {str(d)[:200]}')
         if 'request_id' not in d:
             raise Exception(f'Grok erro: {d}')
         return jsonify({'ok': True, 'request_id': d['request_id']})
     except Exception as e:
+        import traceback
+        print(f'GROK ERRO: {traceback.format_exc()}')
         return jsonify({'ok': False, 'erro': str(e)}), 500
 
 
