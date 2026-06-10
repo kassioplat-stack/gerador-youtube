@@ -1692,6 +1692,160 @@ def comercial_gerar_prompt():
     except Exception as e:
         return jsonify({'erro': str(e)}), 500
 
+
+# ─────────────────────────────────────────────
+# ROTAS MONTAR VIDEO (menu Animal/YouTube)
+# ─────────────────────────────────────────────
+
+VIDEO_SESSIONS = {}  # sid -> {status, msg, path}
+
+EFEITOS_VIDEO = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down']
+
+def aplicar_efeito_ffmpeg(img_path, out_path, efeito, duracao=8, w=768, h=1344):
+    """Aplica efeito de movimento em uma imagem estática usando ffmpeg."""
+    import subprocess, random
+
+    fps = 24
+    frames = duracao * fps
+
+    if efeito == 'zoom_in':
+        vf = f"scale=8000:-1,zoompan=z='min(zoom+0.0015,1.5)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={frames}:s={w}x{h},fps={fps}"
+    elif efeito == 'zoom_out':
+        vf = f"scale=8000:-1,zoompan=z='if(lte(zoom,1.0),1.5,max(1.001,zoom-0.0015))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={frames}:s={w}x{h},fps={fps}"
+    elif efeito == 'pan_right':
+        vf = f"scale=8000:-1,zoompan=z=1.3:x='iw/2-(iw/zoom/2)+on/{frames}*iw*0.1':y='ih/2-(ih/zoom/2)':d={frames}:s={w}x{h},fps={fps}"
+    elif efeito == 'pan_left':
+        vf = f"scale=8000:-1,zoompan=z=1.3:x='iw/2-(iw/zoom/2)-on/{frames}*iw*0.1':y='ih/2-(ih/zoom/2)':d={frames}:s={w}x{h},fps={fps}"
+    elif efeito == 'pan_up':
+        vf = f"scale=8000:-1,zoompan=z=1.3:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)+on/{frames}*ih*0.08':d={frames}:s={w}x{h},fps={fps}"
+    else:  # pan_down
+        vf = f"scale=8000:-1,zoompan=z=1.3:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)-on/{frames}*ih*0.08':d={frames}:s={w}x{h},fps={fps}"
+
+    cmd = [
+        'ffmpeg', '-y', '-loop', '1', '-i', img_path,
+        '-vf', vf,
+        '-t', str(duracao), '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
+        '-preset', 'ultrafast', out_path
+    ]
+    result = subprocess.run(cmd, capture_output=True, timeout=120)
+    if result.returncode != 0:
+        raise Exception(f'ffmpeg erro: {result.stderr.decode()[:200]}')
+
+
+@app.route('/montar-video', methods=['POST'])
+def montar_video():
+    """Inicia montagem do video em background. Retorna video_session_id."""
+    import uuid, threading, random
+    data = request.get_json(force=True, silent=True) or {}
+    session_id          = data.get('session_id', '')
+    narracao_session_id = data.get('narracao_session_id', '')
+    total               = int(data.get('total', 0))
+    formato             = data.get('formato', '9:16')
+
+    if not session_id or not total:
+        return jsonify({'erro': 'Dados insuficientes'}), 400
+
+    vid_sid = str(uuid.uuid4())
+    VIDEO_SESSIONS[vid_sid] = {'status': 'processando', 'msg': 'Iniciando...', 'path': None}
+
+    dims = FORMATOS.get(formato, FORMATOS['9:16'])
+    w, h = dims['width'], dims['height']
+
+    def montar_em_background(vid_sid, session_id, narracao_session_id, total, w, h):
+        import subprocess, random
+        try:
+            clips = []
+            efeitos_disponiveis = EFEITOS_VIDEO.copy()
+            random.shuffle(efeitos_disponiveis)
+
+            for i in range(total):
+                img_path = f'/tmp/{session_id}_{i}.jpg'
+                if not os.path.exists(img_path):
+                    # Tenta recuperar da sessão
+                    s = sessions.get(session_id, {})
+                    img_data = s.get('imagens', {}).get(i)
+                    if img_data:
+                        with open(img_path, 'wb') as f:
+                            f.write(img_data)
+                    else:
+                        VIDEO_SESSIONS[vid_sid]['msg'] = f'Imagem {i+1} não encontrada — pulando'
+                        continue
+
+                efeito = efeitos_disponiveis[i % len(efeitos_disponiveis)]
+                clip_path = f'/tmp/clip_{vid_sid}_{i}.mp4'
+                VIDEO_SESSIONS[vid_sid]['msg'] = f'Animando cena {i+1}/{total} ({efeito})...'
+                aplicar_efeito_ffmpeg(img_path, clip_path, efeito, duracao=8, w=w, h=h)
+                clips.append(clip_path)
+
+            if not clips:
+                raise Exception('Nenhuma imagem disponível para montar')
+
+            # Concatenar clips com fade entre eles
+            VIDEO_SESSIONS[vid_sid]['msg'] = 'Concatenando cenas...'
+            lista_path = f'/tmp/lista_{vid_sid}.txt'
+            with open(lista_path, 'w') as f:
+                for c in clips:
+                    f.write(f"file '{c}'\n")
+
+            video_sem_audio = f'/tmp/video_sem_audio_{vid_sid}.mp4'
+            subprocess.run([
+                'ffmpeg', '-y', '-f', 'concat', '-safe', '0',
+                '-i', lista_path, '-c', 'copy', video_sem_audio
+            ], capture_output=True, timeout=300)
+
+            # Adicionar narração
+            audio_path = f'/tmp/narracao_{narracao_session_id}.mp3'
+            video_final = f'/tmp/video_final_{vid_sid}.mp4'
+
+            if os.path.exists(audio_path):
+                VIDEO_SESSIONS[vid_sid]['msg'] = 'Adicionando narração...'
+                subprocess.run([
+                    'ffmpeg', '-y',
+                    '-i', video_sem_audio,
+                    '-i', audio_path,
+                    '-map', '0:v', '-map', '1:a',
+                    '-c:v', 'copy', '-c:a', 'aac',
+                    '-shortest', video_final
+                ], capture_output=True, timeout=120)
+            else:
+                os.rename(video_sem_audio, video_final)
+
+            VIDEO_SESSIONS[vid_sid]['status'] = 'pronto'
+            VIDEO_SESSIONS[vid_sid]['msg'] = 'Vídeo pronto!'
+            VIDEO_SESSIONS[vid_sid]['path'] = video_final
+            print(f'VIDEO MONTADO: {video_final}')
+
+        except Exception as e:
+            import traceback
+            print(f'VIDEO ERRO: {traceback.format_exc()}')
+            VIDEO_SESSIONS[vid_sid]['status'] = 'erro'
+            VIDEO_SESSIONS[vid_sid]['msg'] = str(e)
+
+    thread = threading.Thread(
+        target=montar_em_background,
+        args=(vid_sid, session_id, narracao_session_id, total, w, h),
+        daemon=False
+    )
+    thread.start()
+
+    return jsonify({'ok': True, 'video_session_id': vid_sid})
+
+
+@app.route('/montar-video-status/<vid_sid>')
+def montar_video_status(vid_sid):
+    s = VIDEO_SESSIONS.get(vid_sid, {'status': 'erro', 'msg': 'Sessão não encontrada'})
+    return jsonify({'status': s['status'], 'msg': s['msg']})
+
+
+@app.route('/baixar-video/<vid_sid>')
+def baixar_video(vid_sid):
+    s = VIDEO_SESSIONS.get(vid_sid, {})
+    path = s.get('path')
+    if path and os.path.exists(path):
+        return send_file(path, as_attachment=True, download_name='video_youtube.mp4', mimetype='video/mp4')
+    return 'Vídeo não encontrado', 404
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
