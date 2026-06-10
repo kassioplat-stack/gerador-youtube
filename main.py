@@ -475,7 +475,7 @@ def parse_json_robusto(text):
                     pass
             raise
 
-def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-6"):
+def chamar_claude(system, user_msg, max_tokens=8000, modelo="claude-sonnet-4-6"):
     for tentativa in range(3):
         try:
             r = requests.post(
@@ -913,7 +913,7 @@ def gerar_prompts():
     )
 
     try:
-        text = chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-6")
+        text = chamar_claude(system, user_msg, max_tokens=8000, modelo="claude-sonnet-4-6")
         d = parse_json_robusto(text)
         raw_prompts = d.get('prompts', [])
         # Normaliza formato: aceita lista de strings ou lista de {en, pt}
