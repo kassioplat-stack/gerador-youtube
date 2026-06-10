@@ -8,7 +8,8 @@ CLAUDE_KEY     = os.environ.get("CLAUDE_API_KEY", "")
 LEONARDO_KEY   = os.environ.get("LEONARDO_API_KEY", "")
 ELEVENLABS_KEY = os.environ.get("ELEVENLABS_API_KEY", "")
 ELEVENLABS_VOICE = os.environ.get("ELEVENLABS_VOICE_ID", "ArxqHrvFUTpvtCvw3KVh")
-GROK_KEY = os.environ.get("GROK_API_KEY", "")
+GROK_KEY   = os.environ.get("GROK_API_KEY", "")
+OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")
 
 # Vozes fixas disponiveis
 VOZES = [
@@ -499,7 +500,58 @@ def chamar_claude(system, user_msg, max_tokens=6000, modelo="claude-sonnet-4-6")
                 raise Exception(f"Claude erro: {str(e)}")
             time.sleep(5)
 
+def gpt_image_generate(prompt, formato="9:16"):
+    """Gera imagem via GPT-4o (gpt-image-1) — usado para modelo Animal."""
+    # Tamanhos suportados pelo gpt-image-1
+    size_map = {
+        "9:16": "1024x1536",
+        "16:9": "1536x1024",
+        "1:1":  "1024x1024",
+    }
+    size = size_map.get(formato, "1024x1536")
+    sufixo = ESTILO_ANIMAL
+    prompt_final = (prompt + ", " + sufixo)[:4000]
+
+    for tentativa in range(3):
+        try:
+            r = requests.post(
+                "https://api.openai.com/v1/images/generations",
+                headers={"Authorization": f"Bearer {OPENAI_KEY}", "Content-Type": "application/json"},
+                json={
+                    "model": "gpt-image-1",
+                    "prompt": prompt_final,
+                    "n": 1,
+                    "size": size,
+                    "quality": "high",
+                    "output_format": "jpeg"
+                },
+                timeout=120
+            )
+            data = r.json()
+            print(f"GPT IMAGE RESPONSE: {str(data)[:200]}")
+            if "error" in data:
+                raise Exception(f"GPT Image erro: {data['error']}")
+            # Retorna bytes da imagem (base64 ou url)
+            img_obj = data["data"][0]
+            if "b64_json" in img_obj:
+                import base64
+                return base64.b64decode(img_obj["b64_json"])
+            elif "url" in img_obj:
+                return requests.get(img_obj["url"], timeout=30).content
+            raise Exception("GPT Image: sem imagem na resposta")
+        except Exception as e:
+            print(f"GPT IMAGE ERRO tentativa={tentativa+1}: {type(e).__name__}: {e}")
+            if tentativa == 2:
+                raise
+            time.sleep(5)
+
+
 def leonardo_generate(prompt, formato="9:16", estilo="stylized_game", modelo="animais"):
+    # Modelo Animal usa GPT-4o image generation
+    if modelo == "animais" and OPENAI_KEY:
+        return gpt_image_generate(prompt, formato)
+
+    # Modelo Mente e fallback usam Leonardo
     if modelo == "mente":
         sufixo = "3D render, matte blue rubber figure, minimalist, white background, studio lighting, clean composition, surreal psychology"
     else:
