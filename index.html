@@ -241,13 +241,32 @@ textarea::placeholder{color:#333355}
     <!-- ESTILO VISUAL -->
     <div class="card">
       <span class="slbl">Estilo visual</span>
-      <div class="estilo-grid" id="estilo-grid"></div>
+      <div class="estilo-grid" id="estilo-grid">
+        <button class="estilo-card sel" id="estilo-realista" onclick="comSelEstilo('realista')">
+          <div class="estilo-nome">Realista</div>
+          <div class="estilo-desc">Fotorrealista, cinematográfico</div>
+        </button>
+        <button class="estilo-card" id="estilo-3d" onclick="comSelEstilo('3d')">
+          <div class="estilo-nome">3D</div>
+          <div class="estilo-desc">Render 3D moderno, minimalista</div>
+        </button>
+        <button class="estilo-card" id="estilo-desenho" onclick="comSelEstilo('desenho')">
+          <div class="estilo-nome">Desenho</div>
+          <div class="estilo-desc">Ilustração vetorial, colorido</div>
+        </button>
+        <button class="estilo-card" id="estilo-cinematic" onclick="comSelEstilo('cinematic')">
+          <div class="estilo-nome">Cinematic</div>
+          <div class="estilo-desc">Filmático, cores ricas, profundo</div>
+        </button>
+      </div>
     </div>
 
     <!-- VOZ -->
     <div class="card">
       <span class="slbl">Voz da narração</span>
-      <div class="voz-row" id="voz-row"></div>
+      <div class="voz-row" id="voz-row">
+        <button class="voz-chip sel" id="voz-ArxqHrvFUTpvtCvw3KVh" onclick="comSelVoz('ArxqHrvFUTpvtCvw3KVh')">Kássio</button>
+      </div>
     </div>
 
     <!-- GERAR ROTEIRO -->
