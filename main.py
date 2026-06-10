@@ -523,7 +523,7 @@ def gpt_image_generate(prompt, formato="9:16"):
                     "prompt": prompt_final,
                     "n": 1,
                     "size": size,
-                    "quality": "high",
+                    "quality": "medium",
                     "output_format": "jpeg"
                 },
                 timeout=120
