@@ -83,6 +83,37 @@ textarea::placeholder{color:#333355}
 
 /* INFO ROW */
 .info-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+/* COMERCIAL */
+.cena-card{background:#0E0E1A;border:1.5px solid #1E1E35;border-radius:14px;padding:16px;margin-bottom:14px}
+.cena-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.cena-num{background:linear-gradient(135deg,#7B5EFF,#5B3EDF);color:#fff;border-radius:8px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.cena-title{font-size:12px;font-weight:700;color:#8888BB;flex:1}
+.cena-section{margin-bottom:10px}
+.cena-label{font-size:10px;font-weight:700;color:#444466;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;display:block}
+.cena-ta{width:100%;background:#151525;border:1.5px solid #1E1E35;border-radius:8px;padding:8px;font-size:12px;color:#E8E8FF;font-family:inherit;resize:none;line-height:1.5}
+.cena-ta:focus{outline:none;border-color:#7B5EFF}
+.cena-img{width:100%;aspect-ratio:9/16;background:#1E1E35;border-radius:10px;overflow:hidden;margin-bottom:6px;display:flex;align-items:center;justify-content:center}
+.cena-img img{width:100%;height:100%;object-fit:cover;display:none}
+.cena-img-placeholder{font-size:28px;color:#333355}
+.cena-video{width:100%;background:#1E1E35;border-radius:10px;overflow:hidden;margin-bottom:6px;min-height:60px;display:flex;align-items:center;justify-content:center}
+.cena-video video{width:100%;border-radius:10px;display:none}
+.cena-video-placeholder{font-size:11px;color:#333355}
+.cena-actions{display:flex;gap:6px;flex-wrap:wrap}
+.cena-btn{background:#1E1E35;border:1.5px solid #2A2A45;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;color:#7B5EFF;cursor:pointer;font-family:inherit;transition:all .15s}
+.cena-btn:hover{background:#252540;border-color:#7B5EFF}
+.cena-btn:disabled{opacity:.3;cursor:not-allowed}
+.com-input{width:100%;background:#0E0E1A;border:1.5px solid #1E1E35;border-radius:8px;padding:10px;font-size:13px;color:#E8E8FF;font-family:inherit;margin-bottom:8px}
+.com-input:focus{outline:none;border-color:#7B5EFF}
+.estilo-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:0}
+.estilo-card{background:#0E0E1A;border:1.5px solid #1E1E35;border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left;transition:all .15s;font-family:inherit}
+.estilo-card.sel{border-color:#7B5EFF;background:#13132A}
+.estilo-card.sel .estilo-nome{color:#7B5EFF}
+.estilo-nome{font-size:12px;font-weight:700;color:#8888BB}
+.estilo-desc{font-size:10px;color:#444466;margin-top:2px}
+.voz-row{display:flex;gap:8px;flex-wrap:wrap}
+.voz-chip{background:#0E0E1A;border:1.5px solid #1E1E35;border-radius:8px;padding:7px 16px;font-size:12px;font-weight:600;color:#555577;cursor:pointer;font-family:inherit;transition:all .15s}
+.voz-chip.sel{border-color:#7B5EFF;color:#7B5EFF;background:#13132A}
+.status-bar{font-size:11px;color:#7B5EFF;padding:8px 0;min-height:20px}
 </style>
 </head>
 <body>
@@ -198,6 +229,47 @@ textarea::placeholder{color:#333355}
 
   <!-- ABA VIDEOS COMERCIAIS -->
   <div id="tab-thumb" style="display:none">
+
+    <!-- INPUT -->
+    <div class="card">
+      <span class="slbl">Informações do vídeo</span>
+      <input class="com-input" id="com-titulo" placeholder="Título do vídeo (ex: Barbearia do João — Corte Perfeito)" />
+      <input class="com-input" id="com-segmento" placeholder="Segmento / Negócio (ex: Barbearia, Restaurante, Curso Online)" />
+      <textarea class="com-input" id="com-descricao" style="min-height:80px;resize:vertical" placeholder="Descreva a ideia do vídeo, o que quer comunicar, público-alvo..."></textarea>
+    </div>
+
+    <!-- ESTILO VISUAL -->
+    <div class="card">
+      <span class="slbl">Estilo visual</span>
+      <div class="estilo-grid" id="estilo-grid"></div>
+    </div>
+
+    <!-- VOZ -->
+    <div class="card">
+      <span class="slbl">Voz da narração</span>
+      <div class="voz-row" id="voz-row"></div>
+    </div>
+
+    <!-- GERAR ROTEIRO -->
+    <button class="btn" id="btn-com-roteiro" onclick="comGerarRoteiro()" style="margin-bottom:12px">✦ Gerar Roteiro de Cenas</button>
+
+    <!-- STATUS -->
+    <div class="status-bar" id="com-status"></div>
+
+    <!-- CENAS -->
+    <div id="com-cenas"></div>
+
+    <!-- ACOES GLOBAIS -->
+    <div id="com-acoes" style="display:none">
+      <button class="btn" id="btn-com-tudo" onclick="comGerarTudo()" style="margin-bottom:12px">⚡ Gerar Tudo (Imagens + Vídeos + Narração)</button>
+      <button class="btn btn-sec" id="btn-com-narracao" onclick="comGerarNarracao()" style="margin-bottom:12px">🎙 Gerar Só Narração</button>
+      <audio id="com-audio-player" controls style="width:100%;margin-bottom:12px;display:none"></audio>
+      <button class="btn" id="btn-com-download" onclick="comBaixar()" style="display:none;margin-bottom:12px">⬇ Baixar ZIP (Vídeos + Narração)</button>
+      <div style="text-align:center;margin-top:8px">
+        <button onclick="comNovo()" style="background:transparent;border:1.5px solid #1E1E35;border-radius:8px;padding:8px 20px;font-size:12px;font-weight:600;color:#444466;cursor:pointer;font-family:inherit">+ Novo Projeto</button>
+      </div>
+    </div>
+
   </div>
 
 </div><!-- /container -->
@@ -517,10 +589,347 @@ function novoVideo() {
   selChip('formato','9:16');
 }
 
+
+// ─────────────────────────────────────────────
+// MODULO VIDEOS COMERCIAIS
+// ─────────────────────────────────────────────
+
+var comState = {
+  estilo: 'realista',
+  voz_id: 'ArxqHrvFUTpvtCvw3KVh',
+  session_id: null,
+  cenas: [],
+  n_cenas: 6
+};
+
+function comStatus(msg) {
+  var el = document.getElementById('com-status');
+  if(el) el.textContent = msg;
+}
+
+async function comCarregarConfig() {
+  try {
+    var r = await fetch('/comercial-config');
+    var d = await r.json();
+
+    // Estilos
+    var eg = document.getElementById('estilo-grid');
+    if(eg && d.estilos) {
+      eg.innerHTML = d.estilos.map(function(e) {
+        return '<button class="estilo-card' + (e.id===comState.estilo?' sel':'') + '" id="estilo-'+e.id+'" onclick="comSelEstilo(\'' + e.id + '\')">' + '<div class="estilo-nome">'+e.nome+'</div>' + '<div class="estilo-desc">'+e.desc+'</div>' + '</button>';
+      }).join('');
+    }
+
+    // Vozes
+    var vr = document.getElementById('voz-row');
+    if(vr && d.vozes) {
+      vr.innerHTML = d.vozes.map(function(v) {
+        return '<button class="voz-chip' + (v.id===comState.voz_id?' sel':'') + '" id="voz-'+v.id+'" onclick="comSelVoz(\'' + v.id + '\')">' + v.nome + '</button>';
+      }).join('');
+    }
+    // Garante que primeiro estilo e voz estao selecionados visualmente
+    if(d.estilos && d.estilos.length) comSelEstilo(comState.estilo);
+    if(d.vozes && d.vozes.length) comSelVoz(comState.voz_id);
+
+  } catch(e) { console.log('config:', e); }
+}
+
+function comSelEstilo(id) {
+  comState.estilo = id;
+  document.querySelectorAll('.estilo-card').forEach(function(el){ el.classList.remove('sel'); });
+  var el = document.getElementById('estilo-'+id);
+  if(el) el.classList.add('sel');
+}
+
+function comSelVoz(id) {
+  comState.voz_id = id;
+  document.querySelectorAll('.voz-chip').forEach(function(el){ el.classList.remove('sel'); });
+  var el = document.getElementById('voz-'+id);
+  if(el) el.classList.add('sel');
+}
+
+function comRenderCenas(cenas) {
+  var container = document.getElementById('com-cenas');
+  if(!container) return;
+  var html = '';
+  cenas.forEach(function(c, i) {
+    html += '<div class="cena-card" id="cena-card-'+i+'">'
+      + '<div class="cena-header">'
+      + '<div class="cena-num">'+(i+1)+'</div>'
+      + '<div class="cena-title">Cena '+(i+1)+' — '+esc(c.narracao.substring(0,40))+'...</div>'
+      + '</div>'
+
+      // Narração
+      + '<div class="cena-section">'
+      + '<span class="cena-label">Narração</span>'
+      + '<textarea class="cena-ta" id="cena-narracao-'+i+'" rows="2">'+esc(c.narracao)+'</textarea>'
+      + '</div>'
+
+      // Descrição visual
+      + '<div class="cena-section">'
+      + '<span class="cena-label">Descrição visual</span>'
+      + '<textarea class="cena-ta" id="cena-desc-'+i+'" rows="2">'+esc(c.descricao_visual)+'</textarea>'
+      + '</div>'
+
+      // Prompt imagem
+      + '<div class="cena-section">'
+      + '<span class="cena-label">Prompt de imagem (inglês)</span>'
+      + '<textarea class="cena-ta" id="cena-prompt-'+i+'" rows="2">'+esc(c.prompt_imagem)+'</textarea>'
+      + '</div>'
+
+      // Comando video
+      + '<div class="cena-section">'
+      + '<span class="cena-label">Comando de vídeo</span>'
+      + '<textarea class="cena-ta" id="cena-cmd-'+i+'" rows="1">'+esc(c.comando_video)+'</textarea>'
+      + '</div>'
+
+      // Imagem gerada
+      + '<div class="cena-section">'
+      + '<span class="cena-label">Imagem gerada</span>'
+      + '<div class="cena-img" id="cena-img-box-'+i+'"><span class="cena-img-placeholder">🖼</span><img id="cena-img-'+i+'" /></div>'
+      + '<button class="cena-btn" id="cena-btn-img-'+i+'" onclick="comGerarImagem('+i+')">🎨 Gerar Imagem</button>'
+      + '</div>'
+
+      // Video gerado
+      + '<div class="cena-section">'
+      + '<span class="cena-label">Vídeo gerado</span>'
+      + '<div class="cena-video" id="cena-video-box-'+i+'"><span class="cena-video-placeholder">Imagem ainda não gerada</span><video id="cena-video-'+i+'" controls></video></div>'
+      + '<button class="cena-btn" id="cena-btn-video-'+i+'" onclick="comGerarVideo('+i+')" disabled>🎬 Gerar Vídeo</button>'
+      + '</div>'
+
+      + '</div>';
+  });
+  container.innerHTML = html;
+}
+
+async function comGerarRoteiro() {
+  var titulo   = (document.getElementById('com-titulo')||{}).value||'';
+  var segmento = (document.getElementById('com-segmento')||{}).value||'';
+  var descricao= (document.getElementById('com-descricao')||{}).value||'';
+  if(!titulo.trim() || !segmento.trim()) { alert('Preencha o título e o segmento'); return; }
+
+  document.getElementById('btn-com-roteiro').disabled = true;
+  comStatus('Gerando roteiro com Claude...');
+
+  try {
+    var r = await fetch('/comercial-roteiro', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({titulo: titulo, segmento: segmento, descricao: descricao, estilo: comState.estilo, n_cenas: 6})
+    });
+    var d = await r.json();
+    if(d.erro) throw new Error(d.erro);
+
+    comState.cenas = d.cenas || [];
+    comState.n_cenas = comState.cenas.length;
+    comState.session_id = d.session_id; // vem do backend
+
+    comRenderCenas(comState.cenas);
+    document.getElementById('com-acoes').style.display = 'block';
+    comStatus('Roteiro gerado! Edite as cenas e clique em Gerar Tudo.');
+  } catch(e) {
+    comStatus('Erro: ' + e.message);
+    alert('Erro ao gerar roteiro: ' + e.message);
+  }
+  document.getElementById('btn-com-roteiro').disabled = false;
+}
+
+async function comGerarImagem(idx) {
+  var prompt = (document.getElementById('cena-prompt-'+idx)||{}).value||'';
+  if(!prompt.trim()) { alert('Sem prompt para a cena '+( idx+1)); return; }
+
+  var btn = document.getElementById('cena-btn-img-'+idx);
+  if(btn) { btn.disabled = true; btn.textContent = '⏳ Gerando...'; }
+  comStatus('Gerando imagem da cena '+(idx+1)+'...');
+
+  try {
+    var r = await fetch('/comercial-imagem', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({prompt: prompt, estilo: comState.estilo, session_id: comState.session_id, cena_idx: idx})
+    });
+    var d = await r.json();
+    if(!d.ok) throw new Error(d.erro);
+
+    var img = document.getElementById('cena-img-'+idx);
+    var box = document.getElementById('cena-img-box-'+idx);
+    if(img) { img.src = d.url + '?t=' + Date.now(); img.style.display = 'block'; }
+    if(box) box.querySelector('.cena-img-placeholder') && (box.querySelector('.cena-img-placeholder').style.display = 'none');
+
+    // Habilita botao de video
+    var btnV = document.getElementById('cena-btn-video-'+idx);
+    if(btnV) btnV.disabled = false;
+    comStatus('Imagem da cena '+(idx+1)+' gerada!');
+  } catch(e) {
+    comStatus('Erro imagem '+(idx+1)+': ' + e.message);
+    if(!comState._erros) comState._erros = [];
+    comState._erros.push('Imagem cena '+(idx+1));
+  }
+  if(btn) { btn.disabled = false; btn.textContent = '🎨 Regenerar Imagem'; }
+}
+
+async function comGerarVideo(idx) {
+  var cmd       = (document.getElementById('cena-cmd-'+idx)||{}).value||'';
+  var promptImg = (document.getElementById('cena-prompt-'+idx)||{}).value||'';
+
+  var btn = document.getElementById('cena-btn-video-'+idx);
+  if(btn) { btn.disabled = true; btn.textContent = '⏳ Iniciando...'; }
+  comStatus('Iniciando vídeo da cena '+(idx+1)+'...');
+
+  try {
+    // Inicia geracao
+    var r = await fetch('/comercial-video-iniciar', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({session_id: comState.session_id, cena_idx: idx, comando: cmd, prompt_imagem: promptImg})
+    });
+    var d = await r.json();
+    if(!d.ok) throw new Error(d.erro);
+
+    var request_id = d.request_id;
+    if(btn) btn.textContent = '⏳ Gerando vídeo...';
+
+    // Polling
+    var video_url = await new Promise(function(resolve, reject) {
+      var count = 0;
+      var intervalo = setInterval(async function() {
+        count++;
+        if(count > 60) { clearInterval(intervalo); reject(new Error('Timeout')); return; }
+        try {
+          var rs = await fetch('/comercial-video-status/' + request_id);
+          var st = await rs.json();
+          comStatus('Cena '+(idx+1)+' — status: ' + st.status + ' ('+count+'s)...');
+          if(st.status === 'done') {
+            clearInterval(intervalo);
+            resolve(st.video_url);
+          } else if(st.status === 'error') {
+            clearInterval(intervalo);
+            reject(new Error(st.erro || 'Erro Grok'));
+          }
+        } catch(e) { clearInterval(intervalo); reject(e); }
+      }, 5000);
+    });
+
+    // Baixa e salva
+    await fetch('/comercial-video-baixar', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({session_id: comState.session_id, cena_idx: idx, video_url: video_url})
+    });
+
+    // Mostra video
+    var video = document.getElementById('cena-video-'+idx);
+    var box   = document.getElementById('cena-video-box-'+idx);
+    if(video) { video.src = video_url; video.style.display = 'block'; }
+    if(box && box.querySelector('.cena-video-placeholder')) box.querySelector('.cena-video-placeholder').style.display = 'none';
+    comStatus('Vídeo da cena '+(idx+1)+' pronto!');
+
+  } catch(e) {
+    comStatus('Erro vídeo '+(idx+1)+': ' + e.message);
+    if(!comState._erros) comState._erros = [];
+    comState._erros.push('Vídeo cena '+(idx+1));
+  }
+  if(btn) { btn.disabled = false; btn.textContent = '🎬 Regenerar Vídeo'; }
+}
+
+async function comGerarTudo() {
+  document.getElementById('btn-com-tudo').disabled = true;
+  comState._erros = [];
+  comStatus('Iniciando geração...');
+
+  // Atualiza cenas com valores editados
+  comState.cenas.forEach(function(c, i) {
+    c.narracao        = (document.getElementById('cena-narracao-'+i)||{}).value || c.narracao;
+    c.descricao_visual= (document.getElementById('cena-desc-'+i)||{}).value || c.descricao_visual;
+    c.prompt_imagem   = (document.getElementById('cena-prompt-'+i)||{}).value || c.prompt_imagem;
+    c.comando_video   = (document.getElementById('cena-cmd-'+i)||{}).value || c.comando_video;
+  });
+
+  // Gera narração primeiro
+  comStatus('Gerando narração...');
+  await comGerarNarracao();
+
+  // Gera imagens em sequencia
+  for(var i = 0; i < comState.cenas.length; i++) {
+    await comGerarImagem(i);
+  }
+
+  // Gera videos em sequencia
+  for(var j = 0; j < comState.cenas.length; j++) {
+    await comGerarVideo(j);
+  }
+
+  var erros = comState._erros || [];
+  if(erros.length > 0) {
+    comStatus('⚠️ Concluído com ' + erros.length + ' erro(s). Verifique as cenas: ' + erros.join(', '));
+  } else {
+    comStatus('✅ Tudo gerado com sucesso!');
+  }
+  document.getElementById('btn-com-download').style.display = 'block';
+  document.getElementById('btn-com-tudo').disabled = false;
+}
+
+async function comGerarNarracao() {
+  var texto = comState.cenas.map(function(c, i){
+    return (document.getElementById('cena-narracao-'+i)||{}).value || c.narracao;
+  }).join(' ');
+
+  try {
+    var r = await fetch('/comercial-narracao', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({texto: texto, voice_id: comState.voz_id, session_id: comState.session_id})
+    });
+    var d = await r.json();
+    if(!d.ok) throw new Error(d.erro);
+    var ap = document.getElementById('com-audio-player');
+    if(ap) { ap.src = d.audio_url + '?t=' + Date.now(); ap.style.display = 'block'; }
+    document.getElementById('btn-com-download').style.display = 'block';
+    comStatus('Narração gerada!');
+  } catch(e) {
+    comStatus('Erro narração: ' + e.message);
+  }
+}
+
+async function comBaixar() {
+  comStatus('Montando ZIP...');
+  try {
+    var r = await fetch('/comercial-download', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({session_id: comState.session_id, n_cenas: comState.n_cenas})
+    });
+    var d = await r.json();
+    if(!d.ok) throw new Error(d.erro);
+    window.open('/comercial-download-zip?session_id=' + comState.session_id);
+    comStatus('Download iniciado!');
+  } catch(e) {
+    comStatus('Erro download: ' + e.message);
+    alert('Erro: ' + e.message);
+  }
+}
+
+function comNovo() {
+  if(!confirm('Iniciar novo projeto? O progresso será perdido.')) return;
+  comState = {estilo:'realista', voz_id:'ArxqHrvFUTpvtCvw3KVh', session_id:null, cenas:[], n_cenas:6};
+  document.getElementById('com-cenas').innerHTML = '';
+  document.getElementById('com-acoes').style.display = 'none';
+  document.getElementById('btn-com-download').style.display = 'none';
+  document.getElementById('com-audio-player').style.display = 'none';
+  document.getElementById('com-titulo').value = '';
+  document.getElementById('com-segmento').value = '';
+  document.getElementById('com-descricao').value = '';
+  comStatus('');
+  comCarregarConfig();
+}
+
+// Carrega config ao iniciar
 document.addEventListener('DOMContentLoaded', function() {
   restaurarEstado();
   atualizarContador();
+  comCarregarConfig();
 });
+
 </script>
 </body>
 </html>
