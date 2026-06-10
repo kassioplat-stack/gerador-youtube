@@ -283,8 +283,8 @@ textarea::placeholder{color:#333355}
 
     <!-- ACOES GLOBAIS -->
     <div id="com-acoes" style="display:none">
-      <button class="btn" id="btn-com-tudo" onclick="comGerarTudo()" style="margin-bottom:12px">⚡ Gerar Tudo (Imagens + Vídeos + Narração)</button>
-      <button class="btn btn-sec" id="btn-com-narracao" onclick="comGerarNarracao()" style="margin-bottom:12px">🎙 Gerar Só Narração</button>
+      <div style="height:1px;background:#1E1E35;margin:8px 0 16px"></div>
+      <button class="btn btn-sec" id="btn-com-narracao" onclick="comGerarNarracao()" style="margin-bottom:12px">🎙 Gerar Narração Completa</button>
       <audio id="com-audio-player" controls style="width:100%;margin-bottom:12px;display:none"></audio>
       <button class="btn" id="btn-com-download" onclick="comBaixar()" style="display:none;margin-bottom:12px">⬇ Baixar ZIP (Vídeos + Narração)</button>
       <div style="text-align:center;margin-top:8px">
@@ -732,19 +732,13 @@ function comRenderCenas(cenas) {
       + '<div class="cena-title">Cena '+(i+1)+'</div>'
       + '</div>'
 
-      // Narração
-      + '<div class="cena-section">'
-      + '<span class="cena-label">Narração</span>'
-      + '<textarea class="cena-ta" id="cena-narracao-'+i+'" rows="2">'+esc(c.narracao)+'</textarea>'
-      + '</div>'
-
-      // Descrição visual
+      // 1. Descrição visual
       + '<div class="cena-section">'
       + '<span class="cena-label">Descrição visual</span>'
       + '<textarea class="cena-ta" id="cena-desc-'+i+'" rows="2">'+esc(c.descricao_visual)+'</textarea>'
       + '</div>'
 
-      // Upload foto de referência
+      // 2. Foto de referência
       + '<div class="cena-section">'
       + '<span class="cena-label">Foto de referência (opcional)</span>'
       + '<img class="cena-foto-preview" id="cena-foto-'+i+'" onclick="comClicarFoto('+i+')" title="Trocar foto" />'
@@ -752,27 +746,35 @@ function comRenderCenas(cenas) {
       + '<input type="file" id="cena-foto-input-'+i+'" accept="image/*" style="display:none" onchange="comSetFotoCena('+i+', this)" />'
       + '</div>'
 
-      // Botão gerar prompt
+      // 3. Gerar Prompt + visualização PT/EN
       + '<div class="cena-section">'
       + '<button class="cena-btn" id="cena-btn-prompt-'+i+'" onclick="comGerarPrompt('+i+')" style="width:100%;margin-bottom:8px">✦ Gerar Prompt</button>'
-      + '<span class="cena-label">Prompt gerado (inglês — editável)</span>'
+      + '<span class="cena-label">Prompt (inglês — editável)</span>'
       + '<textarea class="cena-ta" id="cena-prompt-'+i+'" rows="2" placeholder="Clique em Gerar Prompt...">'+esc(c.prompt_imagem)+'</textarea>'
+      + '<span class="cena-label" style="margin-top:6px">Visualização em português</span>'
+      + '<div style="background:#0E0E1A;border:1.5px solid #1E1E35;border-radius:8px;padding:8px;font-size:11px;color:#555577;min-height:32px" id="cena-prompt-pt-'+i+'">'+esc(c.descricao_visual)+'</div>'
       + '</div>'
 
-      // Comando video
+      // 4. Comando de vídeo
       + '<div class="cena-section">'
       + '<span class="cena-label">Comando de vídeo</span>'
       + '<textarea class="cena-ta" id="cena-cmd-'+i+'" rows="1">'+esc(c.comando_video)+'</textarea>'
       + '</div>'
 
-      // Imagem gerada
+      // 5. Narração da cena
+      + '<div class="cena-section">'
+      + '<span class="cena-label">Narração desta cena</span>'
+      + '<textarea class="cena-ta" id="cena-narracao-'+i+'" rows="2">'+esc(c.narracao)+'</textarea>'
+      + '</div>'
+
+      // 6. Imagem gerada
       + '<div class="cena-section">'
       + '<span class="cena-label">Imagem gerada</span>'
       + '<div class="cena-img" id="cena-img-box-'+i+'"><span class="cena-img-placeholder">🖼</span><img id="cena-img-'+i+'" /></div>'
       + '<button class="cena-btn" id="cena-btn-img-'+i+'" onclick="comGerarImagem('+i+')">🎨 Gerar Imagem</button>'
       + '</div>'
 
-      // Video gerado
+      // 7. Vídeo gerado
       + '<div class="cena-section">'
       + '<span class="cena-label">Vídeo gerado</span>'
       + '<div class="cena-video" id="cena-video-box-'+i+'"><span class="cena-video-placeholder">Imagem ainda não gerada</span><video id="cena-video-'+i+'" controls></video></div>'
