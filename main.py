@@ -2000,6 +2000,73 @@ def baixar_video(vid_sid):
     return 'Vídeo não encontrado', 404
 
 
+
+# ─────────────────────────────────────────────
+# ANIMAR IMAGEM INDIVIDUAL (zoom/pan por cena)
+# ─────────────────────────────────────────────
+
+EFEITOS_VIDEO = ['zoom_in', 'zoom_out', 'pan_right', 'pan_left', 'pan_up', 'pan_down']
+
+def aplicar_efeito_ffmpeg(img_path, out_path, efeito, duracao=8, w=768, h=1344):
+    import subprocess
+    fps = 24
+    frames = duracao * fps
+    if efeito == 'zoom_in':
+        vf = f"scale=8000:-1,zoompan=z='min(zoom+0.0015,1.5)':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={frames}:s={w}x{h},fps={fps}"
+    elif efeito == 'zoom_out':
+        vf = f"scale=8000:-1,zoompan=z='if(lte(zoom,1.0),1.5,max(1.001,zoom-0.0015))':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d={frames}:s={w}x{h},fps={fps}"
+    elif efeito == 'pan_right':
+        vf = f"scale=8000:-1,zoompan=z=1.3:x='iw/2-(iw/zoom/2)+on/{frames}*iw*0.1':y='ih/2-(ih/zoom/2)':d={frames}:s={w}x{h},fps={fps}"
+    elif efeito == 'pan_left':
+        vf = f"scale=8000:-1,zoompan=z=1.3:x='iw/2-(iw/zoom/2)-on/{frames}*iw*0.1':y='ih/2-(ih/zoom/2)':d={frames}:s={w}x{h},fps={fps}"
+    elif efeito == 'pan_up':
+        vf = f"scale=8000:-1,zoompan=z=1.3:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)+on/{frames}*ih*0.08':d={frames}:s={w}x{h},fps={fps}"
+    else:
+        vf = f"scale=8000:-1,zoompan=z=1.3:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)-on/{frames}*ih*0.08':d={frames}:s={w}x{h},fps={fps}"
+    cmd = ['ffmpeg', '-y', '-loop', '1', '-i', img_path, '-vf', vf,
+           '-t', str(duracao), '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
+           '-preset', 'ultrafast', out_path]
+    result = subprocess.run(cmd, capture_output=True, timeout=120)
+    if result.returncode != 0:
+        raise Exception(f'ffmpeg erro: {result.stderr.decode()[:200]}')
+
+
+@app.route('/animar-imagem', methods=['POST'])
+def animar_imagem():
+    """Anima uma imagem individual com zoom/pan. Leve — uma cena por vez."""
+    import uuid, random, threading
+    data = request.get_json(force=True, silent=True) or {}
+    session_id = data.get('session_id', '')
+    idx        = int(data.get('idx', 0))
+    formato    = data.get('formato', '9:16')
+
+    img_path = f'/tmp/{session_id}_{idx}.jpg'
+    if not os.path.exists(img_path):
+        return jsonify({'erro': f'Imagem {idx} não encontrada'}), 404
+
+    dims = FORMATOS.get(formato, FORMATOS['9:16'])
+    w, h = dims['width'], dims['height']
+    efeito = random.choice(EFEITOS_VIDEO)
+    vid_id = str(uuid.uuid4())
+    out_path = f'/tmp/clip_{vid_id}.mp4'
+
+    try:
+        aplicar_efeito_ffmpeg(img_path, out_path, efeito, duracao=8, w=w, h=h)
+        return jsonify({'ok': True, 'vid_id': vid_id, 'efeito': efeito})
+    except Exception as e:
+        import traceback
+        print(f'ANIMAR ERRO: {traceback.format_exc()}')
+        return jsonify({'ok': False, 'erro': str(e)}), 500
+
+
+@app.route('/baixar-clip/<vid_id>')
+def baixar_clip(vid_id):
+    path = f'/tmp/clip_{vid_id}.mp4'
+    if os.path.exists(path):
+        return send_file(path, as_attachment=True, download_name=f'clip_{vid_id[:8]}.mp4', mimetype='video/mp4')
+    return 'Não encontrado', 404
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
