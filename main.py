@@ -528,8 +528,7 @@ def gpt_image_generate(prompt, formato="9:16"):
                     "prompt": prompt_final,
                     "n": 1,
                     "size": size,
-                    "quality": "standard",
-                    "response_format": "url"
+                    "quality": "standard"
                 },
                 timeout=120
             )
