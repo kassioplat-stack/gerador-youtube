@@ -227,11 +227,7 @@ textarea::placeholder{color:#333355}
     <!-- Download -->
     <button class="btn" id="btn-download" onclick="baixarZip()" style="display:none;margin-bottom:12px">⬇ Baixar Projeto (ZIP)</button>
 
-    <!-- Montar Vídeo (só Animal) -->
-    <div id="section-montar-video" style="display:none;margin-bottom:12px">
-      <button class="btn" id="btn-montar-video" onclick="montarVideo()" style="background:linear-gradient(135deg,#7B5EFF,#5B3EDF);margin-bottom:8px">🎬 Montar Vídeo Completo (.mp4)</button>
-      <div id="montar-video-status" style="font-size:11px;color:#7B5EFF;min-height:16px;text-align:center"></div>
-    </div>
+
 
     <!-- Novo vídeo -->
     <div style="text-align:center;margin-top:8px">
@@ -599,10 +595,7 @@ async function gerarImagens() {
       setP(100);
       state.zipPath = st.zip;
       document.getElementById('btn-download').style.display = 'block';
-      // Mostrar botão montar vídeo só para modelo Animal
-      if(state.modelo === 'animais') {
-        document.getElementById('section-montar-video').style.display = 'block';
-      }
+
       salvarEstado();
     });
 
@@ -642,6 +635,26 @@ function restaurarEstado() {
       document.getElementById('btn-download').style.display = 'block';
       document.getElementById('result-card').style.display = 'block';
     }
+    // Restaura imagens geradas
+    if(s.sessionId && s.prompts && s.prompts.length) {
+      var total = s.prompts.length;
+      renderGrid(total);
+      document.getElementById('section-imagens').style.display = 'block';
+      for(var i = 0; i < total; i++) {
+        (function(idx) {
+          var img = document.getElementById('img-'+idx);
+          if(img) {
+            img.onerror = function() { this.style.display='none'; };
+            img.onload = function() {
+              this.style.display='block';
+              var btnA = document.getElementById('btn-animar-'+idx);
+              if(btnA) btnA.disabled = false;
+            };
+            img.src = '/imagem/'+s.sessionId+'/'+idx+'?t='+Date.now();
+          }
+        })(i);
+      }
+    }
   } catch(e) { console.log('restaurar:', e); }
 }
 
@@ -655,8 +668,7 @@ function novoVideo() {
   document.getElementById('result-card').style.display = 'none';
   document.getElementById('btn-download').style.display = 'none';
   document.getElementById('image-grid').innerHTML = '';
-  document.getElementById('section-montar-video').style.display = 'none';
-  document.getElementById('montar-video-status').textContent = '';
+
   atualizarContador();
   selModel('animais');
   selChip('formato','9:16');
@@ -1059,73 +1071,6 @@ function comNovo() {
 }
 
 // Carrega config ao iniciar
-async function montarVideo() {
-  if(!state.sessionId) { alert('Gere as imagens primeiro'); return; }
-  var btn = document.getElementById('btn-montar-video');
-  var status = document.getElementById('montar-video-status');
-  btn.disabled = true;
-  btn.textContent = '⏳ Montando vídeo...';
-  status.textContent = 'Processando imagens e narração...';
-  try {
-    var r = await fetch('/montar-video', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        session_id: state.sessionId,
-        narracao_session_id: state.narracao_session_id || state.sessionId,
-        total: state.prompts.length,
-        formato: state.formato
-      })
-    });
-    var d = await r.json();
-    if(d.erro) throw new Error(d.erro);
-    // Polling status do vídeo
-    status.textContent = 'Aguardando montagem...';
-    var vid_sid = d.video_session_id;
-    await new Promise(function(resolve, reject) {
-      var count = 0;
-      var iv = setInterval(async function() {
-        count++;
-        if(count > 180) { clearInterval(iv); reject(new Error('Timeout — montagem demorou mais de 12 minutos')); return; }
-        try {
-          var rs = await fetch('/montar-video-status/' + vid_sid);
-          var st = await rs.json();
-          status.textContent = st.msg || 'Processando...';
-          if(st.status === 'pronto') { clearInterval(iv); resolve(); }
-          else if(st.status === 'erro') { clearInterval(iv); reject(new Error(st.msg)); }
-        } catch(e) { clearInterval(iv); reject(e); }
-      }, 4000);
-    });
-    status.textContent = '✅ Vídeo pronto!';
-    btn.textContent = '⬇ Baixar Vídeo (.mp4)';
-    btn.disabled = false;
-    btn.onclick = function() { window.open('/baixar-video/' + vid_sid); };
-  } catch(e) {
-    status.textContent = 'Erro: ' + e.message;
-    btn.textContent = '🎬 Tentar Novamente';
-    btn.disabled = false;
-  }
-}
-
-async function animarImagem(idx) {
-  var btn = document.getElementById('btn-animar-'+idx);
-  if(btn) { btn.disabled = true; btn.textContent = '⏳ Animando...'; }
-  try {
-    var r = await fetch('/animar-imagem', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({session_id: state.sessionId, idx: idx, formato: state.formato})
-    });
-    var d = await r.json();
-    if(!d.ok) throw new Error(d.erro);
-    var vid = document.getElementById('clip-'+idx);
-    if(vid) { vid.src = '/baixar-clip/'+d.vid_id; vid.style.display = 'block'; }
-    if(btn) { btn.textContent = '⬇ Baixar Clipe'; btn.disabled = false; btn.onclick = function(){ window.open('/baixar-clip/'+d.vid_id); }; }
-  } catch(e) {
-    if(btn) { btn.disabled = false; btn.textContent = '▶ Tentar novamente'; }
-    alert('Erro ao animar: ' + e.message);
-  }
-}
 
 document.addEventListener('DOMContentLoaded', function() {
   restaurarEstado();
