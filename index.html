@@ -523,6 +523,29 @@ async function gerarImagens() {
       var intervalo = setInterval(async function() {
         try {
           var rs = await fetch('/imagens-status/' + imgSid);
+
+          // Se servidor reiniciou (404), tenta carregar imagens direto pelo /tmp
+          if(rs.status === 404) {
+            setStep(1, 'active', 'Servidor reiniciou — verificando imagens salvas...');
+            var encontradas = 0;
+            for(var k = 0; k < total; k++) {
+              if(!imgsJaMostradas[k]) {
+                var imgEl = document.getElementById('img-'+k);
+                if(imgEl) {
+                  imgEl.src = '/imagem/'+imgSid+'/'+k+'?t='+Date.now();
+                  imgEl.style.display = 'block';
+                  imgsJaMostradas[k] = true;
+                  encontradas++;
+                }
+              }
+            }
+            if(encontradas > 0 || Object.keys(imgsJaMostradas).length === total) {
+              clearInterval(intervalo);
+              resolve({imagens_ok: total, total: total, erros: [], zip: null, status: 'concluido'});
+            }
+            return;
+          }
+
           var st = await rs.json();
           if(st.erro) { clearInterval(intervalo); reject(new Error(st.erro)); return; }
 
@@ -542,7 +565,6 @@ async function gerarImagens() {
 
           if(st.status === 'concluido') {
             clearInterval(intervalo);
-            // Mostra imagens restantes confirmadas pelo servidor
             var indicesFinal = st.indices_prontos || [];
             indicesFinal.forEach(function(j) {
               if(!imgsJaMostradas[j]) {
