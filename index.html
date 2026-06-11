@@ -83,6 +83,10 @@ textarea::placeholder{color:#333355}
 
 /* INFO ROW */
 .info-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.animar-btn{background:#1E1E35;border:1.5px solid #7B5EFF;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:600;color:#7B5EFF;cursor:pointer;font-family:inherit;width:100%;margin-top:4px;transition:all .15s}
+.animar-btn:hover{background:#2A2A45}
+.animar-btn:disabled{opacity:.4;cursor:not-allowed}
+.clip-player{width:100%;border-radius:6px;margin-top:4px;display:none}
 /* COMERCIAL */
 .cena-upload-area{border:1.5px dashed #2A2A45;border-radius:8px;padding:10px;text-align:center;cursor:pointer;transition:all .15s;margin-bottom:6px;font-size:11px;color:#555577;font-weight:600}
 .cena-upload-area:hover{border-color:#7B5EFF;background:#13132A}
@@ -411,7 +415,11 @@ function renderGrid(total) {
   if(!grid) return;
   var html = '';
   for(var i=0;i<total;i++) {
-    html += '<div class="img-cell" id="cell'+i+'"><img id="img-'+i+'"></div>';
+    html += '<div class="img-cell" id="cell'+i+'">'
+      + '<img id="img-'+i+'">'
+      + '<video class="clip-player" id="clip-'+i+'" controls></video>'
+      + '<button class="animar-btn" id="btn-animar-'+i+'" onclick="animarImagem('+i+')" disabled>▶ Animar</button>'
+      + '</div>';
   }
   grid.innerHTML = html;
 }
@@ -560,6 +568,8 @@ async function gerarImagens() {
               var img = document.getElementById('img-'+i);
               if(img) { img.src = '/imagem/'+imgSid+'/'+i+'?t='+Date.now(); img.style.display = 'block'; }
               imgsJaMostradas[i] = true;
+              var btnA = document.getElementById('btn-animar-'+i);
+              if(btnA) btnA.disabled = false;
             }
           });
 
@@ -1094,6 +1104,26 @@ async function montarVideo() {
     status.textContent = 'Erro: ' + e.message;
     btn.textContent = '🎬 Tentar Novamente';
     btn.disabled = false;
+  }
+}
+
+async function animarImagem(idx) {
+  var btn = document.getElementById('btn-animar-'+idx);
+  if(btn) { btn.disabled = true; btn.textContent = '⏳ Animando...'; }
+  try {
+    var r = await fetch('/animar-imagem', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({session_id: state.sessionId, idx: idx, formato: state.formato})
+    });
+    var d = await r.json();
+    if(!d.ok) throw new Error(d.erro);
+    var vid = document.getElementById('clip-'+idx);
+    if(vid) { vid.src = '/baixar-clip/'+d.vid_id; vid.style.display = 'block'; }
+    if(btn) { btn.textContent = '⬇ Baixar Clipe'; btn.disabled = false; btn.onclick = function(){ window.open('/baixar-clip/'+d.vid_id); }; }
+  } catch(e) {
+    if(btn) { btn.disabled = false; btn.textContent = '▶ Tentar novamente'; }
+    alert('Erro ao animar: ' + e.message);
   }
 }
 
