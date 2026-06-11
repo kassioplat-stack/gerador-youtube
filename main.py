@@ -507,16 +507,16 @@ def chamar_claude(system, user_msg, max_tokens=8000, modelo="claude-sonnet-4-6")
             time.sleep(5)
 
 def gpt_image_generate(prompt, formato="9:16"):
-    """Gera imagem via GPT-4o (gpt-image-1) — usado para modelo Animal."""
-    # Tamanhos suportados pelo gpt-image-1
+    """Gera imagem via DALL-E 3 — usado para modelo Animal."""
+    # Tamanhos suportados pelo DALL-E 3
     size_map = {
-        "9:16": "1024x1536",
-        "16:9": "1536x1024",
+        "9:16": "1024x1792",
+        "16:9": "1792x1024",
         "1:1":  "1024x1024",
     }
-    size = size_map.get(formato, "1024x1536")
-    # Estilo já está embutido no prompt gerado pelo Claude — não duplicar
-    prompt_final = prompt[:4000]
+    size = size_map.get(formato, "1024x1792")
+    # Concatena estilo visual ao prompt
+    prompt_final = (prompt.strip().rstrip(',') + ", " + ESTILO_ANIMAL)[:4000]
 
     for tentativa in range(3):
         try:
@@ -524,29 +524,23 @@ def gpt_image_generate(prompt, formato="9:16"):
                 "https://api.openai.com/v1/images/generations",
                 headers={"Authorization": f"Bearer {OPENAI_KEY}", "Content-Type": "application/json"},
                 json={
-                    "model": "gpt-image-1",
+                    "model": "dall-e-3",
                     "prompt": prompt_final,
                     "n": 1,
                     "size": size,
-                    "quality": "medium",
-                    "output_format": "jpeg"
+                    "quality": "standard",
+                    "response_format": "url"
                 },
                 timeout=120
             )
             data = r.json()
-            print(f"GPT IMAGE RESPONSE: {str(data)[:200]}")
+            print(f"DALLE3 RESPONSE: {str(data)[:200]}")
             if "error" in data:
-                raise Exception(f"GPT Image erro: {data['error']}")
-            # Retorna bytes da imagem (base64 ou url)
-            img_obj = data["data"][0]
-            if "b64_json" in img_obj:
-                import base64
-                return base64.b64decode(img_obj["b64_json"])
-            elif "url" in img_obj:
-                return requests.get(img_obj["url"], timeout=30).content
-            raise Exception("GPT Image: sem imagem na resposta")
+                raise Exception(f"DALL-E 3 erro: {data['error']}")
+            img_url = data["data"][0]["url"]
+            return requests.get(img_url, timeout=30).content
         except Exception as e:
-            print(f"GPT IMAGE ERRO tentativa={tentativa+1}: {type(e).__name__}: {e}")
+            print(f"DALLE3 ERRO tentativa={tentativa+1}: {type(e).__name__}: {e}")
             if tentativa == 2:
                 raise
             time.sleep(5)
