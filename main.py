@@ -103,9 +103,10 @@ ESTILO_ANIMAL = (
     "research notebook documentation, "
     "observable behavioral event, "
     "single scene only, "
-    "no text, no labels, no collage, no multiple studies, no repeated animals, no border sketches, "
+    "no text in English, no labels in English, no collage, no multiple studies, no repeated animals, no border sketches, "
     "no cinematic composition, no movie poster composition, no concept art, no fantasy art, "
-    "no thumbnail composition, no heroic posing, no face-focused framing, no direct eye contact with viewer"
+    "no thumbnail composition, no heroic posing, no face-focused framing, no direct eye contact with viewer, "
+    "if any text or annotation appears in the image it must be written in Portuguese"
 )
 
 ESTILOS = {"field_journal": ESTILO_ANIMAL}
@@ -1487,13 +1488,15 @@ def imagens_gerar():
 
 @app.route('/imagens-status/<session_id>')
 def imagens_status(session_id):
-    """Polling: retorna quantas imagens já foram geradas e se o ZIP está pronto."""
+    """Polling: retorna quais índices de imagens já estão prontos."""
     s = sessions.get(session_id)
     if not s:
         return jsonify({'erro': 'Sessao nao encontrada'}), 404
+    indices_prontos = sorted(list(s.get('imagens', {}).keys()))
     return jsonify({
         'status': s.get('status', 'gerando'),
-        'imagens_ok': len(s.get('imagens', {})),
+        'imagens_ok': len(indices_prontos),
+        'indices_prontos': indices_prontos,
         'total': s.get('total', 0),
         'erros': s.get('erros', []),
         'zip': s.get('zip'),
