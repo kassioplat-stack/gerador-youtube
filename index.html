@@ -422,7 +422,7 @@ async function gerarPrompts() {
   setBtnLoading('btn-prompts', true, '1. Gerar Prompts de Imagem', 'Gerando...');
   var palavras = script.trim().split(/\s+/).length;
   var duracao_s = Math.round(palavras * 0.45);
-  var n_prompts = Math.max(Math.round(duracao_s / 2), 5);
+  var n_prompts = Math.max(Math.round(duracao_s / 2), 2);
   try {
     var r = await fetch('/gerar-prompts', {
       method: 'POST',
