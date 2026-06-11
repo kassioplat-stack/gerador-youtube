@@ -81,14 +81,15 @@ ESTILO_ANIMAL = (
     "fine black ink outlines, "
     "visible loose pencil construction lines, "
     "rough crosshatching, "
-    "detailed wildlife documentary drawing, "
+    "authentic field notebook illustration, "
     "soft watercolor washes, "
     "earth-tone color palette, "
     "subtle natural colors, "
     "field researcher sketchbook style, "
     "scientific expedition journal, "
     "organic brush textures, "
-    "highly detailed animal anatomy, "
+    "biologically accurate animals, "
+    "behavior-focused observation, "
     "natural environment, "
     "observational composition, "
     "field observation framing, "
@@ -99,8 +100,8 @@ ESTILO_ANIMAL = (
     "light watercolor tinting, "
     "aged paper aesthetic, "
     "soft natural lighting, "
-    "museum-quality naturalist artwork, "
-    "single observed moment, "
+    "research notebook documentation, "
+    "observable behavioral event, "
     "single scene only, "
     "no text, no labels, no collage, no multiple studies, no repeated animals, no border sketches, "
     "no cinematic composition, no movie poster composition, no concept art, no fantasy art, "
@@ -797,12 +798,12 @@ def gerar_prompts():
             "field researcher sketchbook style, "
             "scientific expedition journal, "
             "organic brush textures, "
-            "highly detailed animal anatomy, "
+            "biologically accurate animals, behavior-focused observation, "
             "natural environment, "
             "observational field notebook composition, "
             "behavior-focused composition, "
             "soft natural lighting, "
-            "museum-quality naturalist artwork, "
+            "research notebook documentation, "
             "single scene only, "
             "no text, no labels, no collage, no multiple studies, no repeated animals, no border sketches"
         )
@@ -871,18 +872,42 @@ def gerar_prompts():
             "=== MANDATORY PROMPT FORMAT ===",
             "[description of the event: what is happening, between which species, in what environment] + [specific observable behavior that makes it curious] + [observational framing showing the full event — field notebook composition] + [soft natural light] + [motion state: mid-action / frozen / slow-blur]",
             "",
+            "=== INTERACTION PRIORITY RULE ===",
+            "An image showing interaction is always better than an image showing presence.",
+            "Animal interacting is always stronger than animal existing.",
+            "Whenever possible prioritize: animal-animal / animal-human / animal-object / animal-environment.",
+            "Over: animal alone.",
+            "CORRECT: rats delivering food to a cat. WRONG: rat portrait.",
+            "CORRECT: elephant receiving fruit from drivers. WRONG: elephant standing.",
+            "CORRECT: monkeys receiving bananas from tourists. WRONG: monkey staring.",
+            "Rybb documents exchanges, cooperation, conflict, organization, consequences, observable interactions.",
+            "Whenever a choice exists between animal portrait or animal interaction — always choose interaction.",
+            "",
+            "=== INTERACTION PRIORITY RULE ===",
+            "An image showing interaction is always better than an image showing presence.",
+            "Animal interacting is always stronger than animal existing.",
+            "Whenever possible prioritize: animal-animal, animal-human, animal-object, animal-environment interactions.",
+            "NEVER choose: animal alone / animal portrait / animal standing.",
+            "The strongest Rybb images show exchanges, cooperation, conflict, organization, consequence.",
+            "The viewer must think: What is happening here? — not: What a beautiful animal.",
+            "",
             "=== FINAL TEST — before approving any prompt ===",
             "1. Is the event more important than the animal?",
-            "2. Would the image still work if the animal occupied only 20% of the frame?",
-            "3. Does it look like a field observation instead of a movie scene?",
-            "4. Does it avoid portrait composition?",
-            "5. Does it avoid character-focused framing?",
+            "2. Does it show interaction rather than isolated presence?",
+            "3. Would the image still work if the animal occupied only 20% of the frame?",
+            "4. Does it look like a field observation instead of a movie scene?",
+            "5. Does it avoid portrait composition?",
             "6. Does it avoid emotional interpretation?",
             "7. Does it look like a real page from a naturalist notebook?",
+            "8. Is it one of the strongest observable events in the script?",
             "If any answer is NO — rewrite.",
             "",
-            "Generate EXACTLY " + str(n_prompts) + " prompts — distributed evenly across the script.",
-            "Each prompt must document a specific behavioral event from the narration.",
+            "Generate EXACTLY " + str(n_prompts) + " prompts.",
+            "Do NOT distribute evenly. Select only the strongest observable events in the entire script.",
+            "Ignore narration segments that do not create a visual event — transitions, explanatory sentences, walking, standing, looking.",
+            "Every prompt must contain: behavior, consequence, interaction, or visual curiosity.",
+            "If necessary, skip weak moments. Only document moments worth illustrating.",
+            "The goal is not to cover the entire script. The goal is to capture the best visual behavioral events.",
             "",
             "ALSO return a Portuguese translation of each prompt for display to the user.",
             'Return JSON without markdown: {"prompts": [{"en": "english prompt here", "pt": "descricao em portugues aqui"}]}'
