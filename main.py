@@ -514,7 +514,8 @@ def gpt_image_generate(prompt, formato="9:16"):
         "1:1":  "1024x1024",
     }
     size = size_map.get(formato, "1024x1536")
-    prompt_final = (prompt.strip().rstrip(',') + ", " + ESTILO_ANIMAL)[:4000]
+    no_text = "Do not include any text, words, letters, numbers, or written language anywhere in the image. "
+    prompt_final = (no_text + prompt.strip().rstrip(',') + ", " + ESTILO_ANIMAL)[:4000]
 
     for tentativa in range(3):
         try:
