@@ -757,7 +757,7 @@ def gerar_prompts():
         n_prompts = int(n_prompts_req)
     else:
         palavras = len(script.split())
-        n_prompts = max(round(palavras * 0.45 / 2), 5)
+        n_prompts = max(round(palavras * 0.45 / 2), 2)
 
     if modelo == 'mente':
         system_lines = [
