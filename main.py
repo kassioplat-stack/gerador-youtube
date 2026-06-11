@@ -517,6 +517,9 @@ def gpt_image_generate(prompt, formato="9:16"):
     no_text = "Do not include any text, words, letters, numbers, or written language anywhere in the image. "
     prompt_final = (no_text + prompt.strip().rstrip(',') + ", " + ESTILO_ANIMAL)[:4000]
 
+    # Erros que indicam falta de crédito ou acesso — não tentar de novo
+    ERROS_FATAIS = ['insufficient_quota', 'billing', 'credit', 'payment', 'quota', 'does not exist', 'invalid_api_key']
+
     for tentativa in range(3):
         try:
             r = requests.post(
@@ -534,6 +537,10 @@ def gpt_image_generate(prompt, formato="9:16"):
             data = r.json()
             print(f"GPT IMAGE RESPONSE: {str(data)[:200]}")
             if "error" in data:
+                erro_msg = str(data['error']).lower()
+                # Se erro fatal (sem crédito, sem acesso), lança exceção especial
+                if any(e in erro_msg for e in ERROS_FATAIS):
+                    raise Exception(f"GPT_FATAL: {data['error']}")
                 raise Exception(f"GPT Image erro: {data['error']}")
             img_obj = data["data"][0]
             if "b64_json" in img_obj:
@@ -544,15 +551,22 @@ def gpt_image_generate(prompt, formato="9:16"):
             raise Exception("GPT Image: sem imagem na resposta")
         except Exception as e:
             print(f"GPT IMAGE ERRO tentativa={tentativa+1}: {type(e).__name__}: {e}")
+            # Erro fatal — não tenta mais, deixa o caller usar fallback
+            if 'GPT_FATAL' in str(e):
+                raise
             if tentativa == 2:
                 raise
             time.sleep(5)
 
 
 def leonardo_generate(prompt, formato="9:16", estilo="stylized_game", modelo="animais"):
-    # Modelo Animal usa GPT-4o image generation
+    # Modelo Animal usa GPT primeiro, Leonardo como fallback
     if modelo == "animais" and OPENAI_KEY:
-        return gpt_image_generate(prompt, formato)
+        try:
+            return gpt_image_generate(prompt, formato)
+        except Exception as e:
+            print(f"GPT falhou, usando Leonardo como fallback: {e}")
+            # Continua para o Leonardo abaixo
 
     # Modelo Mente e fallback usam Leonardo
     if modelo == "mente":
