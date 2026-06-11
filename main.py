@@ -799,8 +799,8 @@ def gerar_prompts():
             "organic brush textures, "
             "highly detailed animal anatomy, "
             "natural environment, "
-            "wide cinematic composition, "
-            "storytelling illustration, "
+            "observational field notebook composition, "
+            "behavior-focused composition, "
             "soft natural lighting, "
             "museum-quality naturalist artwork, "
             "single scene only, "
@@ -846,6 +846,12 @@ def gerar_prompts():
             "WRONG: bold rhesus macaque with sharp golden-amber eyes, notched left ear, broad flat muzzle.",
             "CORRECT: rhesus macaque, brown fur, medium build, long tail.",
             "Identify the species. Do not build a character.",
+            "",
+            "=== RYBB EVENT SELECTION RULE ===",
+            "Do not illustrate every sentence. Do not illustrate transition sentences. Do not illustrate explanatory sentences.",
+            "Only illustrate moments that contain: visible behavior, visible consequence, or visual curiosity.",
+            "If the image can be described as: animal standing / animal looking / animal walking — the prompt is WRONG.",
+            "Every image must contain an observable event.",
             "",
             "=== LAYER 4 — RYBB VIRALIZATION RULE ===",
             "NEVER amplify through: facial expressions, aggressive poses, heroic poses, dominant portraits, direct eye contact, eye close-up, face close-up, character-focused compositions.",
