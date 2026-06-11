@@ -530,24 +530,26 @@ async function gerarImagens() {
           setP(pct);
           setStep(1, 'active', st.imagens_ok + '/' + st.total + ' imagens geradas...');
 
-          // Mostra imagens conforme chegam
-          for(var i = 0; i < st.imagens_ok; i++) {
+          // Mostra só imagens confirmadas como prontas pelo servidor
+          var indices = st.indices_prontos || [];
+          indices.forEach(function(i) {
             if(!imgsJaMostradas[i]) {
               var img = document.getElementById('img-'+i);
               if(img) { img.src = '/imagem/'+imgSid+'/'+i+'?t='+Date.now(); img.style.display = 'block'; }
               imgsJaMostradas[i] = true;
             }
-          }
+          });
 
           if(st.status === 'concluido') {
             clearInterval(intervalo);
-            // Mostra imagens restantes que possam ter chegado no último ciclo
-            for(var j = 0; j < st.total; j++) {
+            // Mostra imagens restantes confirmadas pelo servidor
+            var indicesFinal = st.indices_prontos || [];
+            indicesFinal.forEach(function(j) {
               if(!imgsJaMostradas[j]) {
                 var img2 = document.getElementById('img-'+j);
                 if(img2) { img2.src = '/imagem/'+imgSid+'/'+j+'?t='+Date.now(); img2.style.display = 'block'; }
               }
-            }
+            });
             resolve(st);
           }
         } catch(err) {
